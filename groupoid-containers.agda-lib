@@ -1,0 +1,4 @@
+name: groupoid-containers
+include: .
+depend: cubical
+flags: --cubical --postfix-projections --hidden-argument-puns --allow-unsolved-metas

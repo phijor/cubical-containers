@@ -365,7 +365,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
         coherence {s} σ = funExtDep λ { {x₀ = v} {x₁ = w} p → ΣPathP (refl , SQ.eq/ v w (σ .fst , σ .snd , p)) }
 
         goal : (s : ↑Shape) → (v : ↑Pos s → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩
-        goal = ↑Q.↑Shape-elimSet (λ {a0} {a1} → isOfHLevel→isOfHLevelDep 2 isSetΠ⟦Q⟧ {a0} {a1}) [_]* coherence
+        goal = ↑Q.↑Shape-elimSet isSetΠ⟦Q⟧ [_]* coherence
 
     from-lift-trunc : Tr⟦↑Q⟧ᵗ X → (⟦Q⟧ᵗ ⟨ X ⟩)
     from-lift-trunc = ST.rec (QC.Eval.isSet-⟦ Q ⟧ᵗ ⟨ X ⟩) from-lift

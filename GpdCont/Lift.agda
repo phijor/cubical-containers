@@ -215,13 +215,13 @@ module LiftLoop {ℓ} (Q : QCont ℓ) where
     → ↑Shape → B
   ↑Shape-rec {B} is-gpd-B = ↑Shape-elim {B = const B} λ x y p q r s _ → is-gpd-B x y p q r s
 
-  ↑Shape-elimSet : ∀ {ℓB} {B : ↑Shape → Type ℓB}
+  ↑Shape-elimSetDep : ∀ {ℓB} {B : ↑Shape → Type ℓB}
     → (isOfHLevelDep 2 B)
     → (↑[_]* : (s : Shape) → B $ ↑shape s)
     → (↑loop* : {s : Shape} (g : s ∼ s) → PathP (λ i → B (↑loop g i)) ↑[ s ]* ↑[ s ]*)
     → (x : ↑Shape)
     → B x
-  ↑Shape-elimSet {B} is-set-B ↑[_]* ↑loop* = ↑Shape-elim {B = B} is-gpd-B ↑[_]* ↑loop* ↑loop-comp* where
+  ↑Shape-elimSetDep {B} is-set-B ↑[_]* ↑loop* = ↑Shape-elim {B = B} is-gpd-B ↑[_]* ↑loop* ↑loop-comp* where
     is-gpd-B : isOfHLevelDep 3 B
     is-gpd-B b₀ b₁ = isPropDep→isSetDep (is-set-B b₀ b₁)
 
@@ -235,6 +235,14 @@ module LiftLoop {ℓ} (Q : QCont ℓ) where
       ↑loop-comp* {s} g h = isSet→SquareP
         (λ i j x y p q → is-set-B x y p q λ _ _ → ↑loop-comp g h i j)
         (↑loop* g) (↑loop* (g · h)) refl (↑loop* h)
+
+  ↑Shape-elimSet : ∀ {ℓB} {B : ↑Shape → Type ℓB}
+    → (∀ x → isSet (B x))
+    → (↑[_]* : (s : Shape) → B $ ↑shape s)
+    → (↑loop* : {s : Shape} (g : s ∼ s) → PathP (λ i → B (↑loop g i)) ↑[ s ]* ↑[ s ]*)
+    → (x : ↑Shape)
+    → B x
+  ↑Shape-elimSet is-set-B = ↑Shape-elimSetDep λ {a0} {a1} → isOfHLevel→isOfHLevelDep 2 is-set-B {a0} {a1}
 
   ↑Shape-elimPropDep : ∀ {ℓB} {B : ↑Shape → Type ℓB}
     → (isPropDep B)

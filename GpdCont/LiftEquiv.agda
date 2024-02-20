@@ -352,7 +352,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
           label-path = r .snd .snd
 
     opaque
-      unfolding GC.Eval.⟦_⟧ᵗ ⟦Q⟧ᵗ ↑Pos _∼*_ ua
+      unfolding GC.Eval.⟦_⟧ᵗ ⟦Q⟧ᵗ PosSet _∼*_ ua
       from-lift : GC.Eval.⟦ ↑Q ⟧ᵗ ⟨ X ⟩ → (⟦Q⟧ᵗ ⟨ X ⟩)
       from-lift = uncurry goal where
         isSetΠ⟦Q⟧ : ∀ ↑s → isSet ((GCont.Pos ↑Q ↑s → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩)
@@ -420,3 +420,47 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
 
   cor : ∀ X → ⟦Q⟧ X ≡ Tr⟦↑Q⟧ X
   cor X = TypeOfHLevel≡ 2 (ua $ thm X)
+
+module EvalLiftLoopEquational {ℓ} (Q : QCont ℓ) where
+  open import GpdCont.Lift using (module LiftLoop ; module Properties)
+  open import GpdCont.SetTruncation using (IsoSetTruncateFstΣ)
+  open import Cubical.Foundations.Isomorphism as Isomorphism using (Iso ; isoToEquiv) renaming (invIso to _⁻ⁱ)
+  open import Cubical.Foundations.Equiv.Properties
+  open import Cubical.HITs.SetQuotients as SQ using (_/_)
+  open QCont Q using (Shape ; Pos ; Symm ; _∼_ ; isTransSymm ; PosSet)
+  module Q = QCont Q
+
+  open QC.Eval Q using (_∼*_ ; ∼*→∼ ; _∼*⁻¹) renaming (⟦_⟧ to ⟦Q⟧ ; ⟦_⟧ᵗ to ⟦Q⟧ᵗ)
+
+  ↑Q : GCont ℓ
+  ↑Q = LiftLoop.↑ Q
+
+  module ↑Q = LiftLoop Q
+  open LiftLoop Q using (↑Shape ; ↑Pos)
+  open Properties Q using (↑Shape-Delooping-equiv ; ↑Shape-Delooping-Iso ; 𝔹 ; Σ𝔹 ; ↑Shape→Σ𝔹 ; Σ𝔹→↑Shape)
+
+  open GC.Eval ↑Q using () renaming (⟦_⟧ to ⟦↑Q⟧ ; ⟦_⟧ᵗ to ⟦↑Q⟧ᵗ)
+
+  Tr⟦↑Q⟧ : hSet ℓ → hSet ℓ
+  Tr⟦↑Q⟧ = Tr ⟦↑Q⟧
+
+  Tr⟦↑Q⟧ᵗ : hSet ℓ → Type ℓ
+  Tr⟦↑Q⟧ᵗ X = ∥ ⟦↑Q⟧ᵗ ⟨ X ⟩ ∥₂
+
+  opaque
+    unfolding QC.Eval.⟦_⟧ Tr GC.Eval.⟦_⟧
+    thm : ∀ X → ⟨ ⟦Q⟧ X ⟩ ≃ ⟨ Tr⟦↑Q⟧ X ⟩
+    thm X =
+      ⟨ ⟦Q⟧ X ⟩ ≃⟨⟩
+      Σ[ s ∈ Shape ] (Pos s → ⟨ X ⟩) / _∼*_ ≃⟨ {! !} ⟩
+      Σ[ s ∈ Shape ] ∥ Σ[ v ∈ 𝔹 s ] (↑Pos (Σ𝔹→↑Shape (s , v)) → ⟨ X ⟩) ∥₂ ≃⟨ isoToEquiv (IsoSetTruncateFstΣ Q.is-set-shape ⁻ⁱ) ⟩
+      ∥ Σ[ s ∈ Shape ] Σ[ v ∈ 𝔹 s ] (↑Pos (Σ𝔹→↑Shape (s , v)) → ⟨ X ⟩) ∥₂ ≃⟨ cong≃ ∥_∥₂ $ invEquiv Sigma.Σ-assoc-≃ ⟩
+      ∥ Σ[ ↑s ∈ Σ𝔹 ] (↑Pos (Σ𝔹→↑Shape ↑s) → ⟨ X ⟩) ∥₂ ≃⟨ cong≃ ∥_∥₂ $ Sigma.Σ-cong-equiv-fst $ invEquiv ↑Shape-Delooping-equiv ⟩
+      ∥ Σ[ ↑s ∈ ↑Shape ] (↑Pos ↑s → ⟨ X ⟩) ∥₂ ≃⟨⟩
+      ∥ ⟦↑Q⟧ᵗ ⟨ X ⟩ ∥₂ ≃∎ where
+
+      step : Iso (Σ[ s ∈ Σ𝔹 ] (↑Pos (↑Shape-Delooping-Iso .Iso.inv s) → ⟨ X ⟩)) (Σ[ ↑s ∈ ↑Shape ] (↑Pos ↑s → ⟨ X ⟩))
+      step = Sigma.Σ-cong-iso-fst (Isomorphism.invIso ↑Shape-Delooping-Iso)
+
+      trunc-equiv : ∀ ↑s → ∥ (↑Pos ↑s → ⟨ X ⟩) ∥₂ ≃ ∥ (Pos (↑Shape→Σ𝔹 ↑s .fst) → ⟨ X ⟩) ∥₂
+      trunc-equiv ↑s = {! !}

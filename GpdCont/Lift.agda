@@ -9,7 +9,7 @@ open import GpdCont.Univalence as UA using (ua→ ; pathToEquiv ; ua)
 open import Cubical.Data.Sigma.Base
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Path using (isProp→SquareP)
+open import Cubical.Foundations.Path using (isProp→SquareP ; flipSquare)
 open import Cubical.HITs.GroupoidQuotients as GQ using (_//_)
 open import Cubical.Functions.Embedding
 
@@ -299,3 +299,74 @@ module LiftLoop {ℓ} (Q : QCont ℓ) where
   ↑ .GCont.Pos = ↑Pos
   ↑ .GCont.is-groupoid-shape = isGroupoid-↑Shape
   ↑ .GCont.is-set-pos = isSet-↑Pos
+
+module Properties {ℓ} (Q : QCont ℓ)  where
+  open import Cubical.Data.Sigma.Properties
+  open import Cubical.Foundations.Isomorphism using (Iso ; section ; retract ; isoToEquiv)
+  open module Q = QCont Q using (Shape ; Pos ; Symm ; _∼_ ; isTransSymm ; PosSet)
+  open LiftLoop Q
+
+  module Delooping (s : Shape) where
+    open import GpdCont.Delooping using (module Delooping)
+    open Delooping (s ∼ s) _·_ public
+
+  open Delooping public
+
+  Σ𝔹 : Type ℓ
+  Σ𝔹 = Σ[ s ∈ Shape ] Delooping.𝔹 s
+
+  isGroupoid-Σ𝔹 : isGroupoid Σ𝔹
+  isGroupoid-Σ𝔹 = isGroupoidΣ (isSet→isGroupoid Q.is-set-shape) λ s → isGroupoid𝔹
+
+  module ↑Shape-Delooping-Iso where
+    fun : ↑Shape → Σ𝔹
+    fun = ↑Shape-rec isGroupoid-Σ𝔹 [_]* [-]*-loop [-]*-comp where
+      [_]* : Shape → Σ𝔹
+      [ s ]* .fst = s
+      [ s ]* .snd = ⋆
+
+      [-]*-loop : ∀ {s} → s ∼ s → [ s ]* ≡ [ s ]*
+      [-]*-loop {s} σ = ΣPathP (refl {x = s}, loop σ)
+
+      [-]*-comp : ∀ {s} (g h : s ∼ s) → Square ([-]*-loop g) ([-]*-loop (g · h)) refl ([-]*-loop h)
+      [-]*-comp {s} g h i j .fst = s
+      [-]*-comp {s} g h i j .snd = loop-comp g h i j
+
+    inv : Σ𝔹 → ↑Shape
+    inv = uncurry λ s → Delooping.rec s isGroupoid-↑Shape (↑shape s) ↑loop ↑loop-comp
+
+    rightInv : section fun inv
+    rightInv = uncurry goal where module _ (s : Shape) where
+      is-gpd-path : ∀ s (g : Delooping.𝔹 s) → isGroupoid (fun (inv (s , g)) ≡ (s , g))
+      is-gpd-path s g = isSet→isGroupoid (isGroupoid-Σ𝔹 _ (s , g))
+
+      -- [fun] and [inv] compute on constructors of `𝔹 s`
+      goal : ∀ (g : Delooping.𝔹 s) → fun (inv (s , g)) ≡ (s , g)
+      goal = Delooping.elim s (is-gpd-path s)
+        refl
+        (λ σ i → refl {x = s , loop σ i})
+        (λ σ τ i j → refl {x = s , Delooping.loop-comp σ τ i j})
+
+    -- TODO: Use [↑Shape-elim] and prove coherence of composition explicitly.
+    leftInv : retract fun inv
+    leftInv = ↑Shape-elimSet (λ ↑s → isGroupoid-↑Shape _ ↑s) (λ s → refl {x = ↑shape s}) λ { g → flipSquare (refl {x = ↑loop g}) }
+
+  ↑Shape-Delooping-Iso : Iso ↑Shape Σ𝔹
+  ↑Shape-Delooping-Iso = record { ↑Shape-Delooping-Iso }
+
+  open ↑Shape-Delooping-Iso using () renaming (fun to ↑Shape→Σ𝔹 ; inv to Σ𝔹→↑Shape) public
+
+  ↑Shape-Delooping-equiv : ↑Shape ≃ Σ𝔹
+  ↑Shape-Delooping-equiv = isoToEquiv ↑Shape-Delooping-Iso
+
+  opaque
+    unfolding PosSet
+    ΣPos : (↑s : Σ𝔹) → hSet _
+    ΣPos = uncurry λ s → Delooping.rec s isGroupoidHSet (PosSet s) (λ σ → TypeOfHLevel≡ 2 (ua (σ .fst))) {! !}
+
+--   opaque
+--     unfolding ↑Pos
+--     ↑Pos-Delooping-equiv : ∀ (↑s : ↑Shape) → ↑Pos ↑s ≃ (Pos (fst $ ↑Shape→Σ𝔹 ↑s))
+--     ↑Pos-Delooping-equiv = ↑Shape-elimSet (λ ↑s → isOfHLevel≃ 2 (isSet-↑Pos ↑s) (Q.is-set-pos _)) ? {! !} where
+--       -- eq-path : ∀ {s} (g : s ∼ s) → PathP (λ i → (ua (fst g) i) ≃ Pos s) (idEquiv _) (idEquiv _)
+--       -- eq-path g i = UA.ua-unglue-equiv′ (g .fst) i

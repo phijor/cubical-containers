@@ -17,7 +17,7 @@ module Delooping {ℓ} (G : Type ℓ) (_·_ : G → G → G) where
       -- ⋆ -[ g · h ]- ⋆
     isGroupoid𝔹 : isGroupoid 𝔹
 
-  elim : ∀ {B : 𝔹 → Type ℓ}
+  elimDep : ∀ {ℓB} {B : 𝔹 → Type ℓB}
     → (isOfHLevelDep 3 B)
     → (b : B ⋆)
     → (b-loop : (g : G) → PathP (λ i → B (loop g i)) b b)
@@ -28,7 +28,7 @@ module Delooping {ℓ} (G : Type ℓ) (_·_ : G → G → G) where
         refl
         (b-loop h))
     → (x : 𝔹) → B x
-  elim is-gpd-B b b-loop b-comp = go where
+  elimDep is-gpd-B b b-loop b-comp = go where
     go : ∀ x → _
     go ⋆ = b
     go (loop g i) = b-loop g i
@@ -41,7 +41,20 @@ module Delooping {ℓ} (G : Type ℓ) (_·_ : G → G → G) where
         (isGroupoid𝔹 x y p q r s)
         i j k
 
-  rec : ∀ {B : Type ℓ}
+  elim : ∀ {ℓB} {B : 𝔹 → Type ℓB}
+    → (∀ x → isGroupoid (B x))
+    → (b : B ⋆)
+    → (b-loop : (g : G) → PathP (λ i → B (loop g i)) b b)
+    → (b-comp : (g h : G)
+      → SquareP (λ i j → B (loop-comp g h i j))
+        (b-loop g)
+        (b-loop (g · h))
+        refl
+        (b-loop h))
+    → (x : 𝔹) → B x
+  elim is-gpd-B = elimDep λ {a0} {a1} → isOfHLevel→isOfHLevelDep 3 is-gpd-B {a0} {a1}
+
+  rec : ∀ {ℓB} {B : Type ℓB}
     → isGroupoid B
     → (b : B)
     → (b-loop : (g : G) → b ≡ b)

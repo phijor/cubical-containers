@@ -337,7 +337,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
       renaming (⟦-⟧ᵗ-Path to ᵗ-Path ; ⟦_⟧ᵗ to ᵗ)
 
     opaque
-      unfolding Tr QC.Eval.⟦_⟧ᵗ GC.Eval.⟦_⟧ᵗ _∼*_ ↑Pos ua
+      unfolding Tr QC.Eval.⟦_⟧ᵗ GC.Eval.⟦_⟧ᵗ _∼*_ PosSet ua
       to-lift-trunc : (⟦Q⟧ᵗ ⟨ X ⟩) → Tr⟦↑Q⟧ᵗ X
       to-lift-trunc (s , v) = SQ.rec (isSet-Tr⟦↑Q⟧ᵗ X) [_]* [-]*-well-defined v where
         [_]* : (v : Pos s → ⟨ X ⟩) → Tr⟦↑Q⟧ᵗ X
@@ -371,7 +371,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
     from-lift-trunc = ST.rec (QC.Eval.isSet-⟦ Q ⟧ᵗ ⟨ X ⟩) from-lift
 
     opaque
-      unfolding ⟦Q⟧ᵗ from-lift to-lift-trunc ↑Pos
+      unfolding ⟦Q⟧ᵗ from-lift to-lift-trunc
       lift-trunc-rightInv : ∀ (x : Tr⟦↑Q⟧ᵗ X) → to-lift-trunc (from-lift-trunc x) ≡ x
       lift-trunc-rightInv = ST.elim (isProp→isSet ∘ isPropPath) goal where
         isPropPath : ∀ x → isProp (to-lift-trunc (from-lift-trunc x) ≡ x)

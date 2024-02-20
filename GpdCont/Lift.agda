@@ -110,7 +110,7 @@ module Lift {ℓ} (Q : QCont ℓ) where
   ↑ .GCont.is-set-pos = isSet-↑Pos
 
 module LiftΣ {ℓ} (Q : QCont ℓ) where
-  open QCont Q using (Shape ; Pos ; Symm ; _∼_)
+  open QCont Q using (Shape ; Pos ; Symm ; _∼_ ; PosSet)
 
   module Q = QCont Q
 
@@ -122,7 +122,7 @@ module LiftΣ {ℓ} (Q : QCont ℓ) where
       ↓shape : Shape
 
     _·_ : (g h : ↓shape ∼ ↓shape) → ↓shape ∼ ↓shape
-    _·_ = Q.isTransSymm _ _ _
+    _·_ = Q._·_
 
     𝔹Pos = Delooping.𝔹 (↓shape ∼ ↓shape) _·_
 
@@ -148,12 +148,18 @@ module LiftΣ {ℓ} (Q : QCont ℓ) where
   ↑ShapeLoop r i .↓shape = _
   ↑ShapeLoop r i .symm = Delooping.loop r i
 
+  ↑PosSet : ↑Shape → hSet ℓ
+  ↑PosSet ↑s = Delooping.rec _ _ isGroupoidHSet
+    (PosSet $ ↑s .↓shape)
+    Q.PosPath
+    Q.PosPathCompSquare
+    (↑s .symm)
+
   ↑Pos : ↑Shape → Type ℓ
-  ↑Pos ↑s = (Pos $ ↑s .↓shape) -- × (↑s .symm ≡ ↑s .symm)
+  ↑Pos = ⟨_⟩ ∘ ↑PosSet
 
   isSet-↑Pos : ∀ s → isSet (↑Pos s)
-  -- isSet-↑Pos ↑s = isSet× (Q.is-set-pos (↑s .↓shape)) (Delooping.isGroupoid𝔹 (↑s .symm) (↑s .symm))
-  isSet-↑Pos ↑s = Q.is-set-pos (↑s .↓shape)
+  isSet-↑Pos = str ∘ ↑PosSet
 
   ↑_ : GCont ℓ
   ↑ .GCont.Shape = ↑Shape
@@ -169,13 +175,14 @@ module LiftLoop {ℓ} (Q : QCont ℓ) where
   private
     module Q = QCont Q
 
-    _·_ : ∀ {s} → (g h : s ∼ s) → s ∼ s
-    _·_ {s} = Q.isTransSymm s s s
+  _·_ : ∀ {s} → (g h : s ∼ s) → s ∼ s
+  _·_ {s} = Q._·_ {s} {s} {s}
 
   data ↑Shape : Type ℓ where
     ↑shape : Shape → ↑Shape
     ↑loop : ∀ {s} → s ∼ s → ↑shape s ≡ ↑shape s
-    ↑loop-comp : ∀ {s} → (g h : s ∼ s) → PathP (λ j → ↑shape s ≡ ↑loop h j) (↑loop g) (↑loop (g · h))
+    ↑loop-comp : ∀ {s} → (g h : s ∼ s)
+      → PathP (λ j → ↑shape s ≡ ↑loop h j) (↑loop g) (↑loop (g · h))
     isGroupoid-↑Shape : isGroupoid ↑Shape
 
   ↑Shape-elim : ∀ {ℓB} {B : ↑Shape → Type ℓB}
@@ -275,24 +282,19 @@ module LiftLoop {ℓ} (Q : QCont ℓ) where
     → B x
   ↑Shape-elimProp {B} is-prop-B = ↑Shape-elimPropDep {B = B} λ {a0} {a1} → isOfHLevel→isOfHLevelDep 1 is-prop-B {a0} {a1}
 
-  opaque
-    unfolding PosSet isTransSymm
-    ↑Pos′ : ↑Shape → hSet ℓ
-    ↑Pos′ = ↑Shape-rec isGroupoidHSet PosSet ↑loop* ↑loop-comp* where
-      ↑loop* : ∀ {s} → s ∼ s → PosSet s ≡ PosSet s
-      ↑loop* = TypeOfHLevel≡ 2 ∘ ua ∘ fst
+  ↑Pos′ : ↑Shape → hSet ℓ
+  ↑Pos′ = ↑Shape-rec isGroupoidHSet PosSet ↑loop* ↑loop-comp* where
+    ↑loop* : ∀ {s} → s ∼ s → PosSet s ≡ PosSet s
+    ↑loop* = Q.PosPath
 
-      ↑loop-comp*′ : ∀ {s} (σ τ : Pos s ≃ Pos s) → Square (ua σ) (ua (σ ∙ₑ τ)) refl (ua τ)
-      ↑loop-comp*′ = UA.uaCompEquivSquare
+    ↑loop-comp* : ∀ {s} (g h : s ∼ s) → Square (↑loop* g) (↑loop* (g · h)) refl (↑loop* h)
+    ↑loop-comp* = Q.PosPathCompSquare
 
-      ↑loop-comp* : ∀ {s} (g h : s ∼ s) → Square (↑loop* g) (↑loop* (g · h)) refl (↑loop* h)
-      ↑loop-comp* g h = ΣSquareSet (λ X → isProp→isSet isPropIsSet) (↑loop-comp*′ (g .fst) (h .fst))
+  ↑Pos : ↑Shape → Type ℓ
+  ↑Pos = ⟨_⟩ ∘ ↑Pos′
 
-    ↑Pos : ↑Shape → Type ℓ
-    ↑Pos = ⟨_⟩ ∘ ↑Pos′
-
-    isSet-↑Pos : ∀ s → isSet (↑Pos s)
-    isSet-↑Pos = str ∘ ↑Pos′
+  isSet-↑Pos : ∀ s → isSet (↑Pos s)
+  isSet-↑Pos = str ∘ ↑Pos′
 
   ↑_ : GCont ℓ
   ↑ .GCont.Shape = ↑Shape

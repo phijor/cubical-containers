@@ -1,10 +1,10 @@
 module GpdCont.QuotientContainer where
 
 open import GpdCont.Prelude
+open import GpdCont.Univalence using (ua ; uaCompEquivSquare)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Univalence using (ua)
 open import Cubical.Data.Sigma.Base
 open import Cubical.HITs.SetQuotients as SQ using (_/_)
 open import Cubical.Relation.Binary.Base using (module BinaryRelation)
@@ -35,11 +35,14 @@ record QCont (ℓ : Level) : Type (ℓ-suc ℓ) where
 
   opaque
     isEquivSymm : isEquivRel _∼_
-    isEquivSymm = ?
+    isEquivSymm = {! !}
   
   opaque
     isTransSymm : isTrans _∼_
     isTransSymm s t u (σ , σ-symm) (τ , τ-symm) = σ ∙ₑ τ , symm-comp σ τ σ-symm τ-symm
+
+    _·_ : ∀ {s t u} → (s ∼ t) → (t ∼ u) → (s ∼ u)
+    _·_ {s} {t} {u} = isTransSymm s t u
 
   opaque
     isSymSymm : isSym _∼_
@@ -58,6 +61,14 @@ record QCont (ℓ : Level) : Type (ℓ-suc ℓ) where
     PosSet s .fst = Pos s
     PosSet s .snd = is-set-pos s
 
+    PosPath : ∀ {s t} (σ : s ∼ t) → PosSet s ≡ PosSet t
+    PosPath = TypeOfHLevel≡ 2 ∘ ua ∘ fst
+
+  opaque
+    unfolding _·_ PosPath
+    PosPathCompSquare : ∀ {s t u} → (σ : s ∼ t) (τ : t ∼ u) → Square (PosPath σ) (PosPath $ σ · τ) refl (PosPath τ)
+    PosPathCompSquare σ τ = ΣSquareSet (λ X → isProp→isSet isPropIsSet) (uaCompEquivSquare (fst σ) (fst τ))
+
   opaque
     SymmProp : ∀ {s} (p : Pos s ≃ Pos s) → hProp ℓ
     SymmProp p .fst = Symm p
@@ -73,7 +84,7 @@ module Eval {ℓ} (Q : QCont ℓ) where
     _∼*_ {s} {X} = LabelEquiv s X
 
     _∼*⁻¹ : ∀ {s} {X : Type ℓ} {v w : Pos s → X} → v ∼* w → w ∼* v
-    _∼*⁻¹ = ?
+    _∼*⁻¹ = {! !}
 
     ∼*→∼ : ∀ {X} {s} {v w : Pos s → X} → v ∼* w → s ∼ s
     ∼*→∼ (σ , (is-symm-σ , _)) = σ , is-symm-σ

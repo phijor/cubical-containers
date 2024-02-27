@@ -28,5 +28,11 @@ R IsoΣ = isoΣ
 _≃Σ : ∀ {ℓ} (R : Type ℓ) {S : Type ℓ} → ⦃ RecordToΣ R {S} ⦄ → R ≃ S
 R ≃Σ = equivΣ
 
+cast→Σ : ∀ {ℓ} {R : Type ℓ} {S : Type ℓ} → ⦃ RecordToΣ R {S} ⦄ → R → S
+cast→Σ = isoΣ .fun
+
+cast←Σ : ∀ {ℓ} {R : Type ℓ} {S : Type ℓ} → ⦃ RecordToΣ R {S} ⦄ → S → R
+cast←Σ = isoΣ .inv
+
 recordIsOfHLevel : ∀ {ℓ} {R S : Type ℓ} → ⦃ RecordToΣ R {S} ⦄ → (n : HLevel) → isOfHLevel n S → isOfHLevel n R
 recordIsOfHLevel n = isOfHLevelRetractFromIso n isoΣ

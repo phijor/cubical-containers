@@ -32,3 +32,14 @@ module LevelNumber where
     NumberLevel .Number.fromNat n = ℓ# n
 
 open LevelNumber public
+
+compSquareFiller : ∀ {ℓ} {A : Type ℓ} {x y z : A} → (p : x ≡ y) (q : y ≡ z) (p∙q : x ≡ z) → Type ℓ
+compSquareFiller {x} p q p∙q = PathP (λ i → x ≡ q i) p p∙q
+
+compSquarePFiller : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}
+  → ∀ {x y z : A} {p : x ≡ y} {q : y ≡ z} {p∙q : x ≡ z}
+  → (sq : compSquareFiller p q p∙q)
+  → (sec : (a : A) → B a)
+  → (sec-path : ∀ {x y : A} → (p : x ≡ y) → PathP (λ i → B (p i)) (sec x) (sec y))
+  → Type ℓB
+compSquarePFiller {B} {x} {p} {q} {p∙q} sq sec sec-path = SquareP (λ i j → B (sq i j)) (sec-path p) (sec-path p∙q) (refl {x = sec x}) (sec-path q)

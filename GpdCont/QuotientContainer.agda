@@ -1,10 +1,11 @@
 module GpdCont.QuotientContainer where
 
 open import GpdCont.Prelude
-open import GpdCont.Univalence using (ua ; uaCompEquivSquare)
+open import GpdCont.Univalence
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Path
 open import Cubical.Data.Sigma.Base
 open import Cubical.HITs.SetQuotients as SQ using (_/_)
 open import Cubical.Relation.Binary.Base using (module BinaryRelation)
@@ -29,13 +30,17 @@ record QCont (ℓ : Level) : Type (ℓ-suc ℓ) where
     is-set-shape : isSet Shape
     is-set-pos : ∀ s → isSet (Pos s)
     is-prop-symm : ∀ {s t} (p : Pos s ≃ Pos t) → isProp (Symm p)
+    symm-id : ∀ s → Symm (idEquiv (Pos s))
+    symm-sym : ∀ {s t} (σ : Pos s ≃ Pos t) → Symm σ → Symm (invEquiv σ)
     symm-comp : ∀ {s t u} (σ : Pos s ≃ Pos t) (τ : Pos t ≃ Pos u)
       → Symm σ → Symm τ → Symm (σ ∙ₑ τ)
 
 
   opaque
     isEquivSymm : isEquivRel _∼_
-    isEquivSymm = {! !}
+    isEquivSymm .isEquivRel.reflexive s = idEquiv _ , symm-id s
+    isEquivSymm .isEquivRel.symmetric s t σ = invEquiv (σ .fst) , symm-sym (σ .fst) (σ .snd)
+    isEquivSymm .isEquivRel.transitive s t u σ τ = σ .fst ∙ₑ τ .fst , symm-comp _ _ (σ .snd) (τ .snd)
   
   opaque
     isTransSymm : isTrans _∼_
@@ -77,17 +82,35 @@ record QCont (ℓ : Level) : Type (ℓ-suc ℓ) where
 module Eval {ℓ} (Q : QCont ℓ) where
   open QCont Q
   opaque
+    unfolding _·_ ua PosPath PosPathCompSquare
     LabelEquiv : (s : Shape) (X : Type ℓ) → (v w : Pos s → X) → Type ℓ
-    LabelEquiv s X v w = Σ[ p ∈ PosΩ s ] Symm p × PathP (λ i → ua p i → X) v w
+    LabelEquiv s X v w = Σ[ σ ∈ s ∼ s ] PathP (λ i → ua (σ .fst) i → X) v w
 
     _∼*_ : ∀ {s} {X : Type ℓ} → (v w : Pos s → X) → Type ℓ
     _∼*_ {s} {X} = LabelEquiv s X
 
-    _∼*⁻¹ : ∀ {s} {X : Type ℓ} {v w : Pos s → X} → v ∼* w → w ∼* v
-    _∼*⁻¹ = {! !}
+    isTrans-∼* : ∀ {s} {X : Type ℓ} → isTrans (_∼*_ {s} {X})
+    isTrans-∼* v w u σ* τ* .fst = σ* .fst · τ* .fst
+    isTrans-∼* {s} {X} v w u σ* τ* .snd = λ i → comp (λ j → comp-equiv-square j i → X) (system i) {! (v ∘ ua-unglue σ i) !} where
+      σ τ σ∙τ : Pos s ≃ Pos s
+      σ = σ* .fst .fst
+      τ = τ* .fst .fst
+      σ∙τ = σ ∙ₑ τ
+      comp-equiv-square : compSquareFiller (ua σ) (ua τ) (ua σ∙τ)
+      comp-equiv-square = uaCompEquivSquare (σ* .fst .fst) (τ* .fst .fst)
+
+      system : (i j : I) → Partial (i ∨ ~ i) (comp-equiv-square j i → X)
+      system i j (i = i0) = λ s → {! !}
+      system i j (i = i1) = {!ua-unglue (σ∙τ) !}
+
+    ∼*→PosEquiv : ∀ {X} {s} {v w : Pos s → X} → v ∼* w → Pos s ≃ Pos s
+    ∼*→PosEquiv ((σ , is-symm-σ) , _) = σ
 
     ∼*→∼ : ∀ {X} {s} {v w : Pos s → X} → v ∼* w → s ∼ s
-    ∼*→∼ (σ , (is-symm-σ , _)) = σ , is-symm-σ
+    ∼*→∼ ((σ , is-symm-σ) , _) = σ , is-symm-σ
+
+    ∼*→PathP* : ∀ {X} {s} {v w : Pos s → X} → (σ : v ∼* w) → PathP (λ i → ua (∼*→PosEquiv σ) i → X) v w
+    ∼*→PathP* ((_ , _) , p) = p
 
   opaque
     ⟦_⟧ᵗ : Type ℓ → Type ℓ

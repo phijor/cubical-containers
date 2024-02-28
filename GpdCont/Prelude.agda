@@ -33,8 +33,29 @@ module LevelNumber where
 
 open LevelNumber public
 
-compSquareFiller : ∀ {ℓ} {A : Type ℓ} {x y z : A} → (p : x ≡ y) (q : y ≡ z) (p∙q : x ≡ z) → Type ℓ
+private
+  variable
+    ℓ : Level
+    A : Type ℓ
+    x y z : A
+
+compSquareFiller : (p : x ≡ y) (q : y ≡ z) (p∙q : x ≡ z) → Type _
 compSquareFiller {x} p q p∙q = PathP (λ i → x ≡ q i) p p∙q
+
+pathComp→compSquareFiller : (p : x ≡ y) (q : y ≡ z) → compSquareFiller p q (p ∙ q)
+pathComp→compSquareFiller = compPath-filler
+
+isPropCompSquareFiller : ∀ (p : x ≡ y) (q : y ≡ z) → isProp (Σ[ r ∈ x ≡ z ] compSquareFiller p q r)
+isPropCompSquareFiller p q = compPath-unique refl p q
+
+isContrCompSquareFiller : ∀ (p : x ≡ y) (q : y ≡ z) → isContr (Σ[ r ∈ x ≡ z ] compSquareFiller p q r)
+isContrCompSquareFiller p q .fst = p ∙ q , pathComp→compSquareFiller p q
+isContrCompSquareFiller p q .snd = isPropCompSquareFiller p q _
+
+coerceCompSquareFiller : {p : x ≡ y} {q : y ≡ z} {r : x ≡ z}
+  → (H : p ∙ q ≡ r)
+  → compSquareFiller p q r
+coerceCompSquareFiller {p} {q} H = subst (compSquareFiller p q) H $ pathComp→compSquareFiller p q
 
 compSquarePFiller : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}
   → ∀ {x y z : A} {p : x ≡ y} {q : y ≡ z} {p∙q : x ≡ z}

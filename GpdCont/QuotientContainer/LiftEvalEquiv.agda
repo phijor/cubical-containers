@@ -3,7 +3,6 @@ module GpdCont.QuotientContainer.LiftEvalEquiv where
 open import GpdCont.Prelude hiding (Lift)
 
 open import GpdCont.QuotientContainer.Base using (QCont)
-open import GpdCont.GroupoidContainer.Base using (GCont)
 open import GpdCont.Univalence using (ua ; ua→)
 open import GpdCont.SetTruncation using (setTruncateFstΣ≃)
 
@@ -16,7 +15,6 @@ open import Cubical.Foundations.Equiv.Properties using (cong≃)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism as Isomorphism using (Iso ; isoToEquiv) renaming (invIso to _⁻ⁱ)
 open import Cubical.Functions.FunExtEquiv
-open import Cubical.Functions.Embedding
 open import Cubical.Data.Sigma.Properties as Sigma using (ΣPathP)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 open import Cubical.HITs.SetQuotients as SQ using (_/_)

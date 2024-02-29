@@ -4,23 +4,12 @@ module GpdCont.QuotientContainer.Lift {ℓ} (Q : QCont ℓ) where
 
 open import GpdCont.Prelude hiding (Lift)
 open import GpdCont.Coffin.Base using (Coffin)
-open import GpdCont.Univalence as UA using (ua→ ; pathToEquiv ; ua)
-open import GpdCont.Group using (Group)
 open import GpdCont.Groupoid using (Skeleton)
 open import GpdCont.GroupAction using (_-Set)
-open import GpdCont.SetTruncation
 
 import GpdCont.Delooping
 
-open import Cubical.Data.Sigma.Properties as Sigma using ()
-open import Cubical.Foundations.Equiv
-open import Cubical.Foundations.Equiv.Properties using (cong≃)
 open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Path using (isProp→SquareP ; flipSquare)
-open import Cubical.HITs.GroupoidQuotients as GQ using (_//_)
-open import Cubical.HITs.SetQuotients as SQ using (_/_)
-open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
-open import Cubical.Functions.Embedding
 
 private
   open QCont Q using (Shape ; Pos ; Symm ; _∼_ ; PosSet)
@@ -38,12 +27,6 @@ open ↑SymmElim
 ↑Shape : Type ℓ
 ↑Shape = Σ Shape ↑Symm
 
--- record ↑Shape : Type ℓ where
---   constructor ↑⟨_,_⟩
---   field
---     ↓shape : Shape
---     symm : ↑Symm ↓shape
-
 open Σ public renaming (fst to ↓shape ; snd to symm)
 
 pattern ↑⟨_,_⟩ ↓shape symm = ↓shape , symm
@@ -59,12 +42,6 @@ pattern ↑⟨_,_⟩ ↓shape symm = ↓shape , symm
 ↑loop-comp : ∀ {s} → (g h : s ∼ s) → compSquareFiller (↑loop g) (↑loop h) (↑loop (g · h))
 ↑loop-comp g h i j .↓shape = _
 ↑loop-comp g h i j .symm = ↑Symm.loop-comp g h i j
-
--- unquoteDecl ↑ShapeIsoΣ = declareRecordIsoΣ ↑ShapeIsoΣ (quote ↑Shape)
-
--- instance
---   ↑ShapeToΣ : RecordToΣ ↑Shape
---   ↑ShapeToΣ = toΣ ↑ShapeIsoΣ
 
 ↑Shape-uncurry : ∀ {ℓC} {C : (s : Shape) → ↑Symm s → Type ℓC}
   → (f : ∀ s σ → C s σ)

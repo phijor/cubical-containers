@@ -4,10 +4,17 @@ open import GpdCont.Prelude
 
 open import GpdCont.QuotientContainer as QC using (QCont)
 open import GpdCont.GroupoidContainer as GC using (GCont)
+open import GpdCont.Groupoid using (isSkeletal)
+import GpdCont.Image
 
 open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Equiv.Properties
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Univalence
+open import Cubical.Data.Sigma.Base
+open import Cubical.Displayed.Base using (UARel)
+open import Cubical.Displayed.Generic using () renaming (𝒮-generic to PathUARel)
+open import Cubical.HITs.Replacement as Replacement using (Replacement)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
 
@@ -92,61 +99,17 @@ module Lower {ℓ} (G : GCont ℓ) (injPos : ∀ s t → G .GCont.Pos s ≡ G .G
   ↓ .QCont.is-set-shape = isSet-↓Shape
   ↓ .QCont.is-set-pos = isSet-↓Pos
   ↓ .QCont.is-prop-symm = isProp-↓Symm
+  ↓ .QCont.symm-id = {! !}
   ↓ .QCont.symm-comp = {! !}
-{-
-open import GpdCont.Partition
-module Lower' {ℓ} (G : GCont ℓ) (π : Partition (G .GCont.Shape)) where
-  open module G = GCont G using
-    (Shape ; is-groupoid-shape ; Pos ; is-set-pos ; PosSet)
+  ↓ .QCont.symm-sym = {! !}
 
-  open Partition π
-    using (Idx ; part-equiv)
-    renaming (Part to ShapePart ; pt to shape·)
+module LowerSkeletal {ℓ} (G : GCont ℓ)
+  (let module G = GCont G)
+  (sk : isSkeletal G.Shape)
+  where
+  open G using (Shape ; is-groupoid-shape ; Pos ; is-set-pos)
 
-  ↓Shape : Type ℓ
-  ↓Shape = Idx
-
-  ↓PosSet : ↓Shape → hSet ℓ
-  ↓PosSet = PosSet ∘ shape·
-
-  opaque
-    unfolding PosSet
-    isSet-↓Shape : isSet ↓Shape
-    isSet-↓Shape = π .Partition.is-set-idx
-
-    ↓Pos : ↓Shape → Type ℓ
-    ↓Pos = ⟨_⟩ ∘ ↓PosSet
-
-    isSet-↓Pos : (s : ↓Shape) → isSet (↓Pos s)
-    isSet-↓Pos = str ∘ ↓PosSet
-
-    ↓Symm≡ : ∀ {s t} → ↓Pos s ≡ ↓Pos t → hProp ℓ
-    ↓Symm≡ {s} {t} p = {! !} where
-      Pos′ : Type ℓ
-      Pos′ = Pos (shape· s)
-
-    ↓Symm′ : ∀ {s t} → ↓Pos s ≃ ↓Pos t → hProp ℓ
-    ↓Symm′ {s} {t} σ = ↓Symm≡ (ua σ)
-
-    ↓Symm : ∀ {s t} → ↓Pos s ≃ ↓Pos t → Type ℓ
-    ↓Symm {s} {t} = ⟨_⟩ ∘ ↓Symm′ {s} {t}
-
-    isProp-↓Symm : ∀ {s t} → (σ : ↓Pos s ≃ ↓Pos t) → isProp (↓Symm σ)
-    isProp-↓Symm {s} {t} = str ∘ ↓Symm′ {s} {t}
-
-  ↓_ : QCont ℓ
-  ↓ .QCont.Shape = ↓Shape
-  ↓ .QCont.Pos = ↓Pos
-  ↓ .QCont.Symm = ↓Symm
-  ↓ .QCont.is-set-shape = isSet-↓Shape
-  ↓ .QCont.is-set-pos = isSet-↓Pos
-  ↓ .QCont.is-prop-symm = isProp-↓Symm
-  ↓ .QCont.is-equiv-rel-symm = {! !}
-
-open import GpdCont.IterativeSets
-open import Cubical.Functions.Image
-module LowerV {ℓ} (G : GCont ℓ) (is-iterative-set-pos : ∀ s → isInImage El⁰ (G .GCont.Pos s)) where
-  open module G = GCont G using (Shape ; is-groupoid-shape ; Pos ; is-set-pos)
+  module sk = isSkeletal sk
 
   opaque
     ↓Shape : Type ℓ
@@ -155,30 +118,57 @@ module LowerV {ℓ} (G : GCont ℓ) (is-iterative-set-pos : ∀ s → isInImage 
     isSet-↓Shape : isSet ↓Shape
     isSet-↓Shape = ST.isSetSetTrunc
 
-    ↓PosV : ↓Shape → V⁰ ℓ
-    ↓PosV = ST.rec isSetV⁰ PosV where
-      coherence : ∀ {s} (x y : fiber El⁰ (Pos s)) → x .fst ≡ y .fst
-      coherence (x , El⁰x≡Pos-s) (y , El⁰y≡Pos-s) = {! !}
-      PosV : Shape → V⁰ ℓ
-      PosV s = PT.elim→Set {A = fiber El⁰ (Pos s)} (λ _ → isSetV⁰) fst {! !} (is-iterative-set-pos s)
-
-    ↓PosSet : ↓Shape → hSet ℓ
-    ↓PosSet = V⁰→hSet ∘ ↓PosV
-
     ↓Pos : ↓Shape → Type ℓ
-    ↓Pos = ⟨_⟩ ∘ ↓PosSet
+    ↓Pos ↓s = Pos (transport (sym sk.total-path) (↓s , sk.component-pt ↓s))
 
-    isSet-↓Pos : (s : ↓Shape) → isSet (↓Pos s)
-    isSet-↓Pos = str ∘ ↓PosSet
+    isSet-↓Pos : (↓s : ↓Shape) → isSet (↓Pos ↓s)
+    isSet-↓Pos ↓s = is-set-pos _
 
-    ↓Symm′ : ∀ {s t} → ↓Pos s ≃ ↓Pos t → hProp ℓ
-    ↓Symm′ {s} {t} σ = {! !}
+    ↓Pos[_≡_] : ∀ (s t : ↓Shape) → UARel (↓Pos s ≃ ↓Pos t) ℓ
+    ↓Pos[ s ≡ t ] = PathUARel (↓Pos s ≃ ↓Pos t)
+
+    ↓Pos*≡ : ∀ {s t} → (σ τ : ↓Pos s ≃ ↓Pos t) → Type ℓ
+    ↓Pos*≡ {s} {t} = ↓Pos[ s ≡ t ] .UARel._≅_
+
+  module ↓Pos* {s t : ↓Shape} = GpdCont.Image ↓Pos[ s ≡ t ] (pathToEquiv ∘ cong ↓Pos)
+
+  opaque
+    unfolding ↓Pos[_≡_]
+
+    ↓Symm′ : ∀ {s t : ↓Shape} → ↓Pos s ≃ ↓Pos t → hProp ℓ
+    ↓Symm′ {s} {t} σ = ↓Pos*.isInImage σ , ↓Pos*.isPropIsInImage σ
 
     ↓Symm : ∀ {s t} → ↓Pos s ≃ ↓Pos t → Type ℓ
     ↓Symm {s} {t} = ⟨_⟩ ∘ ↓Symm′ {s} {t}
 
     isProp-↓Symm : ∀ {s t} → (σ : ↓Pos s ≃ ↓Pos t) → isProp (↓Symm σ)
     isProp-↓Symm {s} {t} = str ∘ ↓Symm′ {s} {t}
+
+    ↓Symm-comp : ∀ {s t u} → (σ : ↓Pos s ≃ ↓Pos t) (τ : ↓Pos t ≃ ↓Pos u) → ↓Symm σ → ↓Symm τ → ↓Symm (σ ∙ₑ τ)
+    ↓Symm-comp = ?
+
+    ↓Symm-id : ∀ s → ↓Symm (idEquiv (↓Pos s))
+    ↓Symm-id s .fst = ↓Pos*.imageRestriction (refl {x = s})
+    ↓Symm-id s .snd = goal where
+      goal : pathToEquiv (cong ↓Pos (refl {x = s})) ≡ idEquiv (↓Pos s)
+      goal = pathToEquivRefl
+
+    ↓Symm-inv′ : ∀ {s t} → (σ : ↓Pos s ≃ ↓Pos t) → ↓Symm σ → ↓Symm (invEquiv σ)
+    ↓Symm-inv′ {s} {t} σ is-symm-σ = ↓Pos*.elimProp {P = λ (s≅t : ↓Pos*.Image) → (fib : ↓Pos*≡ (↓Pos*.imageInclusion s≅t) σ) → ↓Symm (invEquiv σ)}
+      (λ s≅t → isPropΠ λ fib → isProp-↓Symm (invEquiv σ)) {! !} (is-symm-σ .fst) (is-symm-σ .snd)
+
+    ↓Symm-inv : ∀ {s t} → (σ : ↓Pos s ≃ ↓Pos t) → ↓Symm σ → ↓Symm (invEquiv σ)
+    ↓Symm-inv {s} {t} σ is-symm-σ = goal where
+      step : (p : s ≡ t) → ↓Pos*.isInImage (invEquiv σ)
+      step p .fst = ↓Pos*.imageRestriction (sym p)
+      step p .snd =
+        pathToEquiv (sym $ cong ↓Pos p) ≡⟨ equivEq {! !} ⟩
+        invEquiv (pathToEquiv $ cong ↓Pos p) ≡⟨ {! !} ⟩
+        invEquiv (↓Pos*.imageInclusion (is-symm-σ .fst)) ≡⟨ cong invEquiv (is-symm-σ .snd) ⟩
+        invEquiv σ ∎
+
+      goal : ↓Symm (invEquiv σ)
+      goal = ↓Pos*.recProp (isProp-↓Symm (invEquiv σ)) step (is-symm-σ .fst)
 
   ↓_ : QCont ℓ
   ↓ .QCont.Shape = ↓Shape
@@ -187,6 +177,6 @@ module LowerV {ℓ} (G : GCont ℓ) (is-iterative-set-pos : ∀ s → isInImage 
   ↓ .QCont.is-set-shape = isSet-↓Shape
   ↓ .QCont.is-set-pos = isSet-↓Pos
   ↓ .QCont.is-prop-symm = isProp-↓Symm
-  ↓ .QCont.is-equiv-rel-symm = {! !}
-
--}
+  ↓ .QCont.symm-comp = ↓Symm-comp
+  ↓ .QCont.symm-id = ↓Symm-id
+  ↓ .QCont.symm-sym = ↓Symm-inv

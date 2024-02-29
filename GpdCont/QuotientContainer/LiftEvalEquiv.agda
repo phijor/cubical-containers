@@ -1,12 +1,15 @@
-module GpdCont.LiftEquiv where
+module GpdCont.QuotientContainer.LiftEvalEquiv where
 
 open import GpdCont.Prelude hiding (Lift)
 
-open import GpdCont.QuotientContainer as QC using (QCont)
-open import GpdCont.GroupoidContainer as GC using (GCont)
+open import GpdCont.QuotientContainer.Base using (QCont)
+open import GpdCont.QuotientContainer.Lift using (module Lift)
+open import GpdCont.GroupoidContainer.Base using (GCont)
 open import GpdCont.Univalence using (ua ; ua→)
-open import GpdCont.Lift using (module Lift)
 open import GpdCont.SetTruncation using (setTruncateFstΣ≃)
+
+import GpdCont.QuotientContainer.Eval as QCEval
+import GpdCont.GroupoidContainer.Eval as GCEval
 
 open import Cubical.Foundations.Equiv renaming (invEquiv to _⁻ᵉ)
 open import Cubical.Foundations.Equiv.Properties using (cong≃)
@@ -31,10 +34,10 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
   ↑Q = Lift.↑ Q
 
   open module Q = QCont Q using (Shape ; Pos ; Symm ; _∼_ ; isTransSymm ; PosSet)
-  open module ⟦Q⟧ = QC.Eval Q using (_∼*_ ; ∼*→∼ ; ∼*→PathP*) renaming (⟦_⟧ to ⟦Q⟧ ; ⟦_⟧ᵗ to ⟦Q⟧ᵗ)
+  open module ⟦Q⟧ = QCEval Q using (_∼*_ ; ∼*→∼ ; ∼*→PathP*) renaming (⟦_⟧ to ⟦Q⟧ ; ⟦_⟧ᵗ to ⟦Q⟧ᵗ)
 
   open module ↑Q = Lift Q using (↑Shape ; ↑Pos ; ↑⟨_,_⟩ ; ↑Symm ; module ↑SymmElim)
-  open module ⟦↑Q⟧ = GC.Eval ↑Q using () renaming (⟦_⟧ to ⟦↑Q⟧ ; ⟦_⟧ᵗ to ⟦↑Q⟧ᵗ ; ⟦-⟧ᵗ-Path to ⟦↑Q⟧ᵗ-Path)
+  open module ⟦↑Q⟧ = GCEval ↑Q using () renaming (⟦_⟧ to ⟦↑Q⟧ ; ⟦_⟧ᵗ to ⟦↑Q⟧ᵗ ; ⟦-⟧ᵗ-Path to ⟦↑Q⟧ᵗ-Path)
 
   module LiftTruncEquiv (X : hSet ℓ) where
     opaque
@@ -42,7 +45,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
       to-lift-trunc : (⟦Q⟧ᵗ ⟨ X ⟩) → ⟨ Tr ⟦↑Q⟧ X ⟩
       to-lift-trunc (s , v) = SQ.rec (isSetTr ⟦↑Q⟧ X) [_]* [-]*-well-defined v where
         [_]* : (v : Pos s → ⟨ X ⟩) → ⟨ Tr ⟦↑Q⟧ X ⟩
-        [ v ]* = ST.∣ GC.Eval.mk⟦ ↑Q ⟧ᵗ (↑Q.↑shape s , v) ∣₂
+        [ v ]* = ST.∣ GCEval.mk⟦ ↑Q ⟧ᵗ (↑Q.↑shape s , v) ∣₂
 
         [-]*-well-defined : (v w : Pos s → ⟨ X ⟩) → v ∼* w → [ v ]* ≡ [ w ]*
         [-]*-well-defined v w r = cong ST.∣_∣₂ (⟦↑Q⟧ᵗ-Path shape-loop label-path) where
@@ -52,13 +55,13 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
           label-path : PathP (λ i → ↑Q.↑Pos (shape-loop i) → ⟨ X ⟩) v w
           label-path = ∼*→PathP* r
 
-      from-lift : GC.Eval.⟦ ↑Q ⟧ᵗ ⟨ X ⟩ → (⟦Q⟧ᵗ ⟨ X ⟩)
+      from-lift : GCEval.⟦ ↑Q ⟧ᵗ ⟨ X ⟩ → (⟦Q⟧ᵗ ⟨ X ⟩)
       from-lift = uncurry goal where
         isSetΠ⟦Q⟧ : ∀ ↑s → isSet ((GCont.Pos ↑Q ↑s → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩)
-        isSetΠ⟦Q⟧ ↑s = isSetΠ (λ ↑v → QC.Eval.isSet-⟦ Q ⟧ᵗ ⟨ X ⟩)
+        isSetΠ⟦Q⟧ ↑s = isSetΠ (λ ↑v → QCEval.isSet-⟦ Q ⟧ᵗ ⟨ X ⟩)
 
         [_]* : (s : Shape) → (v : Pos s → ⟨ X ⟩) → Σ[ s ∈ Shape ] ((Pos s → ⟨ X ⟩) / _∼*_)
-        [ s ]* = QC.Eval.Label→⟦ Q ⟧ᵗ
+        [ s ]* = QCEval.Label→⟦ Q ⟧ᵗ
 
         [_]*-loop : ∀ s → (σ : s ∼ s) → PathP (λ i → (ua (σ .fst) i → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩) [ s ]* [ s ]*
         [_]*-loop s σ = funExtDep λ { {x₀ = v} {x₁ = w} p → ΣPathP (refl , SQ.eq/ v w (σ , p)) }
@@ -69,7 +72,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
     opaque
       unfolding from-lift
       from-lift-trunc : ⟨ Tr ⟦↑Q⟧ X ⟩ → (⟦Q⟧ᵗ ⟨ X ⟩)
-      from-lift-trunc = ST.rec (QC.Eval.isSet-⟦ Q ⟧ᵗ ⟨ X ⟩) from-lift
+      from-lift-trunc = ST.rec (QCEval.isSet-⟦ Q ⟧ᵗ ⟨ X ⟩) from-lift
 
     opaque
       unfolding ⟦↑Q⟧ ⟦Q⟧ᵗ from-lift-trunc to-lift-trunc
@@ -95,7 +98,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
         Motive v = from-lift-trunc (to-lift-trunc (s , v)) ≡ (s , v)
 
         isPropMotive : ∀ v → isProp (Motive v)
-        isPropMotive v = QC.Eval.isSet-⟦ Q ⟧ᵗ ⟨ X ⟩ _ (s , v)
+        isPropMotive v = QCEval.isSet-⟦ Q ⟧ᵗ ⟨ X ⟩ _ (s , v)
 
         [_]* : (v : Pos s → ⟨ X ⟩) → Motive SQ.[ v ]
         [ v ]* = refl
@@ -107,15 +110,15 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
     lift-trunc-Iso .Iso.leftInv = lift-trunc-leftInv
 
   opaque
-    unfolding QC.Eval.⟦_⟧ GC.Eval.⟦_⟧
+    unfolding QCEval.⟦_⟧ GCEval.⟦_⟧
     lift-trunc-equiv : ∀ (X : hSet ℓ)
-      → (Σ[ s ∈ Shape ] (Pos s → ⟨ X ⟩) / _∼*_) ≃ ∥ GC.Eval.⟦ ↑Q ⟧ᵗ ⟨ X ⟩ ∥₂
+      → (Σ[ s ∈ Shape ] (Pos s → ⟨ X ⟩) / _∼*_) ≃ ∥ GCEval.⟦ ↑Q ⟧ᵗ ⟨ X ⟩ ∥₂
     lift-trunc-equiv X = Isomorphism.isoToEquiv (LiftTruncEquiv.lift-trunc-Iso X)
 
     evalLiftEquiv : ∀ X → ⟨ ⟦Q⟧ X ⟩ ≃ ⟨ Tr ⟦↑Q⟧ X ⟩
     evalLiftEquiv X =
       Σ[ s ∈ Shape ] (Pos s → ⟨ X ⟩) / _∼*_ ≃⟨ lift-trunc-equiv X ⟩
-      ∥ GC.Eval.⟦ ↑Q ⟧ᵗ ⟨ X ⟩ ∥₂ ≃∎
+      ∥ GCEval.⟦ ↑Q ⟧ᵗ ⟨ X ⟩ ∥₂ ≃∎
 
   evalLiftPath : ∀ X → ⟦Q⟧ X ≡ Tr ⟦↑Q⟧ X
   evalLiftPath X = TypeOfHLevel≡ 2 (ua $ evalLiftEquiv X)
@@ -125,10 +128,10 @@ module EvalLiftLoopEquational {ℓ} (Q : QCont ℓ) where
   ↑Q = Lift.↑ Q
 
   open module Q = QCont Q using (Shape ; Pos ; Symm ; _∼_ ; isTransSymm ; PosSet)
-  open module ⟦Q⟧ = QC.Eval Q using (_∼*_ ; ∼*→∼ ; ∼*→PathP*) renaming (⟦_⟧ to ⟦Q⟧ ; ⟦_⟧ᵗ to ⟦Q⟧ᵗ)
+  open module ⟦Q⟧ = QCEval Q using (_∼*_ ; ∼*→∼ ; ∼*→PathP*) renaming (⟦_⟧ to ⟦Q⟧ ; ⟦_⟧ᵗ to ⟦Q⟧ᵗ)
 
   open module ↑Q = Lift Q using (↑Shape ; ↑Pos ; ↑⟨_,_⟩ ; ↑Symm ; module ↑SymmElim)
-  open module ⟦↑Q⟧ = GC.Eval ↑Q using () renaming (⟦_⟧ to ⟦↑Q⟧ ; ⟦_⟧ᵗ to ⟦↑Q⟧ᵗ)
+  open module ⟦↑Q⟧ = GCEval ↑Q using () renaming (⟦_⟧ to ⟦↑Q⟧ ; ⟦_⟧ᵗ to ⟦↑Q⟧ᵗ)
 
   module PosEquiv (X : Type ℓ) (s : Shape) where
     opaque

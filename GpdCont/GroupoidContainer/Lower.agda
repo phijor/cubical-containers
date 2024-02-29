@@ -1,9 +1,9 @@
-module GpdCont.Lower where
+module GpdCont.GroupoidContainer.Lower where
 
 open import GpdCont.Prelude
 
-open import GpdCont.QuotientContainer as QC using (QCont)
-open import GpdCont.GroupoidContainer as GC using (GCont)
+open import GpdCont.QuotientContainer.Base as QC using (QCont)
+open import GpdCont.GroupoidContainer.Base as GC using (GCont)
 open import GpdCont.Groupoid using (isSkeletal)
 import GpdCont.Image
 

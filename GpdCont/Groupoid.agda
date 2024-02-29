@@ -1,7 +1,12 @@
+-- TODO:
+-- 1. Rename this to GpdCont.Skeleton
+-- 2. Define `Skeleton` as the data for a skeleton
+-- 3. Re-define `isSkeletal` to `hasSkeleton` / `isSkeletal` via (mere) path to some `Skeleton`
 module GpdCont.Groupoid where
 
 open import GpdCont.Prelude
 open import GpdCont.RecordEquiv
+open import GpdCont.Group using (GroupStr ; Group)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
@@ -10,27 +15,33 @@ open import Cubical.Data.Sigma
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
 
-record GroupStr {ℓ} (G : Type ℓ) : Type ℓ where
-  field
-    is-connected : isContr ∥ G ∥₂
-    is-groupoid : isGroupoid G
-    pt : G
-
-Group : (ℓ : Level) → Type _
-Group ℓ = TypeWithStr ℓ GroupStr
-
-unquoteDecl GroupStrIsoΣ = declareRecordIsoΣ GroupStrIsoΣ (quote GroupStr)
-
 private
   variable
     ℓ : Level
     G : Type ℓ
 
-instance
-  GroupStrToΣ : RecordToΣ (GroupStr G)
-  GroupStrToΣ = toΣ GroupStrIsoΣ
-
 open GroupStr
+
+record Skeleton (ℓ : Level) : Type (ℓ-suc ℓ) where
+  field
+    Index : Type ℓ
+    Component : Index → Type ℓ
+
+  Total : Type ℓ
+  Total = Σ Index Component
+
+  field
+    is-set-index : isSet Index
+    group-str-component : ∀ (k : Index) → GroupStr (Component k)
+
+  ComponentGroup : Index → Group ℓ
+  ComponentGroup k .fst = Component k
+  ComponentGroup k .snd = group-str-component k
+
+  open module ComponentGroupStr k = GroupStr (group-str-component k)
+    public
+    using ()
+    renaming (pt to component)
 
 record isSkeletal (G : Type ℓ) : Type (ℓ-suc ℓ) where
   field

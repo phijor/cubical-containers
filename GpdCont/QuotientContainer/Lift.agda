@@ -3,9 +3,11 @@ open import GpdCont.QuotientContainer.Base as QC using (QCont)
 module GpdCont.QuotientContainer.Lift {ℓ} (Q : QCont ℓ) where
 
 open import GpdCont.Prelude hiding (Lift)
-open import GpdCont.GroupoidContainer.Base as GC using (GCont)
+open import GpdCont.Coffin.Base using (Coffin)
 open import GpdCont.Univalence as UA using (ua→ ; pathToEquiv ; ua)
-open import GpdCont.Groupoid using (isSkeletal)
+open import GpdCont.Group using (Group)
+open import GpdCont.Groupoid using (Skeleton)
+open import GpdCont.GroupAction using (_-Set)
 open import GpdCont.SetTruncation
 
 import GpdCont.Delooping
@@ -16,30 +18,35 @@ open import Cubical.Foundations.Equiv.Properties using (cong≃)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Path using (isProp→SquareP ; flipSquare)
 open import Cubical.HITs.GroupoidQuotients as GQ using (_//_)
+open import Cubical.HITs.SetQuotients as SQ using (_/_)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 open import Cubical.Functions.Embedding
 
-open QCont Q using (Shape ; Pos ; Symm ; _∼_ ; PosSet)
+private
+  open QCont Q using (Shape ; Pos ; Symm ; _∼_ ; PosSet)
 
-open module Q = QCont Q using (_·_)
-
-open import Cubical.HITs.SetQuotients as SQ using (_/_)
+  open module Q = QCont Q using (_·_)
 
 module ↑SymmElim (s : Shape) =
   GpdCont.Delooping (s ∼ s) _·_
-    renaming (𝔹 to ↑Symm ; isGroupoid𝔹 to isGroupoid-↑Symm)
+    renaming (𝔹 to ↑Symm)
 
 open ↑SymmElim
-  using (↑Symm ; isGroupoid-↑Symm)
+  using (↑Symm)
   public
 
-record ↑Shape : Type ℓ where
-  constructor ↑⟨_,_⟩
-  field
-    ↓shape : Shape
-    symm : ↑Symm ↓shape
+↑Shape : Type ℓ
+↑Shape = Σ Shape ↑Symm
 
-open ↑Shape public
+-- record ↑Shape : Type ℓ where
+--   constructor ↑⟨_,_⟩
+--   field
+--     ↓shape : Shape
+--     symm : ↑Symm ↓shape
+
+open Σ public renaming (fst to ↓shape ; snd to symm)
+
+pattern ↑⟨_,_⟩ ↓shape symm = ↓shape , symm
 
 ↑shape : (s : Shape) → ↑Shape
 ↑shape s .↓shape = s
@@ -53,45 +60,27 @@ open ↑Shape public
 ↑loop-comp g h i j .↓shape = _
 ↑loop-comp g h i j .symm = ↑Symm.loop-comp g h i j
 
-unquoteDecl ↑ShapeIsoΣ = declareRecordIsoΣ ↑ShapeIsoΣ (quote ↑Shape)
+-- unquoteDecl ↑ShapeIsoΣ = declareRecordIsoΣ ↑ShapeIsoΣ (quote ↑Shape)
 
-instance
-  ↑ShapeToΣ : RecordToΣ ↑Shape
-  ↑ShapeToΣ = toΣ ↑ShapeIsoΣ
+-- instance
+--   ↑ShapeToΣ : RecordToΣ ↑Shape
+--   ↑ShapeToΣ = toΣ ↑ShapeIsoΣ
 
 ↑Shape-uncurry : ∀ {ℓC} {C : (s : Shape) → ↑Symm s → Type ℓC}
   → (f : ∀ s σ → C s σ)
   → (↑s : ↑Shape) → C (↑s .↓shape) (↑s .symm)
 ↑Shape-uncurry f ↑⟨ ↓shape , symm ⟩ = f ↓shape symm
 
-isGroupoid-↑Shape : isGroupoid ↑Shape
-isGroupoid-↑Shape = recordIsOfHLevel 3 (isGroupoidΣ (isSet→isGroupoid Q.is-set-shape) λ ↓s → isGroupoid-↑Symm)
+↑Shape-curry : ∀ {ℓC} {C : ↑Shape → Type ℓC}
+  → (f : ∀ s → C s)
+  → (s : Shape) (σ : ↑Symm s) → C ↑⟨ s , σ ⟩
+↑Shape-curry f s σ = f ↑⟨ s , σ ⟩
 
-opaque
-  ↑ShapeTrunc≃Shape : ∥ ↑Shape ∥₂ ≃ Shape
-  ↑ShapeTrunc≃Shape =
-    ∥ ↑Shape ∥₂                 ≃⟨ cong≃ ∥_∥₂ (↑Shape ≃Σ) ⟩
-    ∥ ↑Shape asΣ ∥₂             ≃⟨ setTruncateFstΣ≃ Q.is-set-shape ⟩
-    Σ[ s ∈ Shape ] ∥ ↑Symm s ∥₂ ≃⟨ Sigma.Σ-contractSnd ↑SymmElim.isConnectedDelooping ⟩
-    Shape ≃∎
-
-  Component : ∥ ↑Shape ∥₂ → Type ℓ
-  Component = ↑Symm ∘ equivFun ↑ShapeTrunc≃Shape
-
-  ↑Shape≃TotalTrunc : ↑Shape ≃ Σ ∥ ↑Shape ∥₂ Component
-  ↑Shape≃TotalTrunc =
-    ↑Shape                  ≃⟨ ↑Shape ≃Σ ⟩
-    Σ Shape ↑Symm           ≃⟨ invEquiv (Sigma.Σ-cong-equiv-fst {B = ↑Symm} ↑ShapeTrunc≃Shape) ⟩
-    Σ ∥ ↑Shape ∥₂ Component ≃∎
-
-
-  isSkeletal-↑Shape : isSkeletal ↑Shape
-  isSkeletal-↑Shape = sk where
-    sk : isSkeletal ↑Shape
-    sk .isSkeletal.Component = Component
-    sk .isSkeletal.group-str-component = ↑SymmElim.deloopingGroupStr ∘ equivFun ↑ShapeTrunc≃Shape
-    sk .isSkeletal.total-path = ua ↑Shape≃TotalTrunc
-
+↑ShapeSkeleton : Skeleton ℓ
+↑ShapeSkeleton .Skeleton.Index = Shape
+↑ShapeSkeleton .Skeleton.Component = ↑Symm
+↑ShapeSkeleton .Skeleton.is-set-index = Q.is-set-shape
+↑ShapeSkeleton .Skeleton.group-str-component = ↑SymmElim.deloopingGroupStr
 
 ↑PosSet : ↑Shape → hSet ℓ
 ↑PosSet = ↑Shape-uncurry λ s → ↑SymmElim.rec s isGroupoidHSet
@@ -105,8 +94,9 @@ opaque
 isSet-↑Pos : ∀ s → isSet (↑Pos s)
 isSet-↑Pos = str ∘ ↑PosSet
 
-↑ : GCont ℓ
-↑ .GCont.Shape = ↑Shape
-↑ .GCont.Pos = ↑Pos
-↑ .GCont.is-groupoid-shape = isGroupoid-↑Shape
-↑ .GCont.is-set-pos = isSet-↑Pos
+↑PosAction : ∀ s → Skeleton.ComponentGroup ↑ShapeSkeleton s -Set
+↑PosAction s ._-Set.action σ = ↑PosSet ↑⟨ s , σ ⟩
+
+↑ : Coffin ℓ
+↑ .Coffin.shape-skeleton = ↑ShapeSkeleton
+↑ .Coffin.PosSet = ↑PosAction

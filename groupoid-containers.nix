@@ -22,6 +22,12 @@ in
       name = "${name}-source";
       path = lib.sources.cleanSource ./.;
     };
+    postPatch = ''
+      patchShebangs ./gen-everything.sh
+    '';
+    preBuild = ''
+      ./gen-everything.sh
+    '';
     buildInputs = [cubical];
     everythingFile = "./Everything.agda";
     meta = {

@@ -18,7 +18,7 @@ module BoolExample where
   data 𝔹2 : Type where
     ⋆ : 𝔹2
     swap : ⋆ ≡ ⋆
-    mul : swap ∙ swap ≡ refl
+    mul : compSquareFiller swap swap refl
     trunc𝔹2 : isGroupoid 𝔹2
 
   rec : ∀ {ℓ} {B : Type ℓ}
@@ -27,11 +27,13 @@ module BoolExample where
     → (p : b ≡ b)
     → (p² : p ∙ p ≡ refl)
     → 𝔹2 → B
-  rec is-gpd-B b p p² = go where
+  rec {B} is-gpd-B b p p² = go where
     go : _ → _
     go ⋆ = b
     go (swap i) = p i
-    go (mul i j) = {! !}
+    go (mul i j) = goal i j where
+      goal : compSquareFiller p p refl
+      goal = coerceCompSquareFiller p²
     go (trunc𝔹2 x y p q r s i j k) = is-gpd-B (go x) (go y) (cong go p) (cong go q) (cong (cong go) r) (cong (cong go) s) i j k
 
   PosSet : 𝔹2 → hSet _

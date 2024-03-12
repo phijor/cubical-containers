@@ -1,6 +1,11 @@
 open import GpdCont.Coffin.Base
 
 module GpdCont.Coffin.Eval {ℓ} (C : Coffin ℓ) where
+-- TODO: This should ideally do the following:
+-- import GpdCont.Coffin.GroupoidContainerInclusion as Inc
+-- open import GpdCont.GroupoidContainer.Eval (Inc.Coffin→GroupoidContainer C) public
+--
+-- But opaque definitions an re-exports are weird and stuff doesn't reduce.
 
 open import GpdCont.Prelude
 open import Cubical.Foundations.HLevels

@@ -18,5 +18,5 @@ module _ {ℓ} (C : Coffin ℓ) where
   TruncShape≃Index =
     ∥ Shape ∥₂ ≃⟨⟩
     ∥ Σ[ k ∈ Index ] Component k ∥₂ ≃⟨ setTruncateFstΣ≃ C.is-set-index ⟩
-    Σ[ k ∈ Index ] ∥ Component k ∥₂ ≃⟨ Σ-contractSnd C.isConnectedPart ⟩
+    Σ[ k ∈ Index ] ∥ Component k ∥₂ ≃⟨ Σ-contractSnd C.isConnectedComponent ⟩
     Index ≃∎

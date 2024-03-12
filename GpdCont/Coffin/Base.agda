@@ -26,10 +26,10 @@ record Coffin (ℓ : Level) : Type (ℓ-suc ℓ) where
 
   module _ (idx : Index) where
     open GroupStr (group-str-component idx) public
-      renaming (is-groupoid to isGroupoidPart ; is-connected to isConnectedPart)
+      renaming (is-groupoid to isGroupoidComponent ; is-connected to isConnectedComponent)
 
   isGroupoidShape : isGroupoid Shape
-  isGroupoidShape = isGroupoidΣ (isSet→isGroupoid is-set-index) isGroupoidPart
+  isGroupoidShape = isGroupoidΣ (isSet→isGroupoid is-set-index) isGroupoidComponent
 
   private
     module PosUncurry ((idx , part) : Shape) where

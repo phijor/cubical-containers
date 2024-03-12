@@ -1,7 +1,7 @@
 module GpdCont.SymmetryContainer where
 
 open import GpdCont.Prelude
-open import GpdCont.Group
+open import GpdCont.Groups.Base
 open import GpdCont.GroupAction
 -- open import GpdCont.GroupoidContainer as GC using (GCont)
 open import GpdCont.Groupoid using (Skeleton)

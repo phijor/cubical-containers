@@ -2,7 +2,7 @@ open import GpdCont.Prelude
 
 module GpdCont.Delooping.Properties {ℓ} (G : Type ℓ) (_·_ : G → G → G) where
 
-open import GpdCont.Group
+open import GpdCont.Groups.Base
 open import GpdCont.Delooping.Base G _·_ as Delooping using (𝔹)
 
 open import Cubical.Foundations.HLevels

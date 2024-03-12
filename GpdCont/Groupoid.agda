@@ -6,7 +6,7 @@ module GpdCont.Groupoid where
 
 open import GpdCont.Prelude
 open import GpdCont.RecordEquiv
-open import GpdCont.Group using (GroupStr ; Group)
+open import GpdCont.Groups.Base using (GroupStr ; Group)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels

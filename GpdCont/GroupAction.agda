@@ -1,7 +1,7 @@
 module GpdCont.GroupAction where
 
 open import GpdCont.Prelude
-open import GpdCont.Group
+open import GpdCont.Groups.Base
 
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Structure

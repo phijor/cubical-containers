@@ -38,3 +38,6 @@ merelyInh≃is1Connected {A} =
 
 isSurjection≃is1ConnectedFun : (f : A → B) → isSurjection f ≃ isConnectedFun 1 f
 isSurjection≃is1ConnectedFun f = equivΠCod λ b → merelyInh≃is1Connected
+
+isContr→isConnected : (k : HLevel) → isContr A → isConnected k A
+isContr→isConnected = Tr.isContr→isContrTrunc

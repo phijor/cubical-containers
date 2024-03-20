@@ -6,6 +6,7 @@ open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Functions.Surjection using (isSurjection ; isPropIsSurjection)
+open import Cubical.Data.Nat.Base
 open import Cubical.Data.Sigma.Properties as Sigma using ()
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
@@ -41,3 +42,17 @@ isSurjection≃is1ConnectedFun f = equivΠCod λ b → merelyInh≃is1Connected
 
 isContr→isConnected : (k : HLevel) → isContr A → isConnected k A
 isContr→isConnected = Tr.isContr→isContrTrunc
+
+-- A k-connected k-type is contractible.
+isOfHLevel×isConnected→isContr : (k : HLevel)
+  → (A : Type ℓ)
+  → (isOfHLevel k A)
+  → (isConnected k A)
+  → isContr A
+isOfHLevel×isConnected→isContr zero A is-contr-A _ = is-contr-A
+isOfHLevel×isConnected→isContr (suc k) A suc-k-level-A suc-k-conn-A = is-contr-A where
+  universal-property-trunc : ∥ A ∥ suc k ≃ A
+  universal-property-trunc = Tr.truncIdempotent≃ (suc k) suc-k-level-A
+
+  is-contr-A : isContr A
+  is-contr-A = isOfHLevelRespectEquiv 0 universal-property-trunc suc-k-conn-A

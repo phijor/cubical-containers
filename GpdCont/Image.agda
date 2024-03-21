@@ -21,8 +21,9 @@ Image = Replacement locally-small f
 imageInclusion : Image → B
 imageInclusion = Replacement.unrep locally-small f
 
-imageRestriction : A → Image
-imageRestriction = Replacement.rep
+-- imageRestriction : A → Image
+pattern imageRestriction a = Replacement.rep a
+pattern imageQuo x y r i = Replacement.quo x y r i
 
 elimProp : {ℓ : Level} {P : Image → Type ℓ}
   → (∀ x → isProp (P x))

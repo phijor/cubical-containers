@@ -3,46 +3,61 @@ module GpdCont.Coffin.Base where
 open import GpdCont.Prelude
 open import GpdCont.Groups.Base
 open import GpdCont.GroupAction
-open import GpdCont.Groupoid using (Skeleton)
+open import GpdCont.Skeleton using (Skeleton)
 
+open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels using (isGroupoidΣ ; isSet→isGroupoid ; hSet)
 
 record Coffin (ℓ : Level) : Type (ℓ-suc ℓ) where
   field
-    shape-skeleton : Skeleton ℓ
+    Shape : Type ℓ
+    is-groupoid-shape : isGroupoid Shape
+    shape-skeleton : Skeleton (Shape , is-groupoid-shape)
 
   open Skeleton shape-skeleton public
     using
       ( Index
+      ; sk
       ; Component
-      ; is-set-index
-      ; group-str-component
+      ; isSetIndex
       ; ComponentGroup
+      ; ComponentGroupStr
+      ; index-of
+      ; Total
+      ; TotalEquiv
       )
-    renaming (Total to Shape)
 
   field
-    PosSet : ∀ idx → (ComponentGroup idx) -Set
+    componentGroupSet : ∀ idx → (ComponentGroup idx) -Set
 
   module _ (idx : Index) where
-    open GroupStr (group-str-component idx) public
+    open GroupStr (ComponentGroupStr idx) public
       renaming (is-groupoid to isGroupoidComponent ; is-connected to isConnectedComponent)
 
-  isGroupoidShape : isGroupoid Shape
-  isGroupoidShape = isGroupoidΣ (isSet→isGroupoid is-set-index) isGroupoidComponent
+  PosSetIndex : Index → hSet ℓ
+  PosSetIndex idx = componentGroupSet idx .action (sk.component-section idx) where
+    open _-Set
+    module sk = Skeleton shape-skeleton
 
-  private
-    module PosUncurry ((idx , part) : Shape) where
-      private
-        module P = _-Set (PosSet idx)
+  PosSetTotal : Total → hSet ℓ
+  PosSetTotal (idx , idx-fib) = componentGroupSet idx .action idx-fib where
+    open _-Set
 
-      Pos : Type _
-      Pos = P._⦅_⦆ part
+  PosSet : Shape → hSet ℓ
+  PosSet = PosSetTotal ∘ equivFun TotalEquiv
 
-      isSetPos : isSet Pos
-      isSetPos = P.is-set-⦅ part ⦆
+  Pos : Shape → Type ℓ
+  Pos = ⟨_⟩ ∘ PosSet
 
-  open PosUncurry public using (Pos ; isSetPos)
+  isSetPos : ∀ s → isSet (Pos s)
+  isSetPos = str ∘ PosSet
 
-  PosSet-pt : Index → hSet ℓ
-  PosSet-pt idx = PosSet idx ._-Set.action (shape-skeleton .Skeleton.component idx)
+
+-- open Coffin
+
+-- CoffinPath : ∀ {ℓ} {C D : Coffin ℓ}
+--   → (sk-path : C .shape-skeleton ≡ D .shape-skeleton)
+--   → (pos-path : PathP (λ i → (idx : Skeleton.Index (sk-path i)) → Skeleton.ComponentGroup (sk-path i) idx -Set) (C .PosSet) (D .PosSet))
+--   → C ≡ D
+-- CoffinPath sk-path pos-path i .shape-skeleton = sk-path i
+-- CoffinPath sk-path pos-path i .PosSet = pos-path i

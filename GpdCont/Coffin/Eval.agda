@@ -25,7 +25,7 @@ opaque
   label (_ , v) = v
 
   isGroupoid-⟦_⟧ᵗ : ∀ {X} → isGroupoid X → isGroupoid (⟦_⟧ᵗ X)
-  isGroupoid-⟦_⟧ᵗ is-groupoid-X = isGroupoidΣ C.isGroupoidShape λ s → isGroupoidΠ (const is-groupoid-X)
+  isGroupoid-⟦_⟧ᵗ is-groupoid-X = isGroupoidΣ C.is-groupoid-shape λ s → isGroupoidΠ (const is-groupoid-X)
 
   ⟦_⟧ : hGroupoid ℓ → hGroupoid ℓ
   ⟦_⟧ X .fst = ⟦_⟧ᵗ ⟨ X ⟩

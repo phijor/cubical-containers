@@ -4,7 +4,7 @@ open import GpdCont.Prelude
 
 open import GpdCont.QuotientContainer.Base as QC using (QCont)
 open import GpdCont.GroupoidContainer.Base as GC using (GCont)
-open import GpdCont.Groupoid using (isSkeletal)
+open import GpdCont.Skeleton using (Skeleton)
 import GpdCont.Image
 
 open import Cubical.Foundations.Equiv
@@ -103,80 +103,3 @@ module Lower {ℓ} (G : GCont ℓ) (injPos : ∀ s t → G .GCont.Pos s ≡ G .G
   ↓ .QCont.symm-comp = {! !}
   ↓ .QCont.symm-sym = {! !}
 
-module LowerSkeletal {ℓ} (G : GCont ℓ)
-  (let module G = GCont G)
-  (sk : isSkeletal G.Shape)
-  where
-  open G using (Shape ; is-groupoid-shape ; Pos ; is-set-pos)
-
-  module sk = isSkeletal sk
-
-  opaque
-    ↓Shape : Type ℓ
-    ↓Shape = ∥ Shape ∥₂
-
-    isSet-↓Shape : isSet ↓Shape
-    isSet-↓Shape = ST.isSetSetTrunc
-
-    ↓Pos : ↓Shape → Type ℓ
-    ↓Pos ↓s = Pos (transport (sym sk.total-path) (↓s , sk.component-pt ↓s))
-
-    isSet-↓Pos : (↓s : ↓Shape) → isSet (↓Pos ↓s)
-    isSet-↓Pos ↓s = is-set-pos _
-
-    ↓Pos[_≡_] : ∀ (s t : ↓Shape) → UARel (↓Pos s ≃ ↓Pos t) ℓ
-    ↓Pos[ s ≡ t ] = PathUARel (↓Pos s ≃ ↓Pos t)
-
-    ↓Pos*≡ : ∀ {s t} → (σ τ : ↓Pos s ≃ ↓Pos t) → Type ℓ
-    ↓Pos*≡ {s} {t} = ↓Pos[ s ≡ t ] .UARel._≅_
-
-  module ↓Pos* {s t : ↓Shape} = GpdCont.Image ↓Pos[ s ≡ t ] (pathToEquiv ∘ cong ↓Pos)
-
-  opaque
-    unfolding ↓Pos[_≡_]
-
-    ↓Symm′ : ∀ {s t : ↓Shape} → ↓Pos s ≃ ↓Pos t → hProp ℓ
-    ↓Symm′ {s} {t} σ = ↓Pos*.isInImage σ , ↓Pos*.isPropIsInImage σ
-
-    ↓Symm : ∀ {s t} → ↓Pos s ≃ ↓Pos t → Type ℓ
-    ↓Symm {s} {t} = ⟨_⟩ ∘ ↓Symm′ {s} {t}
-
-    isProp-↓Symm : ∀ {s t} → (σ : ↓Pos s ≃ ↓Pos t) → isProp (↓Symm σ)
-    isProp-↓Symm {s} {t} = str ∘ ↓Symm′ {s} {t}
-
-    ↓Symm-comp : ∀ {s t u} → (σ : ↓Pos s ≃ ↓Pos t) (τ : ↓Pos t ≃ ↓Pos u) → ↓Symm σ → ↓Symm τ → ↓Symm (σ ∙ₑ τ)
-    ↓Symm-comp = ?
-
-    ↓Symm-id : ∀ s → ↓Symm (idEquiv (↓Pos s))
-    ↓Symm-id s .fst = ↓Pos*.imageRestriction (refl {x = s})
-    ↓Symm-id s .snd = goal where
-      goal : pathToEquiv (cong ↓Pos (refl {x = s})) ≡ idEquiv (↓Pos s)
-      goal = pathToEquivRefl
-
-    ↓Symm-inv′ : ∀ {s t} → (σ : ↓Pos s ≃ ↓Pos t) → ↓Symm σ → ↓Symm (invEquiv σ)
-    ↓Symm-inv′ {s} {t} σ is-symm-σ = ↓Pos*.elimProp {P = λ (s≅t : ↓Pos*.Image) → (fib : ↓Pos*≡ (↓Pos*.imageInclusion s≅t) σ) → ↓Symm (invEquiv σ)}
-      (λ s≅t → isPropΠ λ fib → isProp-↓Symm (invEquiv σ)) {! !} (is-symm-σ .fst) (is-symm-σ .snd)
-
-    ↓Symm-inv : ∀ {s t} → (σ : ↓Pos s ≃ ↓Pos t) → ↓Symm σ → ↓Symm (invEquiv σ)
-    ↓Symm-inv {s} {t} σ is-symm-σ = goal where
-      step : (p : s ≡ t) → ↓Pos*.isInImage (invEquiv σ)
-      step p .fst = ↓Pos*.imageRestriction (sym p)
-      step p .snd =
-        pathToEquiv (sym $ cong ↓Pos p) ≡⟨ equivEq {! !} ⟩
-        invEquiv (pathToEquiv $ cong ↓Pos p) ≡⟨ {! !} ⟩
-        invEquiv (↓Pos*.imageInclusion (is-symm-σ .fst)) ≡⟨ cong invEquiv (is-symm-σ .snd) ⟩
-        invEquiv σ ∎
-
-      goal : ↓Symm (invEquiv σ)
-      goal = ↓Pos*.recProp (isProp-↓Symm (invEquiv σ)) step (is-symm-σ .fst)
-
-  ↓_ : QCont ℓ
-  ↓ .QCont.Shape = ↓Shape
-  ↓ .QCont.Pos = ↓Pos
-  ↓ .QCont.Symm = ↓Symm
-  ↓ .QCont.is-set-shape = isSet-↓Shape
-  ↓ .QCont.is-set-pos = isSet-↓Pos
-  ↓ .QCont.is-prop-symm = isProp-↓Symm
-  ↓ .QCont.symm-comp = ↓Symm-comp
-  ↓ .QCont.symm-id = ↓Symm-id
-  ↓ .QCont.symm-sym = ↓Symm-inv

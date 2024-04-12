@@ -9,7 +9,7 @@ open import GpdCont.SetTruncation using (isConnected-fiber-∣-∣₂ ; componen
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Isomorphism using (section ; Iso)
+open import Cubical.Foundations.Isomorphism using (section ; retract ; Iso)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
 
 private
@@ -60,3 +60,6 @@ record Skeleton (G* : hGroupoid ℓ) : Type (ℓ-suc ℓ) where
 
   ComponentGroup : ∥ G ∥₂ → Group _
   ComponentGroup x = Component x , ComponentGroupStr x
+
+  hasRetract : (∀ g → component-section ∣ g ∣₂ ≡ (g , refl)) → isSet G
+  hasRetract retr = isOfHLevelRetract 2 ∣_∣₂ sk (cong fst ∘ retr) ST.isSetSetTrunc

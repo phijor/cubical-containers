@@ -18,7 +18,9 @@ record Coffin (ℓ : Level) : Type (ℓ-suc ℓ) where
     using
       ( Index
       ; sk
+      ; sk-section
       ; Component
+      ; component-section
       ; isSetIndex
       ; ComponentGroup
       ; ComponentGroupStr

@@ -13,7 +13,7 @@ open import Cubical.Data.Sigma.Properties as Sigma using ()
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
 open import Cubical.HITs.Truncation as Tr using (∥_∥_)
-open import Cubical.Homotopy.Connected
+open import Cubical.Homotopy.Connected as Connected
 
 private
   variable
@@ -129,3 +129,38 @@ isOfHLevel×isConnected→isContr (suc k) A suc-k-level-A suc-k-conn-A = is-cont
 
   is-contr-A : isContr A
   is-contr-A = isOfHLevelRespectEquiv 0 universal-property-trunc suc-k-conn-A
+
+conType→indMapEquiv' : ∀ {ℓ} {A : Type ℓ} (n : HLevel)
+  → isConnected n A
+  → ((B : TypeOfHLevel ℓ n)
+  → isEquiv (λ (b : ⟨ B ⟩) → λ (a : A) → b))
+conType→indMapEquiv' {ℓ} {A} n conn-A (B , lvl-B) = {!Connected.elim.isEquivPrecompose (λ (a : A) → tt) n ? !} where
+  isConnectedFunConst : isConnectedFun n (λ (a : A) → tt)
+  isConnectedFunConst = isConnected→isConnectedFun n conn-A
+
+  lem : isEquiv (λ (s : (b : Unit) → TypeOfHLevel ℓ n) → s ∘ (λ a → tt))
+  lem = elim.isEquivPrecompose (λ (a : A) → tt) n {! !} isConnectedFunConst
+
+conType→indMapEquiv : ∀ {ℓ} {A : Type ℓ} (n : HLevel)
+  → isConnected n A
+  → ((B : TypeOfHLevel ℓ n)
+  → isEquiv (λ (b : ⟨ B ⟩) → λ (a : A) → b))
+conType→indMapEquiv {A} n conn-A (B , lvl-B) .equiv-proof = goal where
+  module _ (f : A → B) where
+    ev : fiber (λ b a → b) f → ∥ A ∥ n
+    ev (b , const-b≡f) = conn-A .fst
+
+    un-ev : ∥ A ∥ n → fiber (λ b a → b) f
+    un-ev ∣a∣ .fst = Tr.rec lvl-B f ∣a∣
+    un-ev ∣a∣ .snd = funExt λ a → {! !}
+
+    ev-retr : (x : fiber (λ b a → b) f) → un-ev (conn-A .fst) ≡ x
+    ev-retr (b , const-b≡f) = Sigma.ΣPathP ({!funExt⁻ const-b≡f !} , {! !})
+
+    ∣f∣ : ∥ A ∥ n → B
+    ∣f∣ = Tr.rec lvl-B f
+
+    goal : isContr (fiber (λ b a → b) f)
+    -- goal = isContrRetract {B = ∥ A ∥ n} ev un-ev ev-retr conn-A
+    goal .fst = ∣f∣ (conn-A .fst) , funExt λ a → Tr.elim {B = λ ∣a∣ → ∣f∣ ∣a∣ ≡ f a} {! !} (λ a′ → Tr.recUniq lvl-B f a′ ∙ cong f {! !}) (conn-A .fst)
+    goal .snd = {! !}

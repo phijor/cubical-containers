@@ -21,10 +21,10 @@ import Cubical.Data.Sigma.Properties as Sigma
 private
   open QCont Q using (Shape ; Pos ; Symm ; _∼_ ; PosSet)
 
-  open module Q = QCont Q using (_·_)
+  open module Q = QCont Q using (_·_ ; SymmGroupStr)
 
 module ↑SymmElim (s : Shape) =
-  GpdCont.Delooping (s ∼ s) _·_
+  GpdCont.Delooping (s ∼ s) (SymmGroupStr s)
     renaming (𝔹 to ↑Symm)
 
 open ↑SymmElim

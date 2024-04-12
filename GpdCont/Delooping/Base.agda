@@ -1,7 +1,10 @@
 open import GpdCont.Prelude
 open import Cubical.Foundations.HLevels
+open import Cubical.Algebra.Group.Base
 
-module GpdCont.Delooping.Base {ℓ} (G : Type ℓ) (_·_ : G → G → G) where
+module GpdCont.Delooping.Base {ℓ} (G : Type ℓ) (γ : GroupStr G) where
+  private
+    open module G = GroupStr γ using (_·_)
 
   data 𝔹 : Type ℓ where
     ⋆ : 𝔹

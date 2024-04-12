@@ -30,6 +30,9 @@ IsoSetTruncateFstΣ {A} {B} is-set-A = go where
 setTruncateFstΣ≃ : isSet A → ∥ Σ A B ∥₂ ≃ (Σ A (∥_∥₂ ∘ B))
 setTruncateFstΣ≃ = isoToEquiv ∘ IsoSetTruncateFstΣ
 
+PathSetTrunc≃PropTruncPath : {a b : A} → (∣ a ∣₂ ≡ ∣ b ∣₂) ≃ ∥ a ≡ b ∥₁
+PathSetTrunc≃PropTruncPath = isoToEquiv ST.PathIdTrunc₀Iso
+
 componentEquiv : (A : Type ℓA) → A ≃ (Σ[ x ∈ ∥ A ∥₂ ] fiber ∣_∣₂ x)
 componentEquiv A = totalEquiv {B = ∥ A ∥₂} {E = A} ∣_∣₂
 

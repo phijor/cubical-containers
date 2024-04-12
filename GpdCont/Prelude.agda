@@ -8,8 +8,9 @@ open import Cubical.Foundations.Function
   renaming (idfun to id)
   public
 open import Cubical.Foundations.Structure public using (⟨_⟩ ; str)
-open import Cubical.Foundations.Equiv using (_≃_) renaming (_■ to _≃∎) public
+open import Cubical.Foundations.Equiv using (_≃_ ; _≃⟨_⟩_) renaming (_■ to _≃∎) public
 
+open import Cubical.Data.Nat.Base using (zero ; suc) public
 open import Cubical.Data.Nat.Literals public
 open import Cubical.Data.Sigma.Base using (∃-syntax) public
 

@@ -1,19 +1,31 @@
 open import GpdCont.GroupoidContainer.Base
 
-module GpdCont.GroupoidContainer.EvalHom {ℓ} {G H : GCont ℓ} where
+module GpdCont.GroupoidContainer.EvalHom where
 
 open import GpdCont.Prelude
 open import GpdCont.GroupoidContainer.Morphism
 
 import GpdCont.GroupoidContainer.Eval as Eval
 
-module G = Eval G
-module H = Eval H
+open import Cubical.Foundations.HLevels
+private
+  variable
+    ℓ : Level
+    G H : GCont ℓ
+
+open Eval using (⟦_⟧ᵗ ; ⟦_⟧ ; ⟦_⟧-map ; ⟦-⟧ᵗ-Path ; shape ; label)
 
 open GContMorphism
 
-opaque
-  unfolding Eval.⟦_⟧ᵗ
-  Hom⟦_⟧₀ : (α : GContMorphism G H) → (∀ X → G.⟦ X ⟧ᵗ) → (∀ X → H.⟦ X ⟧ᵗ)
-  Hom⟦ α ⟧₀ F X .fst = α .shape-mor (F X .fst)
-  Hom⟦ α ⟧₀ F X .snd = F X .snd ∘ transport (α .pos-path (F X .fst))
+Hom⟦_⟧ᵗ : (α : GContMorphism G H) → (X : Type ℓ) → ⟦ G ⟧ᵗ X → ⟦ H ⟧ᵗ X
+Hom⟦ α ⟧ᵗ X p .shape = α .shape-mor (p .shape)
+Hom⟦ α ⟧ᵗ X p .label = p .label ∘ (α .pos-path (p .shape))
+
+Hom⟦_⟧₀ : (α : GContMorphism G H) → (X : hGroupoid ℓ) → ⟨ ⟦ G ⟧ X ⟩ → ⟨ ⟦ H ⟧ X ⟩
+Hom⟦ α ⟧₀ (X , is-gpd-X) = Hom⟦ α ⟧ᵗ X
+
+Hom⟦_⟧₀-natural : (α : GContMorphism G H) → (X Y : hGroupoid ℓ) (f : ⟨ X ⟩ → ⟨ Y ⟩) → (Hom⟦ α ⟧₀ Y ∘ ⟦ G ⟧-map X Y f) ≡ (⟦ H ⟧-map X Y f ∘ Hom⟦ α ⟧₀ X)
+Hom⟦_⟧₀-natural α X Y f = refl
+
+Hom⟦_⟧₀-id : ∀ (X : hGroupoid ℓ) x → Hom⟦ GContId G ⟧₀ X x ≡ x
+Hom⟦_⟧₀-id {G = G} X q = refl

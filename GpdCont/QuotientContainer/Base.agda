@@ -5,7 +5,10 @@ open import GpdCont.Univalence
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
+open import Cubical.Functions.Logic using (hProp≡)
 open import Cubical.Relation.Binary.Base using (module BinaryRelation)
+open import Cubical.Algebra.Group.Base
+open import Cubical.Algebra.Group.Subgroup
 
 open BinaryRelation using (isEquivRel ; isTrans ; isSym)
 
@@ -32,19 +35,35 @@ record QCont (ℓ : Level) : Type (ℓ-suc ℓ) where
     symm-comp : ∀ {s t u} (σ : Pos s ≃ Pos t) (τ : Pos t ≃ Pos u)
       → Symm σ → Symm τ → Symm (σ ∙ₑ τ)
 
+  PosΩGroup : Shape → Group ℓ
+  PosΩGroup s = PosΩ s , grp-str where
+    grp-str : GroupStr _
+    grp-str .GroupStr.1g = idEquiv _
+    grp-str .GroupStr._·_ = _∙ₑ_
+    grp-str .GroupStr.inv = invEquiv
+    grp-str .GroupStr.isGroup = makeIsGroup
+      (isOfHLevel≃ 2 (is-set-pos _) (is-set-pos _)) -- equivalences are a set
+      compEquiv-assoc -- composition is associative,
+      compEquivEquivId compEquivIdEquiv -- unital,
+      invEquiv-is-rinv invEquiv-is-linv -- and invertible
 
-  opaque
-    isEquivSymm : isEquivRel _∼_
-    isEquivSymm .isEquivRel.reflexive s = idEquiv _ , symm-id s
-    isEquivSymm .isEquivRel.symmetric s t σ = invEquiv (σ .fst) , symm-sym (σ .fst) (σ .snd)
-    isEquivSymm .isEquivRel.transitive s t u σ τ = σ .fst ∙ₑ τ .fst , symm-comp _ _ (σ .snd) (τ .snd)
+  isSet-∼ : ∀ {s t} → isSet (s ∼ t)
+  isSet-∼ = isSetΣ (isOfHLevel≃ 2 (is-set-pos _) (is-set-pos _)) (isProp→isSet ∘ is-prop-symm)
+
+  ∼-Path : ∀ {s t} {σ τ : s ∼ t} → σ .fst ≡ τ .fst → σ ≡ τ
+  ∼-Path p i .fst = p i
+  ∼-Path {σ} {τ} p i .snd = isProp→PathP (λ i → is-prop-symm (p i)) (σ .snd) (τ .snd) i
+
+  isEquivSymm : isEquivRel _∼_
+  isEquivSymm .isEquivRel.reflexive s = idEquiv _ , symm-id s
+  isEquivSymm .isEquivRel.symmetric s t σ = invEquiv (σ .fst) , symm-sym (σ .fst) (σ .snd)
+  isEquivSymm .isEquivRel.transitive s t u σ τ = σ .fst ∙ₑ τ .fst , symm-comp _ _ (σ .snd) (τ .snd)
   
-  opaque
-    isTransSymm : isTrans _∼_
-    isTransSymm s t u (σ , σ-symm) (τ , τ-symm) = σ ∙ₑ τ , symm-comp σ τ σ-symm τ-symm
+  isTransSymm : isTrans _∼_
+  isTransSymm = isEquivSymm .isEquivRel.transitive
 
-    _·_ : ∀ {s t u} → (s ∼ t) → (t ∼ u) → (s ∼ u)
-    _·_ {s} {t} {u} = isTransSymm s t u
+  _·_ : ∀ {s t u} → (s ∼ t) → (t ∼ u) → (s ∼ u)
+  _·_ {s} {t} {u} = isTransSymm s t u
 
   opaque
     isSymSymm : isSym _∼_
@@ -67,12 +86,28 @@ record QCont (ℓ : Level) : Type (ℓ-suc ℓ) where
     PosPath = TypeOfHLevel≡ 2 ∘ ua ∘ fst
 
   opaque
-    unfolding _·_ PosPath
+    unfolding PosPath
     PosPathCompSquare : ∀ {s t u} → (σ : s ∼ t) (τ : t ∼ u) → Square (PosPath σ) (PosPath $ σ · τ) refl (PosPath τ)
     PosPathCompSquare σ τ = ΣSquareSet (λ X → isProp→isSet isPropIsSet) (uaCompEquivSquare (fst σ) (fst τ))
 
-  opaque
-    SymmProp : ∀ {s} (p : Pos s ≃ Pos s) → hProp ℓ
-    SymmProp p .fst = Symm p
-    SymmProp p .snd = is-prop-symm p
+  SymmProp : ∀ {s} (p : Pos s ≃ Pos s) → hProp ℓ
+  SymmProp p .fst = Symm p
+  SymmProp p .snd = is-prop-symm p
 
+  isSubGroupSymm : ∀ s → isSubgroup (PosΩGroup s) SymmProp
+  isSubGroupSymm s .isSubgroup.id-closed = symm-id s
+  isSubGroupSymm s .isSubgroup.op-closed = symm-comp _ _
+  isSubGroupSymm s .isSubgroup.inv-closed = symm-sym _
+
+  SymmSubGroup : ∀ s → Subgroup (PosΩGroup s)
+  SymmSubGroup s .fst = SymmProp
+  SymmSubGroup s .snd = isSubGroupSymm s
+
+  SymmGroup : Shape → Group ℓ
+  SymmGroup s = Subgroup→Group (PosΩGroup s) (SymmSubGroup s)
+
+  SymmGroupStr : (s : Shape) → GroupStr (s ∼ s)
+  SymmGroupStr = str ∘ SymmGroup
+
+  Label : ∀ {ℓX} (X : Type ℓX) → Shape → Type _
+  Label X s = Pos s → X

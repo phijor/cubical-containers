@@ -38,7 +38,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
 
   module LiftTruncEquiv (X : hSet ℓ) where
     opaque
-      unfolding ⟦Q⟧ᵗ ⟦↑Q⟧ᵗ _∼*_ PosSet ua CoffinEval.label
+      unfolding ⟦↑Q⟧ᵗ PosSet ua CoffinEval.label ⟦Q⟧.Label→⟦_⟧ᵗ
       to-lift-trunc : (⟦Q⟧ᵗ ⟨ X ⟩) → ⟨ Tr ⟦↑Q⟧ X ⟩
       to-lift-trunc (s , v) = SQ.rec (isSetTr ⟦↑Q⟧ X) [_]* [-]*-well-defined v where
         [_]* : (v : Pos s → ⟨ X ⟩) → ⟨ Tr ⟦↑Q⟧ X ⟩
@@ -72,7 +72,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
       from-lift-trunc = ST.rec (QCEval.isSet-⟦ Q ⟧ᵗ ⟨ X ⟩) from-lift
 
     opaque
-      unfolding ⟦↑Q⟧ ⟦Q⟧ᵗ from-lift-trunc to-lift-trunc
+      unfolding ⟦↑Q⟧ from-lift-trunc to-lift-trunc
       lift-trunc-rightInv : ∀ (x : ⟨ Tr ⟦↑Q⟧ X ⟩) → to-lift-trunc (from-lift-trunc x) ≡ x
       lift-trunc-rightInv = ST.elim (isProp→isSet ∘ isPropPath) goal where
         isPropPath : ∀ x → isProp (to-lift-trunc (from-lift-trunc x) ≡ x)
@@ -88,7 +88,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
         goal = uncurry lemma
 
     opaque
-      unfolding ⟦Q⟧ᵗ from-lift-trunc to-lift-trunc
+      unfolding from-lift-trunc to-lift-trunc
       lift-trunc-leftInv : ∀ (x : ⟦Q⟧ᵗ ⟨ X ⟩) → (from-lift-trunc (to-lift-trunc x)) ≡ x
       lift-trunc-leftInv (s , v) = SQ.elimProp {P = Motive} isPropMotive [_]* v where
         Motive : ∀ (v : (Pos s → ⟨ X ⟩) / _∼*_) → Type ℓ
@@ -129,7 +129,7 @@ module EvalLiftLoopEquational {ℓ} (Q : QCont ℓ) where
 
   module PosEquiv (X : Type ℓ) (s : Shape) where
     opaque
-      unfolding PosSet _∼*_
+      unfolding PosSet ua
       PosIso : Iso ∥ Σ[ σ ∈ ↑Symm s ] (↑Pos ↑⟨ s , σ ⟩ → X) ∥₂ ((Pos s → X) / _∼*_)
       PosIso = record { the-iso } where module the-iso where
         fun : _

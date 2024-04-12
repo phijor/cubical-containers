@@ -6,12 +6,12 @@
   ...
 }: let
   cubical = agdaPackages.cubical.overrideAttrs (old: {
-    version = "0.7";
+    version = "${old.version}-wildcats";
     src = fetchFromGitHub {
       owner = "agda";
       repo = "cubical";
-      rev = "v0.7";
-      sha256 = "sha256-oLpKRWfQqb6CIscC2XM0ia9HJ8edJFHoPeql3kfvyrA=";
+      rev = "d182af36a763d0a354f83650a44e5ac8d5c9726f";
+      sha256 = "sha256-O/ZMBgkg7d89JqlsT+MZoYtR1E1mGEgNxsNVLXi4F6E=";
     };
   });
 in

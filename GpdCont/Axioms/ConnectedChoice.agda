@@ -66,6 +66,30 @@ ACC[0, k ] X Y = hasConnectedChoice₀ where
 ACC[_,0] : (n : HLevel) → ACC ℓ n 0
 ACC[ n ,0] X Y _ = isConnectedZero (∀ x → ⟨ Y x ⟩)
 
+-- ⋆ The above-diagonal ACC(n, k + n) is a tautology.
+--
+-- This follows from the fact that any k-connected family
+-- of k-types is pointwise contractible.
+ACC[_,_+] : (n k : HLevel) → ACC ℓ n (k + n)
+ACC[_,_+] n k X Y conn-Y = isContr→isConnected (k + n) isContr-Sections where
+  isContrY : ∀ x → isContr ⟨ Y x ⟩
+  isContrY x = isOfHLevel×isConnected→isContr n ⟨ Y x ⟩
+    (str (Y x))
+    (isConnectedSubtr n k (conn-Y x))
+
+  isContr-Sections : isContr (Section (⟨_⟩ ∘ Y))
+  isContr-Sections = isOfHLevelSection 0 isContrY
+
+-- ⋆ ACC(1, 1+k): A special case of the above.
+ACC[1,1+_] : (k : HLevel) → ACC ℓ 1 (suc k)
+ACC[1,1+ k ] = subst (ACC _ 1) (+-comm k 1) ACC[ 1 , k +]
+
+ACC[+1,+1]→ACC : (n k : HLevel) → ACC ℓ (suc n) (suc k) → ACC ℓ n k
+ACC[+1,+1]→ACC n k acc-suc X Y conn-Y = {!acc-suc _ _ _ !}
+
+ACC→ACC[+1,+1] : (n k : HLevel) → ACC ℓ n k → ACC ℓ (suc n) (suc k)
+ACC→ACC[+1,+1] n k acc X Y conn-Y = {!acc _ _ _ !}
+
 -- Being "split" can similarly be generalized to higher h-levels:
 -- A function is k-split if it has an k-connected type of sections.
 isConnectedHasSection : (k : HLevel) (f : X → Y) → Type _
@@ -149,6 +173,10 @@ ConnectedFunsHaveConnectedSections[0,1+ k ] X Y f 1+k-conn-f =
   (isContrDomain→1ConnectedFunHaveContrSections X Y f 1-conn-f) where
   1-conn-f : isConnectedFun 1 f
   1-conn-f = isConnectedFun≤ 1 (suc k) f (Nat≤.suc-≤-suc Nat≤.zero-≤) 1+k-conn-f
+
+CFCSSuc→CFCS : (n k : HLevel) → ConnectedFunsHaveConnectedSections ℓ (suc n) (suc k) → ConnectedFunsHaveConnectedSections ℓ n k
+CFCSSuc→CFCS n k cfcs X Y f k-conn-f = {! !}
+
 
 --  ⋆ ACC implies that connected functions have connected sections.
 --
@@ -237,24 +265,6 @@ ConnectedFunsHaveConnectedSections→ACC-[0,_] k _ = ACC[0, k ]
 
 ConnectedFunsHaveConnectedSections→ACC-[1,0] : ConnectedFunsHaveConnectedSections ℓ 1 0 → ACC ℓ 1 0
 ConnectedFunsHaveConnectedSections→ACC-[1,0] _ = ACC[ 1 ,0]
-
--- ⋆ The above-diagonal ACC(n, k + n) is a tautology.
---
--- This follows from the fact that any k-connected family
--- of k-types is pointwise contractible.
-ACC[_,_+] : (n k : HLevel) → ACC ℓ n (k + n)
-ACC[_,_+] n k X Y conn-Y = isContr→isConnected (k + n) isContr-Sections where
-  isContrY : ∀ x → isContr ⟨ Y x ⟩
-  isContrY x = isOfHLevel×isConnected→isContr n ⟨ Y x ⟩
-    (str (Y x))
-    (isConnectedSubtr n k (conn-Y x))
-
-  isContr-Sections : isContr (Section (⟨_⟩ ∘ Y))
-  isContr-Sections = isOfHLevelSection 0 isContrY
-
--- ⋆ ACC(1, 1+k): A special case of the above.
-ACC[1,1+_] : (k : HLevel) → ACC ℓ 1 (suc k)
-ACC[1,1+ k ] = subst (ACC _ 1) (+-comm k 1) ACC[ 1 , k +]
 
 ConnectedFunsHaveConnectedSections→ACC : (n k : HLevel) → ConnectedFunsHaveConnectedSections ℓ n k → ACC ℓ n k
 ConnectedFunsHaveConnectedSections→ACC 0 k = const ACC[0, k ]

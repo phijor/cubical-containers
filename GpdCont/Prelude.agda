@@ -33,6 +33,9 @@ module LevelNumber where
     NumberLevel .Number.Constraint n = ⊤
     NumberLevel .Number.fromNat n = ℓ# n
 
+ℓ-of : ∀ {ℓ} {A : Type ℓ} (a : A) → Level
+ℓ-of {ℓ} _ = ℓ
+
 open LevelNumber public
 
 private

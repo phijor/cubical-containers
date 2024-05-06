@@ -30,7 +30,7 @@ isSetTr F X = str $ Tr F X
 module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
   import GpdCont.GroupoidContainer.Eval
 
-  open module Q = QCont Q using (Shape ; Pos ; Symm ; _∼_ ; isTransSymm ; PosSet)
+  open module Q = QCont Q using (Shape ; Pos ; isSymm ; Symm ; PosSet)
   open module ⟦Q⟧ = QCEval Q using (_∼*_ ; ∼*→∼ ; ∼*→PathP*) renaming (⟦_⟧ to ⟦Q⟧ ; ⟦_⟧ᵗ to ⟦Q⟧ᵗ)
 
   open module ↑Q = Lift Q using (↑Shape ; ↑Pos ; ↑⟨_,_⟩ ; ↑Symm ; module ↑SymmElim) renaming (↑ to ↑Q)
@@ -38,7 +38,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
 
   module LiftTruncEquiv (X : hSet ℓ) where
     opaque
-      unfolding ⟦↑Q⟧ᵗ PosSet ua CoffinEval.label ⟦Q⟧.Label→⟦_⟧ᵗ
+      unfolding Q.PosPath ⟦↑Q⟧ᵗ ua CoffinEval.label ⟦Q⟧.Label→⟦_⟧ᵗ
       to-lift-trunc : (⟦Q⟧ᵗ ⟨ X ⟩) → ⟨ Tr ⟦↑Q⟧ X ⟩
       to-lift-trunc (s , v) = SQ.rec (isSetTr ⟦↑Q⟧ X) [_]* [-]*-well-defined v where
         [_]* : (v : Pos s → ⟨ X ⟩) → ⟨ Tr ⟦↑Q⟧ X ⟩
@@ -60,7 +60,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
         [_]* : (s : Shape) → (v : Pos s → ⟨ X ⟩) → Σ[ s ∈ Shape ] ((Pos s → ⟨ X ⟩) / _∼*_)
         [ s ]* = QCEval.Label→⟦ Q ⟧ᵗ
 
-        [_]*-loop : ∀ s → (σ : s ∼ s) → PathP (λ i → (ua (σ .fst) i → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩) [ s ]* [ s ]*
+        [_]*-loop : ∀ s → (σ : Symm s) → PathP (λ i → (ua (σ .fst) i → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩) [ s ]* [ s ]*
         [_]*-loop s σ = funExtDep λ { {x₀ = v} {x₁ = w} p → ΣPathP (refl , SQ.eq/ v w (σ , p)) }
 
         goal : (s : ↑Shape) → (v : ↑Pos s → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩
@@ -121,7 +121,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
   evalLiftPath X = TypeOfHLevel≡ 2 (ua $ evalLiftEquiv X)
 
 module EvalLiftLoopEquational {ℓ} (Q : QCont ℓ) where
-  open module Q = QCont Q using (Shape ; Pos ; Symm ; _∼_ ; isTransSymm ; PosSet)
+  open module Q = QCont Q using (Shape ; Pos ; Symm ; PosSet)
   open module ⟦Q⟧ = QCEval Q using (_∼*_ ; ∼*→∼ ; ∼*→PathP*) renaming (⟦_⟧ to ⟦Q⟧ ; ⟦_⟧ᵗ to ⟦Q⟧ᵗ)
 
   open module ↑Q = Lift Q using (↑Shape ; ↑Pos ; ↑⟨_,_⟩ ; ↑Symm ; module ↑SymmElim) renaming (↑ to ↑Q)
@@ -129,7 +129,7 @@ module EvalLiftLoopEquational {ℓ} (Q : QCont ℓ) where
 
   module PosEquiv (X : Type ℓ) (s : Shape) where
     opaque
-      unfolding PosSet ua
+      unfolding Q.PosPath ua
       PosIso : Iso ∥ Σ[ σ ∈ ↑Symm s ] (↑Pos ↑⟨ s , σ ⟩ → X) ∥₂ ((Pos s → X) / _∼*_)
       PosIso = record { the-iso } where module the-iso where
         fun : _

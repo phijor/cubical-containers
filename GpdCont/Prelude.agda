@@ -15,6 +15,17 @@ open import Cubical.Data.Nat.Literals public
 open import Cubical.Data.Sigma.Base using (∃-syntax) public
 
 module _ where
+  private
+    variable
+      ℓ : Level
+      A B C : Type ℓ
+
+  infixr 9 _⋆_
+  _⋆_ : (f : A → B) (g : B → C) → A → C
+  (f ⋆ g) x = g (f x)
+  {-# INLINE _⋆_ #-}
+
+module _ where
   infixr 0 _≃⟨⟩_
   _≃⟨⟩_ : ∀ {ℓ ℓ'} (A : Type ℓ) {B : Type ℓ'} → A ≃ B → A ≃ B
   A ≃⟨⟩ e = e

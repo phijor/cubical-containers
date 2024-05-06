@@ -19,12 +19,12 @@ open import GpdCont.SetTruncation using (setTruncateFstΣ≃)
 import Cubical.Data.Sigma.Properties as Sigma
 
 private
-  open QCont Q using (Shape ; Pos ; Symm ; _∼_ ; PosSet)
+  open QCont Q using (Shape ; Pos ; isSymm ; Symm ; PosSet)
 
   open module Q = QCont Q using (_·_ ; SymmGroupStr)
 
 module ↑SymmElim (s : Shape) =
-  GpdCont.Delooping (s ∼ s) (SymmGroupStr s)
+  GpdCont.Delooping (Symm s) (SymmGroupStr s)
     renaming (𝔹 to ↑Symm)
 
 open ↑SymmElim
@@ -52,11 +52,11 @@ pattern ↑⟨_,_⟩ ↓shape symm = ↓shape , symm
 ↑shape s .↓shape = s
 ↑shape s .symm = ↑Symm.⋆
 
-↑loop : ∀ {s : Shape} → s ∼ s → ↑shape s ≡ ↑shape s
+↑loop : ∀ {s : Shape} → Symm s → ↑shape s ≡ ↑shape s
 ↑loop r i .↓shape = _
 ↑loop r i .symm = ↑Symm.loop r i
 
-↑loop-comp : ∀ {s} → (g h : s ∼ s) → compSquareFiller (↑loop g) (↑loop h) (↑loop (g · h))
+↑loop-comp : ∀ {s} → (g h : Symm s) → compSquareFiller (↑loop g) (↑loop h) (↑loop (g · h))
 ↑loop-comp g h i j .↓shape = _
 ↑loop-comp g h i j .symm = ↑Symm.loop-comp g h i j
 

@@ -13,10 +13,13 @@ open import Cubical.Relation.Binary.Base using (module BinaryRelation)
 
 open BinaryRelation using (isEquivRel ; isTrans ; isSym)
 
-open module Q = QCont Q
+private
+  open module Q = QCont Q
 
 LabelEquiv : (s : Shape) (X : Type ℓ) → (v w : Q.Label X s) → Type ℓ
-LabelEquiv s X v w = Σ[ σ ∈ s ∼ s ] PathP (λ i → ua (σ .fst) i → X) v w
+LabelEquiv s X v w = Σ[ σ ∈ Symm s ] PathP (λ i → ua (σ .fst) i → X) v w
+
+-- TODO: Get rid of mentions of _∼_
 
 _∼*_ : ∀ {s} {X : Type ℓ} → (v w : Pos s → X) → Type ℓ
 _∼*_ {s} {X} = LabelEquiv s X
@@ -49,7 +52,7 @@ opaque
 ∼*→PosEquiv : ∀ {X} {s} {v w : Pos s → X} → v ∼* w → Pos s ≃ Pos s
 ∼*→PosEquiv ((σ , is-symm-σ) , _) = σ
 
-∼*→∼ : ∀ {X} {s} {v w : Pos s → X} → v ∼* w → s ∼ s
+∼*→∼ : ∀ {X} {s} {v w : Pos s → X} → v ∼* w → Symm s
 ∼*→∼ ((σ , is-symm-σ) , _) = σ , is-symm-σ
 
 ∼*→PathP* : ∀ {X} {s} {v w : Pos s → X} → (σ : v ∼* w) → PathP (λ i → ua (∼*→PosEquiv σ) i → X) v w
@@ -78,6 +81,10 @@ opaque
 LabelEquiv→⟦_⟧Path : ∀ {X : hSet ℓ} {s} → (v w : Q.Label ⟨ X ⟩ s) → v ∼* w → Path (⟦_⟧ᵗ ⟨ X ⟩) (s , SQ.[ v ]) (s , SQ.[ w ])
 LabelEquiv→⟦_⟧Path {s} v w eq i .fst = s
 LabelEquiv→⟦_⟧Path {s} v w eq i .snd = SQ.eq/ v w eq i
+
+opaque
+  preComp→⟦_⟧Path : ∀ {X : hSet ℓ} {s} → (v : Q.Label ⟨ X ⟩ s) (σ : Symm s) → Path (⟦_⟧ᵗ ⟨ X ⟩) (s , SQ.[ v ∘ σ ⁺ ]) (s , SQ.[ v ])
+  preComp→⟦_⟧Path {X} v σ = LabelEquiv→⟦_⟧Path {X = X} (v ∘ σ ⁺) v (σ , ua→ λ pos → refl)
 
 private
   module on-labels {X Y : Type ℓ} (f : X → Y) where

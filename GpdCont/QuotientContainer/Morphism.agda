@@ -2,57 +2,47 @@ module GpdCont.QuotientContainer.Morphism where
 
 open import GpdCont.Prelude
 open import GpdCont.QuotientContainer.Base
+open import GpdCont.QuotientContainer.Premorphism as Premorphism using (Premorphism ; PremorphismEquiv)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
+open import Cubical.HITs.PropositionalTruncation as PT using ()
+open import Cubical.HITs.SetQuotients as SQ using (_/_)
 
 private
   variable
     ℓ : Level
-    Q R S : QCont ℓ
+    Q R S T : QCont ℓ
 
-record QContMorphism {ℓ} (Q R : QCont ℓ) : Type ℓ where
-  private
-    module Q = QCont Q
-    module R = QCont R
+open QCont
+
+Premorphism/ : (Q R : QCont ℓ) (shape-mor : Q .Shape → R .Shape) → Type ℓ
+Premorphism/ Q R shape-mor = Premorphism Q R shape-mor / PremorphismEquiv
+
+pre-morphism-class : ∀ {u : Q .Shape → R .Shape} (f : Premorphism Q R u) → Premorphism/ Q R u
+pre-morphism-class f = SQ.[ f ]
+
+pre-morphism-eq/ : ∀ {u : Q .Shape → R .Shape} {f g : Premorphism Q R u} → PremorphismEquiv f g → pre-morphism-class f ≡ pre-morphism-class g
+pre-morphism-eq/ {f} {g} f≈g = SQ.eq/ {R = PremorphismEquiv} f g f≈g
+
+record Morphism {ℓ} (Q R : QCont ℓ) : Type ℓ where
+  constructor mk-qcont-morphism
+  pattern
 
   field
-    shape-mor : Q.Shape → R.Shape
-    pos-equiv : ∀ (s : Q.Shape) → R.Pos (shape-mor s) ≃ Q.Pos s
+    shape-mor : Q .Shape → R .Shape
+    pos-equiv : Premorphism/ Q R shape-mor
 
-  field
-    symm-pres : ∀ (s : Q.Shape) → s Q.∼ s → shape-mor s R.∼ shape-mor s
-    symm-pres-natural : ∀ (s : Q.Shape) (σ : s Q.∼ s)
-      → pos-equiv s ∙ₑ (σ .fst) ≡ (symm-pres s σ .fst) ∙ₑ (pos-equiv s)
-
-    -- The morphism of shapes preserves the subgroup of symmetries, naturally:
-    --
-    --                           pos-equiv s
-    --      R.Pos (shape-mor s) ------------> Q.Pos s
-    --               |                           |
-    --               |                           |
-    -- symm-pres s σ |                           | σ
-    --               |                           |
-    --               v                           v
-    --      R.Pos (shape-mor s) ------------> Q.Pos s
-    --                           pos-equiv s
-
-  private
-    conj : ∀ {s : Q.Shape} (σ : Q.PosΩ s) → R.PosΩ (shape-mor s)
-    conj {s} σ = pos-equiv s ∙ₑ σ ∙ₑ invEquiv (pos-equiv s)
-
-unquoteDecl QContMorphismIsoΣ = declareRecordIsoΣ QContMorphismIsoΣ (quote QContMorphism)
+unquoteDecl MorphismIsoΣ = declareRecordIsoΣ MorphismIsoΣ (quote Morphism)
 
 instance
-  QContMorphismToΣ : ∀ {ℓ} {Q R : QCont ℓ} → RecordToΣ (QContMorphism Q R)
-  QContMorphismToΣ = toΣ QContMorphismIsoΣ
+  MorphismToΣ : ∀ {ℓ} {Q R : QCont ℓ} → RecordToΣ (Morphism Q R)
+  MorphismToΣ = toΣ MorphismIsoΣ
 
-isSetQContMorphism : isSet (QContMorphism Q R)
-isSetQContMorphism {Q} {R} =
-  recordIsOfHLevel 2 $ isSetΣ isSet-shape-mor
-    λ shape-mor → isSetΣ (isSet-pos-equiv shape-mor)
-    λ pos-equiv → isSetΣ (isSet-symm-pres shape-mor)
-    λ symm-pres → isProp→isSet (isProp-symm-pres-natural shape-mor pos-equiv symm-pres) where
+isSetMorphism : isSet (Morphism Q R)
+isSetMorphism {Q} {R} = recordIsOfHLevel 2 $
+  isSetΣ isSet-shape-mor isSet-Premorphism/
+  where
   private
     module Q = QCont Q
     module R = QCont R
@@ -60,51 +50,90 @@ isSetQContMorphism {Q} {R} =
   isSet-shape-mor : isSet (Q.Shape → R.Shape)
   isSet-shape-mor = isSet→ (QCont.is-set-shape R)
 
-  isSet-pos-equiv : ∀ shape-mor → isSet (∀ s → R.Pos (shape-mor s) ≃ Q.Pos s)
-  isSet-pos-equiv _ = isSetΠ λ _ → isOfHLevel≃ 2 (QCont.is-set-pos R _) (QCont.is-set-pos Q _)
+  isSet-Premorphism/ : ∀ shape-mor → isSet (Premorphism/ Q R shape-mor)
+  isSet-Premorphism/ shape-mor = SQ.squash/
 
-  isSet-symm-pres : ∀ (shape-mor : Q.Shape → _) → isSet (∀ s → s Q.∼ s → shape-mor s R.∼ shape-mor s)
-  isSet-symm-pres _ = isSetΠ2 λ s σ → R.isSet-∼
+open Morphism
+private
+  pre→mor : ∀ {u : Q .Shape → R .Shape} (f : Premorphism Q R u) → Morphism Q R
+  pre→mor {u = u} f .shape-mor = u
+  pre→mor {u = u} f .pos-equiv = pre-morphism-class f
 
-  isProp-symm-pres-natural : ∀ shape-mor (pos-equiv : ∀ s → R.Pos (shape-mor s) ≃ Q.Pos s) symm-pres → isProp (∀ s σ → pos-equiv s ∙ₑ σ .fst ≡ symm-pres s σ .fst ∙ₑ pos-equiv s)
-  isProp-symm-pres-natural _ _ _ = isPropΠ2 λ _ _ → isOfHLevel≃ 2 (R.is-set-pos _) (Q.is-set-pos _) _ _
+opaque
+  MorphismElimProp : ∀ {ℓP} (P : Morphism Q S → Type ℓP)
+    → (∀ α → isProp (P α))
+    → ((u : Q .Shape → S .Shape) (f : Premorphism Q S u) → P (pre→mor f))
+    → ∀ α → P α
+  MorphismElimProp P is-prop-P p* α = SQ.elimProp {P = λ f → P (mk-qcont-morphism (α .shape-mor) f)}
+    (is-prop-P ∘ (mk-qcont-morphism (α .shape-mor)))
+    (p* (α .shape-mor))
+    (α .pos-equiv)
 
-module _ (α β : QContMorphism Q R) where
-  private
-    module α = QContMorphism α
-    module β = QContMorphism β
+  MorphismElimProp3 : ∀ {Q Q′ Q″ R R′ R″ : QCont ℓ} {ℓP} (P : Morphism Q R → Morphism Q′ R′ → Morphism Q″ R″ → Type ℓP)
+    → (∀ α β γ → isProp (P α β γ))
+    → (∀ u v w → (f : Premorphism Q R u) (g : Premorphism Q′ R′ v) (h : Premorphism Q″ R″ w) → P (pre→mor f) (pre→mor g) (pre→mor h))
+    → ∀ α β γ → P α β γ
+  MorphismElimProp3 P is-prop-P p* α β γ = SQ.elimProp3 {P = λ f g h → P (mk-qcont-morphism _ f) (mk-qcont-morphism _ g) (mk-qcont-morphism _ h)}
+    (λ f g h → is-prop-P _ _ _)
+    (p* _ _ _)
+    (α .pos-equiv) (β .pos-equiv) (γ .pos-equiv)
 
-  path-lemma : (p : α.shape-mor ≡ β.shape-mor)
-    → {! !}
-    → α ≡ β
-  path-lemma = {! !}
+idQCont : {Q : QCont ℓ} → Morphism Q Q
+idQCont {Q} = pre→mor (Premorphism.idPremorphism Q)
 
-QContId : (Q : QCont ℓ) → QContMorphism Q Q
-QContId Q .QContMorphism.shape-mor = id $ Q .QCont.Shape
-QContId Q .QContMorphism.pos-equiv = idEquiv ∘ Q .QCont.Pos
-QContId Q .QContMorphism.symm-pres s = id (QCont._∼_ Q s s)
-QContId Q .QContMorphism.symm-pres-natural s σ = equivEq refl
-
-compQContMorphism : (α : QContMorphism Q R) (β : QContMorphism R S) → QContMorphism Q S
+compQContMorphism : (α : Morphism Q R) (β : Morphism R S) → Morphism Q S
 compQContMorphism {Q} {R} {S} α β = composite where
-  module α = QContMorphism α
-  module β = QContMorphism β
-  module S = QCont S
+  private
+    module R = QCont R
+    module S = QCont S
 
-  composite : QContMorphism Q S
-  composite .QContMorphism.shape-mor = β.shape-mor ∘ α.shape-mor
-  composite .QContMorphism.pos-equiv s = β.pos-equiv (α.shape-mor s) ∙ₑ α.pos-equiv s
-  composite .QContMorphism.symm-pres s σ = β.symm-pres (α.shape-mor s) (α.symm-pres s σ)
-  composite .QContMorphism.symm-pres-natural s σ =
-    (β.pos-equiv (α.shape-mor s) ∙ₑ α.pos-equiv s) ∙ₑ σ .fst
-      ≡⟨ sym (compEquiv-assoc _ _ _) ⟩
-    β.pos-equiv (α.shape-mor s) ∙ₑ (α.pos-equiv s ∙ₑ σ .fst)
-      ≡⟨ cong (β.pos-equiv _ ∙ₑ_) (α.symm-pres-natural s σ) ⟩
-    β.pos-equiv (α.shape-mor s) ∙ₑ (α.symm-pres s σ .fst ∙ₑ α.pos-equiv s)
-      ≡⟨ compEquiv-assoc _ _ _ ⟩
-    (β.pos-equiv (α.shape-mor s) ∙ₑ α.symm-pres s σ .fst) ∙ₑ α.pos-equiv s
-      ≡⟨ cong (_∙ₑ α.pos-equiv s) (β.symm-pres-natural (α.shape-mor s) (α.symm-pres s σ)) ⟩
-    (β.symm-pres (α.shape-mor s) (α.symm-pres s σ) .fst ∙ₑ β.pos-equiv (α.shape-mor s)) ∙ₑ α.pos-equiv s
-      ≡⟨ sym (compEquiv-assoc _ _ _) ⟩
-    β.symm-pres (α.shape-mor s) (α.symm-pres s σ) .fst ∙ₑ (β.pos-equiv (α.shape-mor s) ∙ₑ α.pos-equiv s)
-      ∎
+  open Premorphism.Composite {u = α .shape-mor} {v = β .shape-mor} using () renaming (compPremorphism to _⋆-pre_)
+
+  composite : Morphism Q S
+  composite .shape-mor = α .shape-mor ⋆ β .shape-mor
+  composite .pos-equiv = SQ.rec SQ.squash/ (composite' (β .pos-equiv)) (well-defined (β .pos-equiv)) (α .pos-equiv) where
+
+    open Premorphism.Premorphism
+    open PremorphismEquiv
+    opaque
+      well-defined' : (f : Premorphism Q R (α .shape-mor)) (g g′ : Premorphism R S (β .shape-mor)) → PremorphismEquiv g g′ → PremorphismEquiv (f ⋆-pre g) (f ⋆-pre g′)
+      well-defined' f g g′ g-equiv-g′ = λ where
+        .η q → g-equiv-g′ .η (α .shape-mor q)
+        .η-comm q →
+          (f ⋆-pre g) .pos-mor q ≡⟨⟩
+          (g .pos-mor _ ⋆ f .pos-mor _) ≡⟨ cong (_⋆ f .pos-mor _) (g-equiv-g′ .η-comm _) ⟩
+          g-equiv-g′ .η (α .shape-mor q) S.⁺ ⋆ g′ .pos-mor _ ⋆ f .pos-mor _ ≡⟨⟩
+          g-equiv-g′ .η (α .shape-mor q) S.◁ (f ⋆-pre g′) .pos-mor q ∎
+
+    composite' : Premorphism/ R S (β .shape-mor) → Premorphism Q R (α .shape-mor) → Premorphism/ Q S (α .shape-mor ⋆ β .shape-mor)
+    composite' [g] f = SQ.rec SQ.squash/ (λ g → pre-morphism-class (f ⋆-pre g)) (λ { g g′ r → pre-morphism-eq/ (well-defined' f g g′ r) }) [g]
+
+    opaque
+      well-defined : ([g] : Premorphism/ R S (β .shape-mor)) (f f′ : Premorphism Q R (α .shape-mor)) → PremorphismEquiv f f′ → composite' [g] f ≡ composite' [g] f′
+      well-defined [g] f f′ f-equiv-f′ = SQ.elimProp {P = λ [g] → composite' [g] f ≡ composite' [g] f′} (λ [g] → SQ.squash/ _ _) (λ g → pre-morphism-eq/ $ comp-equiv g) [g] where
+        comp-equiv : ∀ g → PremorphismEquiv (f ⋆-pre g) (f′ ⋆-pre g)
+        comp-equiv g = λ where
+          .η q → g .symm-pres (α .shape-mor q) (f-equiv-f′ .η q)
+          .η-comm q →
+            (f ⋆-pre g) .pos-mor q ≡⟨⟩
+            g .pos-mor _ ⋆ f .pos-mor _ ≡⟨ cong (g .pos-mor _ ⋆_) (f-equiv-f′ .η-comm q) ⟩
+            g .pos-mor _ ⋆ (f-equiv-f′ .η _ R.◁ f′ .pos-mor _) ≡⟨⟩
+            (g .pos-mor _ R.▷ f-equiv-f′ .η _) ⋆ f′ .pos-mor _ ≡⟨ cong (_⋆ f′ .pos-mor _) $ g .symm-pres-natural _ (f-equiv-f′ .η q) ⟩
+            (g .symm-pres _ (f-equiv-f′ .η q) S.◁ g .pos-mor (α .shape-mor q)) ⋆ f′ .pos-mor _ ≡⟨⟩
+            (g .symm-pres _ (f-equiv-f′ .η q)) S.◁ (f′ ⋆-pre g) .pos-mor q ∎
+
+private
+  _⋆Q_ = compQContMorphism
+
+opaque
+  ⋆IdL : (α : Morphism Q S) → idQCont ⋆Q α ≡ α
+  ⋆IdL = MorphismElimProp (λ α → idQCont ⋆Q α ≡ α) (λ α → isSetMorphism _ α)
+    λ { u f → cong pre→mor (Premorphism.⋆IdL u f) }
+
+  ⋆IdR : (α : Morphism Q S) → α ⋆Q idQCont ≡ α
+  ⋆IdR = MorphismElimProp (λ α → α ⋆Q idQCont ≡ α) (λ α → isSetMorphism _ α)
+    λ { u f → cong pre→mor (Premorphism.⋆IdR u f) }
+
+  ⋆Assoc : (α : Morphism Q R) (β : Morphism R S) (γ : Morphism S T) → (α ⋆Q β) ⋆Q γ ≡ α ⋆Q (β ⋆Q γ)
+  ⋆Assoc = MorphismElimProp3 _ (λ { _ _ _ → isSetMorphism _ _ })
+    λ u v w f g h i → pre→mor (Premorphism.⋆Assoc u v w f g h i)

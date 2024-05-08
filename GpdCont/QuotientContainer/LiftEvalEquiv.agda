@@ -38,14 +38,14 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
 
   module LiftTruncEquiv (X : hSet ℓ) where
     opaque
-      unfolding Q.PosPath ⟦↑Q⟧ᵗ ua CoffinEval.label ⟦Q⟧.Label→⟦_⟧ᵗ
+      unfolding Q.PosPath ua CoffinEval.label
       to-lift-trunc : (⟦Q⟧ᵗ ⟨ X ⟩) → ⟨ Tr ⟦↑Q⟧ X ⟩
-      to-lift-trunc (s , v) = SQ.rec (isSetTr ⟦↑Q⟧ X) [_]* [-]*-well-defined v where
-        [_]* : (v : Pos s → ⟨ X ⟩) → ⟨ Tr ⟦↑Q⟧ X ⟩
-        [ v ]* = ST.∣ CoffinEval.mk⟦ ↑Q ⟧ᵗ (↑Q.↑shape s , v) ∣₂
+      to-lift-trunc = QCEval.⟦ Q ⟧ᵗ-rec (isSetTr ⟦↑Q⟧ X) [_]* [-]*-well-defined where
+        [_]* : ∀ {s} (v : Pos s → ⟨ X ⟩) → ⟨ Tr ⟦↑Q⟧ X ⟩
+        [ v ]* = ST.∣ CoffinEval.mk⟦ ↑Q ⟧ᵗ (↑Q.↑shape _ , v) ∣₂
 
-        [-]*-well-defined : (v w : Pos s → ⟨ X ⟩) → v ∼* w → [ v ]* ≡ [ w ]*
-        [-]*-well-defined v w r = cong ST.∣_∣₂ (⟦↑Q⟧ᵗ-Path shape-loop label-path) where
+        [-]*-well-defined : ∀ {s} (v w : Pos s → ⟨ X ⟩) → v ∼* w → [ v ]* ≡ [ w ]*
+        [-]*-well-defined {s} v w r = cong ST.∣_∣₂ (⟦↑Q⟧ᵗ-Path shape-loop label-path) where
           shape-loop : ↑Q.↑shape s ≡ ↑Q.↑shape s
           shape-loop = ↑Q.↑loop (∼*→∼ r)
 
@@ -57,11 +57,11 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
         isSetΠ⟦Q⟧ : ∀ ↑s → isSet ((↑Pos ↑s → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩)
         isSetΠ⟦Q⟧ ↑s = isSetΠ (λ ↑v → QCEval.isSet-⟦ Q ⟧ᵗ ⟨ X ⟩)
 
-        [_]* : (s : Shape) → (v : Pos s → ⟨ X ⟩) → Σ[ s ∈ Shape ] ((Pos s → ⟨ X ⟩) / _∼*_)
+        [_]* : (s : Shape) → (v : Pos s → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩
         [ s ]* = QCEval.Label→⟦ Q ⟧ᵗ
 
         [_]*-loop : ∀ s → (σ : Symm s) → PathP (λ i → (ua (σ .fst) i → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩) [ s ]* [ s ]*
-        [_]*-loop s σ = funExtDep λ { {x₀ = v} {x₁ = w} p → ΣPathP (refl , SQ.eq/ v w (σ , p)) }
+        [_]*-loop s σ = funExtDep λ { {x₀ = v} {x₁ = w} p → ⟦Q⟧.LabelEquiv→⟦_⟧Path v w (σ , p) }
 
         goal : (s : ↑Shape) → (v : ↑Pos s → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩
         goal = ↑Q.↑Shape-uncurry λ s → ↑SymmElim.elimSet s (λ σ → isSetΠ⟦Q⟧ ↑⟨ s , σ ⟩) [ s ]* [ s ]*-loop
@@ -90,16 +90,18 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
     opaque
       unfolding from-lift-trunc to-lift-trunc
       lift-trunc-leftInv : ∀ (x : ⟦Q⟧ᵗ ⟨ X ⟩) → (from-lift-trunc (to-lift-trunc x)) ≡ x
-      lift-trunc-leftInv (s , v) = SQ.elimProp {P = Motive} isPropMotive [_]* v where
-        Motive : ∀ (v : (Pos s → ⟨ X ⟩) / _∼*_) → Type ℓ
-        Motive v = from-lift-trunc (to-lift-trunc (s , v)) ≡ (s , v)
+      lift-trunc-leftInv = QCEval.⟦ Q ⟧ᵗ-elimProp {P = Motive} isPropMotive {! !} where
+      -- lift-trunc-leftInv QCEval.mk⟦ s , v ⟧ᵗ = SQ.elimProp {P = Motive} isPropMotive [_]* v where
+        Motive : ⟦Q⟧ᵗ ⟨ X ⟩ → Type ℓ
+        Motive x = from-lift-trunc (to-lift-trunc x) ≡ x
 
-        isPropMotive : ∀ v → isProp (Motive v)
-        isPropMotive v = QCEval.isSet-⟦ Q ⟧ᵗ ⟨ X ⟩ _ (s , v)
+        isPropMotive : ∀ x → isProp (Motive x)
+        isPropMotive x = QCEval.isSet-⟦ Q ⟧ᵗ ⟨ X ⟩ _ _
 
-        [_]* : (v : Pos s → ⟨ X ⟩) → Motive SQ.[ v ]
-        [ v ]* = refl
+        -- [_]* : ∀ {s} → (v : Pos s → ⟨ X ⟩) → Motive ?
+        -- [ v ]* = refl
 
+{-
     lift-trunc-Iso : Iso (⟦Q⟧ᵗ ⟨ X ⟩) ⟨ Tr ⟦↑Q⟧ X ⟩
     lift-trunc-Iso .Iso.fun = to-lift-trunc
     lift-trunc-Iso .Iso.inv = from-lift-trunc
@@ -107,14 +109,10 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
     lift-trunc-Iso .Iso.leftInv = lift-trunc-leftInv
 
   opaque
-    unfolding QCEval.⟦_⟧ CoffinEval.⟦_⟧
-    lift-trunc-equiv : ∀ (X : hSet ℓ)
-      → (Σ[ s ∈ Shape ] (Pos s → ⟨ X ⟩) / _∼*_) ≃ ∥ CoffinEval.⟦ ↑Q ⟧ᵗ ⟨ X ⟩ ∥₂
-    lift-trunc-equiv X = Isomorphism.isoToEquiv (LiftTruncEquiv.lift-trunc-Iso X)
-
+    unfolding CoffinEval.⟦_⟧
     evalLiftEquiv : ∀ X → ⟨ ⟦Q⟧ X ⟩ ≃ ⟨ Tr ⟦↑Q⟧ X ⟩
     evalLiftEquiv X =
-      Σ[ s ∈ Shape ] (Pos s → ⟨ X ⟩) / _∼*_ ≃⟨ lift-trunc-equiv X ⟩
+      ⟦Q⟧ᵗ ⟨ X ⟩ ≃⟨ Isomorphism.isoToEquiv (LiftTruncEquiv.lift-trunc-Iso X) ⟩
       ∥ CoffinEval.⟦ ↑Q ⟧ᵗ ⟨ X ⟩ ∥₂ ≃∎
 
   evalLiftPath : ∀ X → ⟦Q⟧ X ≡ Tr ⟦↑Q⟧ X
@@ -155,12 +153,13 @@ module EvalLiftLoopEquational {ℓ} (Q : QCont ℓ) where
     PosEquiv = isoToEquiv PosIso
 
   opaque
-    unfolding ⟦Q⟧ ⟦↑Q⟧
+    unfolding ⟦↑Q⟧
     thm : ∀ X → ⟨ Tr ⟦↑Q⟧ X ⟩ ≃ ⟨ ⟦Q⟧ X ⟩
     thm X =
       ∥ ⟦↑Q⟧ᵗ ⟨ X ⟩ ∥₂ ≃⟨⟩
       ∥ Σ[ ↑s ∈ ↑Shape ] (↑Pos (↑s) → ⟨ X ⟩) ∥₂                       ≃⟨ cong≃ ∥_∥₂ Sigma.Σ-assoc-≃ ⟩
       ∥ Σ[ s ∈ Shape ] Σ[ v ∈ ↑Symm s ] (↑Pos ↑⟨ s , v ⟩ → ⟨ X ⟩) ∥₂  ≃⟨ setTruncateFstΣ≃ Q.is-set-shape ⟩
       Σ[ s ∈ Shape ] ∥ Σ[ v ∈ ↑Symm s ] (↑Pos ↑⟨ s , v ⟩ → ⟨ X ⟩) ∥₂  ≃⟨ Sigma.Σ-cong-equiv-snd $ PosEquiv.PosEquiv ⟨ X ⟩ ⟩
-      Σ[ s ∈ Shape ] (Pos s → ⟨ X ⟩) / _∼*_                           ≃⟨⟩
+      Σ[ s ∈ Shape ] (Pos s → ⟨ X ⟩) / _∼*_                           ≃⟨ (⟦Q⟧ᵗ ⟨ X ⟩ ≃Σ) ⁻ᵉ ⟩
       ⟨ ⟦Q⟧ X ⟩                                                       ≃∎
+      -}

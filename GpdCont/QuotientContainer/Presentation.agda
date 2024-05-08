@@ -2,17 +2,21 @@ module GpdCont.QuotientContainer.Presentation where
 
 open import GpdCont.Prelude
 open import GpdCont.QuotientContainer.Base
-open import GpdCont.QuotientContainer.Morphism as QMor using (QContMorphism)
-open import GpdCont.QuotientContainer.Category using (Eval)
+open import GpdCont.QuotientContainer.Premorphism as PMor
+open import GpdCont.QuotientContainer.Morphism as QMor
+open import GpdCont.QuotientContainer.Category using (Eval ; QCONT)
 import GpdCont.QuotientContainer.Eval as QEval
+
+open import GpdCont.KanExtension.Left
 
 import Cubical.Foundations.GroupoidLaws as GL
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Univalence using (ua→⁻)
+open import Cubical.Foundations.Univalence using (ua→⁻ ; ua)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Unit
+open import Cubical.Functions.FunExtEquiv
 import Cubical.HITs.SetQuotients as SQ
 
 open import Cubical.Data.Equality as Eq using () renaming (_≡_ to Eq ; refl to reflEq)
@@ -21,11 +25,10 @@ open import Cubical.Categories.Category
 open import Cubical.Categories.Functor hiding (Id)
 open import Cubical.Categories.Functors.Constant using (Constant)
 open import Cubical.Categories.Functor.Compose using (precomposeF)
-open import Cubical.Categories.NaturalTransformation.Base as NT using (NatTrans ; NatIso)
+open import Cubical.Categories.NaturalTransformation as NT using (NatTrans ; NatIso ; _∘ˡ_) renaming (_●ᵛ_ to _∙ᵛ_)
 open import Cubical.Categories.Adjoint using (module UnitCounit ; module NaturalBijection) renaming (adj→adj' to UnitCounit→NaturalBijection)
-open import Cubical.Categories.Instances.Sets
+open import Cubical.Categories.Instances.Sets as SetCat using (SET)
 open import Cubical.Categories.Instances.Functors using (FUNCTOR)
-open import Cubical.Categories.Presheaf.KanExtension as KanExt using (module Lan)
 
 private
   K₁ : ∀ {ℓo ℓh ℓ} {C : Category ℓo ℓh} → Functor C (SET ℓ)
@@ -51,110 +54,174 @@ module _ {ℓ} (Q : QCont ℓ) where
     Eq s t × Symm s Iso⟨ Σ-cong-iso-fst $ invIso Eq.PathIsoEq ⟩
     (s ≡ t) × Symm s ∎Iso
 
-  opaque
-    𝕊 : Category ℓ ℓ
-    𝕊 .Category.ob = Shape
-    𝕊 .Category.Hom[_,_] = Shape[_,_]
-    𝕊 .Category.id = symm $ SymmGroup.1g _
-    𝕊 .Category._⋆_ (symm σ) (symm τ) = symm (τ · σ)
-    𝕊 .Category.⋆IdL (symm σ) = cong symm $ SymmGroup.·IdR _ σ
-    𝕊 .Category.⋆IdR (symm σ) = cong symm $ SymmGroup.·IdL _ σ
-    𝕊 .Category.⋆Assoc (symm σ) (symm τ) (symm υ) = cong symm $ SymmGroup.·Assoc _ υ τ σ
-    𝕊 .Category.isSetHom = isOfHLevelRetractFromIso 2 Shape[-,-]Iso $
-      isSet× (isProp→isSet $ (is-set-shape _ _)) isSetSymm
+  𝕊 : Category ℓ ℓ
+  𝕊 .Category.ob = Shape
+  𝕊 .Category.Hom[_,_] = Shape[_,_]
+  𝕊 .Category.id = symm $ SymmGroup.1g _
+  𝕊 .Category._⋆_ (symm σ) (symm τ) = symm (σ · τ)
+  𝕊 .Category.⋆IdL (symm σ) = cong symm $ SymmGroup.·IdL _ σ
+  𝕊 .Category.⋆IdR (symm σ) = cong symm $ SymmGroup.·IdR _ σ
+  𝕊 .Category.⋆Assoc (symm σ) (symm τ) (symm υ) = sym $ cong symm $ SymmGroup.·Assoc _ σ τ υ
+  𝕊 .Category.isSetHom = isOfHLevelRetractFromIso 2 Shape[-,-]Iso $
+    isSet× (isProp→isSet $ (is-set-shape _ _)) isSetSymm
 
-    ⌜_⌝ : Functor 𝕊 (SET ℓ ^op)
-    ⌜_⌝ .Functor.F-ob = PosSet
-    ⌜_⌝ .Functor.F-hom (symm σ) = σ ⁺
-    ⌜_⌝ .Functor.F-id = refl
-    ⌜_⌝ .Functor.F-seq (symm σ) (symm τ) = refl
+  ⌜_⌝ : Functor 𝕊 (SET ℓ)
+  ⌜_⌝ .Functor.F-ob = PosSet
+  ⌜_⌝ .Functor.F-hom (symm σ) = σ ⁺
+  ⌜_⌝ .Functor.F-id = refl
+  ⌜_⌝ .Functor.F-seq (symm σ) (symm τ) = refl
 
-  module Extension = Lan ℓ {C = 𝕊} {D = SET ℓ ^op} ⌜_⌝
+  module Extension = Lan {C = 𝕊} ⌜_⌝
 
-  Extension : Functor (SET ℓ) (SET ℓ)
-  Extension = Extension.LanOb K₁
+  module EvalFiller where
+    ob : (s : Shape) → QEval.⟦ Q ⟧ᵗ (Pos s)
+    ob s = QEval.Label→⟦ Q ⟧ᵗ (id (Pos s))
 
-  ExtensionRaw : (X : hSet ℓ) → Type ℓ
-  ExtensionRaw = Extension.Raw K₁
-  
-  -- Sanity check:
-  opaque
-    unfolding 𝕊
-    _ : ∀ X → ExtensionRaw X ≡ (Σ[ s ∈ Shape ] (Pos s → ⟨ X ⟩) × Unit* {ℓ = ℓ})
-    _ = λ _ → refl
+    hom : (s : Shape) (σ : Symm s) → Path (QEval.⟦ Q ⟧ᵗ (Pos s)) (ob s) (QEval.Label→⟦ Q ⟧ᵗ (σ ⁺))
+    hom s σ = sym $ QEval.preComp→⟦ Q ⟧Path {X = PosSet s} (id _) σ
 
-  ⟨_⟩[_≈_] : (X : hSet ℓ) → (x y : ExtensionRaw X) → Type ℓ
-  ⟨_⟩[_≈_] = Extension._≈_ K₁
+  EvalFiller : NatTrans K₁ (Eval Q ∘F ⌜_⌝)
+  EvalFiller .NatTrans.N-ob s tt* = EvalFiller.ob s
+  EvalFiller .NatTrans.N-hom {x = s} (symm σ) = funExt λ { tt* → EvalFiller.hom s σ }
 
-  opaque
-    unfolding QEval.⟦_⟧ 𝕊
-    α⁺-ob : (X : hSet ℓ) → ⟨ Extension ⟅ X ⟆ ⟩ → ⟨ Eval Q ⟅ X ⟆ ⟩
-    α⁺-ob X = SQ.rec (str $ Eval Q ⟅ X ⟆) raw pres≈ where
-      raw : ExtensionRaw X → ⟨ Eval Q ⟅ X ⟆ ⟩
-      raw = map-snd λ { (label , _) → SQ.[ label ] }
+    -- EvalFillerIso : NatIso K₁ (Eval Q ∘F ⌜_⌝)
+    -- EvalFillerIso .NatIso.trans = EvalFiller
+    -- EvalFillerIso .NatIso.nIso s = SetCat.Iso→CatIso nat-iso .snd where
+    --   nat-iso : Iso (Unit* {ℓ}) ⟨ Eval Q ⟅ PosSet s ⟆ ⟩
+    --   nat-iso .Iso.fun = λ _ → EvalFiller.ob s
+    --   nat-iso .Iso.inv = λ _ → tt*
+    --   nat-iso .Iso.rightInv = QEval.⟦ Q ⟧ᵗ-elimProp (λ x → (str $ Eval Q ⟅ PosSet s ⟆) _ _) λ {t} label → {! !}
+    --   nat-iso .Iso.leftInv tt* = refl
 
-      pres≈ : ∀ x y → ⟨ X ⟩[ x ≈ y ] → raw x ≡ raw y
-      pres≈ x ._ (Lan.shift {c = s} {c' = t} label (symm σ) _) = QEval.preComp→⟦ Q ⟧Path {X = X} label σ
+  LanExtension : Extension.Extension {D = SET ℓ} K₁
+  LanExtension .Lan.Extension.ext = Eval Q
+  LanExtension .Lan.Extension.ext-filler = EvalFiller
 
-    α⁻-ob : (X : hSet ℓ) → ⟨ Eval Q ⟅ X ⟆ ⟩ → ⟨ Extension ⟅ X ⟆ ⟩
-    α⁻-ob X = uncurry λ s → SQ.rec (str $ Extension ⟅ X ⟆) raw pres∼* where module _ {s : Shape} where
-      raw : (Pos s → ⟨ X ⟩) → ⟨ Extension ⟅ X ⟆ ⟩
-      raw label = SQ.[ s , label , tt* ]
+  module _ (e : Extension.Extension {D = SET ℓ} K₁) where
+    open Lan.Extension e renaming (ext to F ; ext-filler to α)
 
-      pres∼* : ∀ x y → QEval._∼*_ Q x y → raw x ≡ raw y
-      pres∼* x y (σ , r) = SQ.eq/ _ _ (subst (λ f → ⟨ X ⟩[ s , f , tt* ≈ s , y , tt* ]) x-decomp (Lan.shift y (symm σ) tt*)) where
-        x-decomp : σ Q.◁ y ≡ x
-        x-decomp = funExt $ sym ∘ ua→⁻ r
+    open QEval using (⟦_⟧ᵗ-rec)
 
-    α-sec : (X : hSet ℓ) → (α⁺-ob X) ∘ (α⁻-ob X) ≡ id ⟨ Eval Q ⟅ X ⟆ ⟩
-    α-sec X = funExt $ uncurry λ s → SQ.elimProp (λ x → str (Eval Q ⟅ X ⟆) _ _) λ _ → refl
+    _ : Functor (SET ℓ) (SET ℓ)
+    _ = F
 
-    α-ret : (X : hSet ℓ) → (α⁻-ob X) ∘ (α⁺-ob X) ≡ id ⟨ Extension ⟅ X ⟆ ⟩
-    α-ret X = funExt $ SQ.elimProp (λ x → str (Extension ⟅ X ⟆) _ _) λ x → refl
+    _ : NatTrans K₁ (F ∘F ⌜_⌝)
+    _ = α
 
-  opaque
-    unfolding α⁺-ob QEval.⟦_⟧-map 𝕊
-    α-hom-ext : ∀ {X Y : hSet ℓ} (f : SET _ [ X , Y ]) → ∀ x → α⁺-ob Y (Extension ⟪ f ⟫ $ x) ≡ (Eval Q ⟪ f ⟫ $ (α⁺-ob X x))
-    α-hom-ext {X} {Y} f = SQ.elimProp (λ x → str (Eval Q ⟅ Y ⟆) _ _)
-      λ { (s , label , tt*) → refl }
+    private
+      α′ : (s : Shape) → ⟨ F ⟅ PosSet s ⟆ ⟩
+      α′ s = α NT.⟦ s ⟧ $ tt*
 
-  α : NatTrans Extension (Eval Q)
-  α .NatTrans.N-ob = α⁺-ob
-  α .NatTrans.N-hom f = funExt $ α-hom-ext f
+      opaque
+        α-nat : ∀ {s : Shape} (σ : Symm s) → α′ s ≡ (F ⟪ σ ⁺ ⟫ $ α′ s)
+        α-nat {s} σ = funExt⁻ (α .NatTrans.N-hom (symm σ)) tt*
 
-  -- Lemma 3.6 in [AAGMcB]
-  thm : NatIso Extension (Eval Q)
-  thm .NatIso.trans = α
-  thm .NatIso.nIso X .isIso.inv = α⁻-ob X
-  thm .NatIso.nIso X .isIso.sec = α-sec X
-  thm .NatIso.nIso X .isIso.ret = α-ret X
+      α*-ob-rep : ∀ X {s} → (label : Pos s → ⟨ X ⟩) → ⟨ F ⟅ X ⟆ ⟩
+      α*-ob-rep _ {s} label = F ⟪ label ⟫ $ α′ s
 
-  -- TODO: Type checks, but is slow.
-  -- opaque
-  --   ExtensionFunctor : Functor (FUNCTOR (𝕊 ^op) (SET ℓ)) (FUNCTOR (SET ℓ ^op ^op) (SET ℓ))
-  --   ExtensionFunctor = Extension.Lan
+      opaque
+        α*-ob-rep-well-defined : ∀ X {s} → (l₀ l₁ : Pos s → ⟨ X ⟩) → QEval.LabelEquiv Q s ⟨ X ⟩ l₀ l₁ → α*-ob-rep X l₀ ≡ α*-ob-rep X l₁
+        α*-ob-rep-well-defined _ {s} l₀ l₁ (σ , pσ) =
+          (F ⟪ l₀ ⟫ $ α′ s)
+            ≡⟨ cong (λ · → F ⟪ · ⟫ $ α′ s) (funExt $ ua→⁻ pσ) ⟩
+          (F ⟪ l₁ ∘ σ ⁺ ⟫ $ α′ s)
+            ≡⟨ cong (_$ α′ s) (Functor.F-seq F (σ ⁺) l₁) ⟩
+          (F ⟪ l₁ ⟫ $ F ⟪ σ ⁺ ⟫ $ α′ s)
+            ≡⟨ cong (F ⟪ l₁ ⟫) $ sym $ α-nat σ ⟩
+          (F ⟪ l₁ ⟫ $ α′ s)
+            ∎
 
-  -- opaque
-  --   UP : Extension.Lan UnitCounit.⊣ (precomposeF {C = 𝕊 ^op} {D = (SET ℓ ^op) ^op} (SET ℓ) (⌜_⌝ ^opF))
-  --   UP = Extension.adj
+      α*-ob : (X : hSet ℓ) → ⟨ Eval Q ⟅ X ⟆ ⟩ → ⟨ F ⟅ X ⟆ ⟩
+      α*-ob X = ⟦ Q ⟧ᵗ-rec (str $ F ⟅ X ⟆) (α*-ob-rep X) (α*-ob-rep-well-defined X)
 
-  --   UP' : Extension.Lan NaturalBijection.⊣ (precomposeF {C = 𝕊 ^op} {D = (SET ℓ ^op) ^op} (SET ℓ) (⌜_⌝ ^opF))
-  --   UP' = UnitCounit→NaturalBijection Extension.Lan (precomposeF (SET ℓ) (⌜_⌝ ^opF)) UP
+      opaque
+        α*-ob-factorization : ∀ s → α′ s ≡ α*-ob _ (EvalFiller.ob s)
+        α*-ob-factorization s =
+          α′ s ≡⟨ cong (_$ α′ s) $ sym $ Functor.F-id F ⟩
+          (F ⟪ id _ ⟫ $ α′ s) ≡⟨⟩
+          α*-ob (PosSet s) (QEval.Label→⟦ Q ⟧ᵗ (id (Pos s))) ∎
 
-  -- UP-Iso : Iso (NatTrans Extension Extension) (NatTrans K₁ (Extension ∘F (⌜_⌝ ^opF)))
-  -- UP-Iso = NaturalBijection._⊣_.adjIso UP'
+    private opaque
+      α*-hom : ∀ {X Y} → (f : SET ℓ [ X , Y ]) → QEval.⟦ Q ⟧-map {X} {Y} f ⋆ α*-ob Y ≡ α*-ob X ⋆ F ⟪ f ⟫
+      α*-hom {X} {Y} f = funExt $ QEval.⟦ Q ⟧ᵗ-elimProp {P = λ _ → Path ⟨ F ⟅ Y ⟆ ⟩ _ _}
+        (λ _ → isOfHLevelPath' 1 (str $ F ⟅ Y ⟆) _ _)
+        goal where
+        F⟪f⟫ : SET ℓ [ F ⟅ X ⟆ , F ⟅ Y ⟆ ]
+        F⟪f⟫ = F ⟪ f ⟫
 
+        goal : ∀ {s} → (label : Pos s → ⟨ X ⟩) → (F ⟪ f ∘ label ⟫ $ α′ s) ≡ (F⟪f⟫ ∘ F ⟪ label ⟫ $ α′ s)
+        goal {s} label = cong (_$ α′ s) (Functor.F-seq F label f)
+
+    α* : NatTrans (Eval Q) F
+    α* .NatTrans.N-ob = α*-ob
+    α* .NatTrans.N-hom = α*-hom
+
+    opaque
+      α*-factorization : α ≡ EvalFiller ∙ᵛ (α* ∘ˡ ⌜_⌝)
+      α*-factorization = NT.makeNatTransPath $ funExt₂ λ { s tt* → α*-ob-factorization s }
+
+    module _ (β* : NatTrans (Eval Q) F) (β*-factorization : α ≡ EvalFiller ∙ᵛ (β* ∘ˡ ⌜_⌝)) where
+      opaque
+        foo : ∀ s → α′ s ≡ (β* NT.⟦ PosSet s ⟧) (EvalFiller.ob s)
+        foo s = funExt⁻ ((funExt⁻ $ cong NatTrans.N-ob β*-factorization) s) tt*
+
+        β*-nat-label : ∀ X {s} (label : Pos s → ⟨ X ⟩) → (F ⟪ label ⟫ ∘ β* NT.⟦ PosSet s ⟧) ≡ (β* NT.⟦ X ⟧ ∘ QEval.⟦ Q ⟧-map {PosSet s} {X} label)
+        β*-nat-label X label = sym $ β* .NatTrans.N-hom label
+
+        lemma : ∀ X {s} (label : Pos s → ⟨ X ⟩) → QEval.⟦ Q ⟧-map {PosSet s} {X} label (EvalFiller.ob s) ≡ (QEval.Label→⟦ Q ⟧ᵗ label)
+        lemma X {s} label = refl
+
+        α*-unique-ext : ∀ X {s} (label : Pos s → ⟨ X ⟩) → (F ⟪ label ⟫) (α′ s) ≡ (β* NT.⟦ X ⟧) (QEval.Label→⟦ Q ⟧ᵗ label)
+        α*-unique-ext X {s} label =
+          (F ⟪ label ⟫) (α′ s)
+            ≡⟨ cong (F ⟪ label ⟫) (foo s) ⟩
+          (F ⟪ label ⟫ $ β* NT.⟦ PosSet s ⟧ $ EvalFiller.ob s)
+            ≡⟨ funExt⁻ (β*-nat-label X label) $ EvalFiller.ob s ⟩
+          (β* NT.⟦ X ⟧ $ QEval.⟦ Q ⟧-map {PosSet s} {X} label $ EvalFiller.ob s)
+            ≡⟨ cong (β* NT.⟦ X ⟧) (lemma X label) ⟩
+          (β* NT.⟦ X ⟧) (QEval.Label→⟦ Q ⟧ᵗ label)
+            ∎
+
+        α*-unique-ob : ∀ X → α* NT.⟦ X ⟧ ≡ β* NT.⟦ X ⟧
+        α*-unique-ob X = funExt $ QEval.⟦ Q ⟧ᵗ-elimProp (λ x → str (F ⟅ X ⟆) _ _) (α*-unique-ext X)
+
+        α*-unique : α* ≡ β*
+        α*-unique = NT.makeNatTransPath $ funExt α*-unique-ob
+
+    isLanLanExtension : ∃![ α* ∈ NatTrans (Eval Q) F ] α ≡ EvalFiller ∙ᵛ (α* ∘ˡ ⌜_⌝)
+    isLanLanExtension .fst = α* , α*-factorization
+    isLanLanExtension .snd (β* , β*-factorization) = Σ≡Prop (λ β* → NT.isSetNatTrans _ _) (α*-unique β* β*-factorization)
+
+  Lan : Extension.Lan {D = SET ℓ} K₁
+  Lan .Lan.Lan.extension = LanExtension
+  Lan .Lan.Lan.is-lan-extension = isLanLanExtension
+
+{-
 module MorphismCorrespondence {ℓ} (Q R : QCont ℓ) where
   opaque
     unfolding 𝕊 ⌜_⌝
-    lemma42 : Iso (QContMorphism Q R) (NatTrans (K₁ ^opF) ((Extension R ^opF) ∘F ⌜ Q ⌝))
+    lemma42 : Iso (QCONT _ [ Q , R ]) (NatTrans (K₁ ^opF) ((Extension R ^opF) ∘F ⌜ Q ⌝))
     lemma42 =
-      QContMorphism Q R Iso⟨ _ IsoΣ ⟩
-      QContMorphism Q R asΣ Iso⟨ {! !} ⟩
+      QCONT _ [ Q , R ] Iso⟨ _ IsoΣ ⟩
+      QCONT _ [ Q , R ] asΣ Iso⟨ {! !} ⟩
       (NatTrans (K₁ ^opF) ((Extension R ^opF) ∘F ⌜ Q ⌝)) ∎Iso
 
-  -- thm43 : Iso (QContMorphism Q R) (NatTrans (Eval Q) (Eval R))
-  -- thm43 = {! !}
+  open QCont
+
+  opaque
+    unfolding 𝕊 ⌜_⌝
+    thm43 : Iso (QCONT _ [ Q , R ]) (NatTrans (Eval Q) (Eval R))
+    thm43 =
+      QCONT _ [ Q , R ] Iso⟨ lemma42 ⟩
+      (NatTrans (K₁ ^opF) ((Extension R ^opF) ∘F ⌜ Q ⌝)) Iso⟨ _ IsoΣ ⟩
+      Σ[ ob ∈ ((q : Shape Q) → _ → Unit*) ]
+        NT.N-hom-Type (K₁ ^opF) ((Extension R ^opF) ∘F ⌜ Q ⌝) ob Iso⟨ Σ-contractFstIso (isContrΠ λ q → isContrΠ λ _ → isContrUnit*) ⟩
+      NT.N-hom-Type (K₁ ^opF) ((Extension R ^opF) ∘F ⌜ Q ⌝) (λ _ _ → tt*) Iso⟨ idIso ⟩
+      ({q q′ : Shape Q} (f : 𝕊 Q [ q , q′ ]) → (λ _ → tt*) ≡ (λ _ → tt*)) Iso⟨ {! !} ⟩
+      (NatTrans (Eval Q) (Eval R)) asΣ Iso⟨ invIso $ _ IsoΣ ⟩
+      (NatTrans (Eval Q) (Eval R)) ∎Iso
+-}
+
 
 {-
 private module Example where

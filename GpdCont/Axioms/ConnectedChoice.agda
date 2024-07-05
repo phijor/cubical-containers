@@ -1,7 +1,7 @@
 module GpdCont.Axioms.ConnectedChoice where
 
 open import GpdCont.Prelude
-open import GpdCont.Connectivity
+open import GpdCont.Connectivity as Connectivity
   using (merelyInh≃is1Connected ; isPropIsConnected ; isContr→isConnected ; isOfHLevel×isConnected→isContr)
 open import GpdCont.Fibration
 open import GpdCont.Axioms.TruncatedChoice
@@ -9,12 +9,15 @@ open import GpdCont.Axioms.TruncatedChoice
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism using (Iso ; invIso ; section) renaming (_∎Iso to _Iso∎)
+open import Cubical.Data.Sigma.Base
 open import Cubical.Data.Nat.Base
 open import Cubical.Data.Nat.Properties using (+-comm)
 import Cubical.Data.Nat.Order as Nat≤
 open import Cubical.Data.Sigma.Properties as Sigma
 open import Cubical.HITs.Truncation as Tr using (∥_∥_)
+open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
 open import Cubical.Functions.Surjection
+open import Cubical.Functions.FunExtEquiv
 open import Cubical.Homotopy.Connected
 
 private
@@ -95,6 +98,9 @@ ACC→ACC[+1,+1] n k acc X Y conn-Y = {!acc _ _ _ !}
 isConnectedHasSection : (k : HLevel) (f : X → Y) → Type _
 isConnectedHasSection k f = isConnected k (hasSection f)
 
+foo : (k : HLevel) (f : X → Y) → isConnectedHasSection k f ≃ isConnected k (Σ[ g ∈ (Y → X) ] (∀ y → f (g y) ≡ y))
+foo k f = {! !}
+
 -- This too is a proposition, again because "being connected" is a proposition:
 isPropHasConnectedSections : (k : HLevel) (f : X → Y) → isProp (isConnectedHasSection k f)
 isPropHasConnectedSections k f = isPropIsConnected
@@ -110,7 +116,13 @@ isSplit≃has1ConnectedSections = merelyInh≃is1Connected
 --
 -- CFCS(n,k): Every k-connected map from an n-type onto a set has a k-connected space of sections.
 ConnectedFunsHaveConnectedSections : (ℓ : Level) (n k : HLevel) → Type _
-ConnectedFunsHaveConnectedSections ℓ n k = ∀ (X : TypeOfHLevel ℓ n) (Y : hSet ℓ) (f : ⟨ X ⟩ → ⟨ Y ⟩) → isConnectedFun k f → isConnectedHasSection k f
+ConnectedFunsHaveConnectedSections ℓ n k =
+  ∀ (X : TypeOfHLevel ℓ n)
+    (Y : hSet ℓ)
+    (f : ⟨ X ⟩ → ⟨ Y ⟩)
+  → isConnectedFun k f
+  ---------------------------
+  → isConnectedHasSection k f
 
 isPropConnectedFunsHaveConnectedSections : ∀ {ℓ} (n k : HLevel) → isProp (ConnectedFunsHaveConnectedSections ℓ n k)
 isPropConnectedFunsHaveConnectedSections n k = isPropΠ4 λ X Y f conn → isPropHasConnectedSections k f
@@ -175,7 +187,7 @@ ConnectedFunsHaveConnectedSections[0,1+ k ] X Y f 1+k-conn-f =
   1-conn-f = isConnectedFun≤ 1 (suc k) f (Nat≤.suc-≤-suc Nat≤.zero-≤) 1+k-conn-f
 
 CFCSSuc→CFCS : (n k : HLevel) → ConnectedFunsHaveConnectedSections ℓ (suc n) (suc k) → ConnectedFunsHaveConnectedSections ℓ n k
-CFCSSuc→CFCS n k cfcs X Y f k-conn-f = {! !}
+CFCSSuc→CFCS n k cfcs-suc X Y f k-conn-f = {! !}
 
 
 --  ⋆ ACC implies that connected functions have connected sections.
@@ -279,3 +291,86 @@ ACC≃ConnectedFunsHaveConnectedSections n k = propBiimpl→Equiv
   (isPropConnectedFunsHaveConnectedSections n k)
   (ACC→ConnectedFunsHaveConnectedSections n k)
   (ConnectedFunsHaveConnectedSections→ACC n k)
+
+ACC[n,-]→ACC[n,suc-] : (n k : HLevel) → ACC ℓ n k → ACC ℓ n (suc k)
+ACC[n,-]→ACC[n,suc-] n k acc X Y conn-Y = is-suc-connected-section where
+  ΠY : Type _
+  ΠY = ∀ x → ⟨ Y x ⟩
+
+  _≡Π_ : (f g : ΠY) → Type _
+  _≡Π_ f g = ∀ x → f x ≡ g x
+
+  SIP-Π : ∀ {f g} → (f ≡ g) ≃ (f ≡Π g)
+  SIP-Π = invEquiv funExtEquiv
+
+  isOfHLevel-≡Π : (f g : ΠY) → ∀ x → isOfHLevel n (f x ≡ g x)
+  isOfHLevel-≡Π f g x = isOfHLevelPath n (str (Y x)) (f x) (g x)
+
+  inh-trunc×conn-Y : ∀ x → ∥ ⟨ Y x ⟩ ∥ (suc k) × ∀ (y y′ : ⟨ Y x ⟩) → isConnected k (y ≡ y′)
+  inh-trunc×conn-Y x = (invEq $ Connectivity.inhTruncSuc×isConnectedPath≃isConnectedSuc k) $ (conn-Y x)
+
+  inh-trunc : ∀ x → ∥ ⟨ Y x ⟩ ∥ (suc k)
+  inh-trunc x = inh-trunc×conn-Y x .fst
+
+  is-k-conn-Path-Y : ∀ x (y y′ : ⟨ Y x ⟩) → isConnected k (y ≡ y′)
+  is-k-conn-Path-Y x = inh-trunc×conn-Y x .snd
+
+  inh-trunc-Π : ∥ (∀ x → ⟨ Y x ⟩) ∥ (suc k)
+  inh-trunc-Π = {!  !}
+
+  is-connected-≡Π : ∀ f g → isConnected k (f ≡Π g)
+  is-connected-≡Π f g = acc X
+    (λ x → (f x ≡ g x) , isOfHLevel-≡Π f g x)
+    (λ x → isConnectedPath k (conn-Y x) (f x) (g x))
+
+  is-connected-path : ∀ (f g : ∀ x → ⟨ Y x ⟩) → isConnected k (f ≡ g)
+  is-connected-path f g = isConnectedRetractFromIso k (equivToIso SIP-Π) (is-connected-≡Π f g)
+
+  is-suc-connected-section : isConnected (suc k) (∀ x → ⟨ Y x ⟩)
+  is-suc-connected-section = Connectivity.inhTruncSuc×isConnectedPath→isConnectedSuc k
+    inh-trunc-Π
+    is-connected-path
+
+ACC[n,1]×ACC[n,-]→ACC[n,suc-] : (n k : HLevel) → ACC ℓ n 1 → ACC ℓ n k → ACC ℓ n (suc k)
+ACC[n,1]×ACC[n,-]→ACC[n,suc-] n k acc-set acc X Y conn-Y = is-suc-connected-section where
+  ΠY = ∀ x → ⟨ Y x ⟩
+
+  inh×conn-Y : ∀ x → ∥ ⟨ Y x ⟩ ∥₁ × ∀ (y y′ : ⟨ Y x ⟩) → isConnected k (y ≡ y′)
+  inh×conn-Y x = (invEq $ Connectivity.merelyInh×isConnectedPath≃isConnectedSuc k) $ (conn-Y x)
+
+  is-1-conn-Y : ∀ x → isConnected 1 ⟨ Y x ⟩
+  is-1-conn-Y x = equivFun merelyInh≃is1Connected (inh×conn-Y x .fst)
+
+  is-k-conn-Path-Y : ∀ x (y y′ : ⟨ Y x ⟩) → isConnected k (y ≡ y′)
+  is-k-conn-Path-Y x = inh×conn-Y x .snd
+
+  inh-section : ∥ (∀ x → ⟨ Y x ⟩) ∥₁
+  inh-section = invEq Connectivity.merelyInh≃is1Connected $ acc-set X Y is-1-conn-Y
+
+  Π-Path : (f g : ∀ x → ⟨ Y x ⟩) → Type _
+  Π-Path f g = ∀ x → f x ≡ g x
+
+  Path-Π-Path-equiv : ∀ {f g} → (f ≡ g) ≃ (Π-Path f g)
+  Path-Π-Path-equiv = invEquiv funExtEquiv
+
+  isOfHLevel-Π-Path : (f g : ∀ x → ⟨ Y x ⟩) → ∀ x → isOfHLevel n (f x ≡ g x)
+  isOfHLevel-Π-Path f g x = isOfHLevelPath n (str (Y x)) (f x) (g x)
+
+  Π-Path-n-Type : (f g : ΠY) (x : ⟨ X ⟩) → TypeOfHLevel _ n
+  Π-Path-n-Type f g x .fst = f x ≡ g x
+  Π-Path-n-Type f g x .snd = isOfHLevel-Π-Path f g x
+
+  is-connected-Π-Path-ext : ∀ (f g : ΠY) x → isConnected k (f x ≡ g x)
+  is-connected-Π-Path-ext f g x = is-k-conn-Path-Y x (f x) (g x)
+
+  is-connected-Π-Path : ∀ f g → isConnected k (Π-Path f g)
+  is-connected-Π-Path f g = acc X (Π-Path-n-Type f g) $ is-connected-Π-Path-ext f g
+
+  is-connected-path : ∀ (f g : ∀ x → ⟨ Y x ⟩) → isConnected k (f ≡ g)
+  is-connected-path f g = isConnectedRetractFromIso k (equivToIso Path-Π-Path-equiv) (is-connected-Π-Path f g)
+
+  is-suc-connected-section : isConnected (suc k) (∀ x → ⟨ Y x ⟩)
+  is-suc-connected-section = Connectivity.merelyInh×isConnectedPath→isConnectedSuc k
+    inh-section
+    is-connected-path
+

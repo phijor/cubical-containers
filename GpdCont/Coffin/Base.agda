@@ -30,7 +30,7 @@ record Coffin (ℓ : Level) : Type (ℓ-suc ℓ) where
       )
 
   field
-    componentGroupSet : ∀ idx → (ComponentGroup idx) -Set
+    componentGroupSet : ∀ idx → Action (ComponentGroup idx)
 
   module _ (idx : Index) where
     open GroupStr (ComponentGroupStr idx) public
@@ -38,12 +38,12 @@ record Coffin (ℓ : Level) : Type (ℓ-suc ℓ) where
 
   PosSetIndex : Index → hSet ℓ
   PosSetIndex idx = componentGroupSet idx .action (sk.component-section idx) where
-    open _-Set
+    open Action
     module sk = Skeleton shape-skeleton
 
   PosSetTotal : Total → hSet ℓ
   PosSetTotal (idx , idx-fib) = componentGroupSet idx .action idx-fib where
-    open _-Set
+    open Action
 
   PosSet : Shape → hSet ℓ
   PosSet = PosSetTotal ∘ equivFun TotalEquiv

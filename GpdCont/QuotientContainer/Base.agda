@@ -13,6 +13,7 @@ open import Cubical.Algebra.Group.Subgroup
 open BinaryRelation using (isEquivRel ; isTrans ; isSym)
 
 record QCont (ℓ : Level) : Type (ℓ-suc ℓ) where
+  no-eta-equality
   field
     Shape : Type ℓ
     Pos : Shape → Type ℓ

@@ -35,41 +35,41 @@ module GpdCont.Coffin.Lower {ℓ} (C : Coffin ℓ) where
   isSet-↓Pos : (s : ↓Shape) → isSet (↓Pos s)
   isSet-↓Pos = str ∘ ↓PosSet
 
-  ↓Symm : ∀ {s t} → ↓Pos s ≃ ↓Pos t → Type ℓ
-  ↓Symm = isInImage (pathToEquiv ∘ cong Pos)
+  ↓isSymm : ∀ {s} → ↓Pos s ≃ ↓Pos s → Type ℓ
+  ↓isSymm = isInImage (pathToEquiv ∘ cong Pos)
 
   private
-    ↓Symm∞ : ∀ {s t} → ↓Pos s ≃ ↓Pos t → Type ℓ
-    ↓Symm∞ {s} {t} σ = Σ[ p ∈ sk s ≡ sk t  ] pathToEquiv (cong Pos p) ≡ σ
+    ↓isSymm∞ : ∀ {s} → ↓Pos s ≃ ↓Pos s → Type ℓ
+    ↓isSymm∞ {s} σ = Σ[ p ∈ sk s ≡ sk s  ] pathToEquiv (cong Pos p) ≡ σ
 
-    _ : ∀ {s t} → (σ : ↓Pos s ≃ ↓Pos t) → ↓Symm σ ≡ ∥ ↓Symm∞ σ ∥₁
+    _ : ∀ {s} → (σ : ↓Pos s ≃ ↓Pos s) → ↓isSymm σ ≡ ∥ ↓isSymm∞ σ ∥₁
     _ = λ σ → refl
 
-  isProp-↓Symm : ∀ {s t} → (σ : ↓Pos s ≃ ↓Pos t) → isProp (↓Symm σ)
-  isProp-↓Symm σ = PT.isPropPropTrunc
+  isProp-↓isSymm : ∀ {s} → (σ : ↓Pos s ≃ ↓Pos s) → isProp (↓isSymm σ)
+  isProp-↓isSymm σ = PT.isPropPropTrunc
 
-  ↓Symm-id : ∀ s → ↓Symm (idEquiv $ ↓Pos s)
-  ↓Symm-id s = PT.∣ refl , pathToEquivRefl ∣₁
+  ↓isSymm-id : ∀ s → ↓isSymm (idEquiv $ ↓Pos s)
+  ↓isSymm-id s = PT.∣ refl , pathToEquivRefl ∣₁
 
-  ↓Symm-sym : ∀ {s t} → (σ : ↓Pos s ≃ ↓Pos t) → ↓Symm σ → ↓Symm (invEquiv σ)
-  ↓Symm-sym {s} {t} σ = PT.map $ uncurry symm-σ⁻¹ where
-    module _ (p : sk s ≡ sk t) (im-p≡σ : pathToEquiv (cong Pos p) ≡ σ) where
-      sk-path : sk t ≡ sk s
+  ↓isSymm-sym : ∀ {s} → (σ : ↓Pos s ≃ ↓Pos s) → ↓isSymm σ → ↓isSymm (invEquiv σ)
+  ↓isSymm-sym {s} σ = PT.map $ uncurry symm-σ⁻¹ where
+    module _ (p : sk s ≡ sk s) (im-p≡σ : pathToEquiv (cong Pos p) ≡ σ) where
+      sk-path : sk s ≡ sk s
       sk-path = sym p
 
       opaque
         cong-Pos-path : pathToEquiv (cong Pos sk-path) ≡ invEquiv σ
         cong-Pos-path = pathToEquivSym (cong Pos p) ∙ cong invEquiv im-p≡σ
 
-      symm-σ⁻¹ : ↓Symm∞ (invEquiv σ)
+      symm-σ⁻¹ : ↓isSymm∞ (invEquiv σ)
       symm-σ⁻¹ .fst = sk-path
       symm-σ⁻¹ .snd = cong-Pos-path
 
-  ↓Symm-comp : ∀ {s t u} (σ : ↓Pos s ≃ ↓Pos t) (τ : ↓Pos t ≃ ↓Pos u)
-    → ↓Symm σ → ↓Symm τ
-    → ↓Symm (σ ∙ₑ τ)
-  ↓Symm-comp σ τ = PT.map2 symm-∙ where
-    module _ ((p , im-p≡σ) : ↓Symm∞ σ) ((q , im-q≡τ) : ↓Symm∞ τ) where
+  ↓isSymm-comp : ∀ {s} (σ : ↓Pos s ≃ ↓Pos s) (τ : ↓Pos s ≃ ↓Pos s)
+    → ↓isSymm σ → ↓isSymm τ
+    → ↓isSymm (σ ∙ₑ τ)
+  ↓isSymm-comp σ τ = PT.map2 symm-∙ where
+    module _ ((p , im-p≡σ) : ↓isSymm∞ σ) ((q , im-q≡τ) : ↓isSymm∞ τ) where
       opaque
         im-p∙q≡σ∙τ : pathToEquiv (cong Pos (p ∙ q)) ≡ σ ∙ₑ τ
         im-p∙q≡σ∙τ =
@@ -78,17 +78,17 @@ module GpdCont.Coffin.Lower {ℓ} (C : Coffin ℓ) where
           pathToEquiv (cong Pos p) ∙ₑ pathToEquiv (cong Pos q) ≡⟨ cong₂ _∙ₑ_ im-p≡σ im-q≡τ ⟩
           σ ∙ₑ τ ∎
 
-      symm-∙ : ↓Symm∞ (σ ∙ₑ τ)
+      symm-∙ : ↓isSymm∞ (σ ∙ₑ τ)
       symm-∙ .fst = p ∙ q
       symm-∙ .snd = im-p∙q≡σ∙τ
 
   ↓ : QCont ℓ
   ↓ .QCont.Shape = ↓Shape
   ↓ .QCont.Pos = ↓Pos
-  ↓ .QCont.Symm = ↓Symm
+  ↓ .QCont.isSymm = ↓isSymm
   ↓ .QCont.is-set-shape = isSet-↓Shape
   ↓ .QCont.is-set-pos = isSet-↓Pos
-  ↓ .QCont.is-prop-symm = isProp-↓Symm
-  ↓ .QCont.symm-id = ↓Symm-id
-  ↓ .QCont.symm-sym = ↓Symm-sym
-  ↓ .QCont.symm-comp = ↓Symm-comp
+  ↓ .QCont.is-prop-symm = isProp-↓isSymm
+  ↓ .QCont.symm-id = ↓isSymm-id
+  ↓ .QCont.symm-sym = ↓isSymm-sym
+  ↓ .QCont.symm-comp = ↓isSymm-comp

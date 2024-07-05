@@ -16,6 +16,7 @@ open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism as Isomorphism using (Iso ; isoToEquiv) renaming (invIso to _⁻ⁱ)
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma.Properties as Sigma using (ΣPathP)
+open import Cubical.HITs.PropositionalTruncation as PT using ()
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 open import Cubical.HITs.SetQuotients as SQ using (_/_)
 
@@ -101,7 +102,6 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
         -- [_]* : ∀ {s} → (v : Pos s → ⟨ X ⟩) → Motive ?
         -- [ v ]* = refl
 
-{-
     lift-trunc-Iso : Iso (⟦Q⟧ᵗ ⟨ X ⟩) ⟨ Tr ⟦↑Q⟧ X ⟩
     lift-trunc-Iso .Iso.fun = to-lift-trunc
     lift-trunc-Iso .Iso.inv = from-lift-trunc
@@ -126,18 +126,22 @@ module EvalLiftLoopEquational {ℓ} (Q : QCont ℓ) where
   open module ⟦↑Q⟧ = CoffinEval ↑Q using () renaming (⟦_⟧ to ⟦↑Q⟧ ; ⟦_⟧ᵗ to ⟦↑Q⟧ᵗ ; ⟦-⟧ᵗ-Path to ⟦↑Q⟧ᵗ-Path)
 
   module PosEquiv (X : Type ℓ) (s : Shape) where
+    private
+      ∥ΣPos→X∥₂ = ∥ Σ[ σ ∈ ↑Symm s ] (↑Pos ↑⟨ s , σ ⟩ → X) ∥₂
+      Pos→X/∼ = (Pos s → X) / _∼*_
+
     opaque
       unfolding Q.PosPath ua
-      PosIso : Iso ∥ Σ[ σ ∈ ↑Symm s ] (↑Pos ↑⟨ s , σ ⟩ → X) ∥₂ ((Pos s → X) / _∼*_)
+      PosIso : Iso ∥ΣPos→X∥₂ Pos→X/∼
       PosIso = record { the-iso } where module the-iso where
-        fun : _
+        fun : ∥ΣPos→X∥₂ → Pos→X/∼
         fun = ST.rec SQ.squash/ $ uncurry
           $ ↑SymmElim.elimSet s
             (λ σ → isSetΠ λ v → SQ.squash/)
             SQ.[_]
             (λ σ → funExtDep λ {x₀ = v} {x₁ = w} vσ≡w → SQ.eq/ v w (σ , vσ≡w))
 
-        inv : _
+        inv : Pos→X/∼ → ∥ΣPos→X∥₂
         inv = SQ.rec ST.isSetSetTrunc
           (λ v → ST.∣ ↑Symm.⋆ , v ∣₂)
           λ v w σ → cong ST.∣_∣₂ (ΣPathP (↑Symm.loop (∼*→∼ σ) , ∼*→PathP* σ))
@@ -162,4 +166,71 @@ module EvalLiftLoopEquational {ℓ} (Q : QCont ℓ) where
       Σ[ s ∈ Shape ] ∥ Σ[ v ∈ ↑Symm s ] (↑Pos ↑⟨ s , v ⟩ → ⟨ X ⟩) ∥₂  ≃⟨ Sigma.Σ-cong-equiv-snd $ PosEquiv.PosEquiv ⟨ X ⟩ ⟩
       Σ[ s ∈ Shape ] (Pos s → ⟨ X ⟩) / _∼*_                           ≃⟨ (⟦Q⟧ᵗ ⟨ X ⟩ ≃Σ) ⁻ᵉ ⟩
       ⟨ ⟦Q⟧ X ⟩                                                       ≃∎
-      -}
+
+private module ViaGAction where
+  open import Cubical.Algebra.Group
+  open import Cubical.Algebra.Group.Morphisms
+
+  Aut : ∀ {ℓ} (X : hSet ℓ) → Group (ℓ-suc ℓ)
+  Aut X = makeGroup {G = ⟨ X ⟩ ≡ ⟨ X ⟩}
+    refl
+    _∙_
+    sym
+    (isOfHLevel≡ 2 (str X) (str X))
+    {!assoc !} {! !} {! !} {! !} {! !}
+
+  module _ {ℓ} (G : Group ℓ) (X : hSet ℓ) (η : GroupHom G (Aut X)) where
+    open import GpdCont.Delooping ⟨ G ⟩ (str G) as BG' renaming (𝔹 to BG)
+    open import Cubical.HITs.GroupoidQuotients as GQ using (_//_)
+
+    𝕏 : BG → hSet ℓ
+    𝕏 = BG'.rec isGroupoidHSet X
+      (λ g → TypeOfHLevel≡ 2 (η .fst g))
+      λ where
+        g h i j .fst → {! η .snd !}
+        g h i j .snd → {! !}
+
+    -- Total space of the associated bundle (Symmetry 4.7.13)
+    ∫𝕏 : Type _
+    ∫𝕏 = Σ[ g ∈ BG ] ⟨ 𝕏 g ⟩
+
+    -- x ∼ y ⇔ ∃[ g ] x ≡ transport (η g) y
+    _∼_ : (x y : ⟨ X ⟩) → Type _
+    x ∼ y = ∃[ g ∈ ⟨ G ⟩ ] PathP (λ i → η .fst g i) x y
+
+    orbit-comp : ?
+    orbit-comp = ?
+
+    Orbit : Type _
+    Orbit = ⟨ X ⟩ / _∼_
+
+    fwd : ∥ ∫𝕏 ∥₂ → Orbit
+    fwd = ST.rec SQ.squash/ (uncurry fwd') where
+      fwd-loop : (g : ⟨ G ⟩) → PathP (λ i → η .fst g i → Orbit) SQ.[_] SQ.[_]
+      fwd-loop g = funExtDep λ {x₀} {x₁} (x₀≡x₁ : PathP (λ i → η .fst g i) x₀ x₁) → SQ.eq/ x₀ x₁ PT.∣ g , x₀≡x₁ ∣₁
+
+      fwd' : (g : BG) (x : ⟨ 𝕏 g ⟩) → Orbit
+      fwd' = BG'.elimSet (λ g → isSetΠ λ x → SQ.squash/) SQ.[_] fwd-loop
+
+    bwd : Orbit → ∥ ∫𝕏 ∥₂
+    bwd = SQ.rec ST.isSetSetTrunc ∫ well-defined where
+      ∫ : ⟨ X ⟩ → ∥ ∫𝕏 ∥₂
+      ∫ x = ST.∣ BG.⋆ , x ∣₂
+
+      well-defined : (x y : ⟨ X ⟩) → x ∼ y → ∫ x ≡ ∫ y
+      well-defined x y = PT.rec (ST.isSetSetTrunc _ _) $ uncurry well-defined' where
+        well-defined' : (g : ⟨ G ⟩) (p : PathP (λ i → η .fst g i) x y) → ∫ x ≡ ∫ y
+        well-defined' g p = cong ST.∣_∣₂ (ΣPathP (BG.loop g , p))
+
+    ost-iso : Iso ∥ ∫𝕏 ∥₂ Orbit
+    ost-iso .Iso.fun = fwd
+    ost-iso .Iso.inv = bwd
+    ost-iso .Iso.rightInv = SQ.elimProp (λ _ → SQ.squash/ _ _) λ _ → refl
+    ost-iso .Iso.leftInv = ST.elim (λ _ → isProp→isSet $ ST.isSetSetTrunc _ _)
+      $ uncurry
+      $ BG'.elimProp {B = λ g → (x : ⟨ 𝕏 g ⟩) → bwd (fwd ST.∣ g , x ∣₂) ≡ ST.∣ g , x ∣₂}
+        (λ g → isPropΠ λ x → ST.isSetSetTrunc _ _)
+        λ x → refl {x = ST.∣ BG.⋆ , x ∣₂}
+
+    ost : ∥ ∫𝕏 ∥₂ ≃ Orbit
+    ost = isoToEquiv ost-iso

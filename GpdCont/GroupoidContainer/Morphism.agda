@@ -55,3 +55,61 @@ compGContMorphismIdR α = refl
 
 compGContMorphismAssoc : (α : GContMorphism G H) (β : GContMorphism H K) (γ : GContMorphism K L) → (α ⋆GCont β) ⋆GCont γ ≡ α ⋆GCont (β ⋆GCont γ)
 compGContMorphismAssoc α β γ = refl
+
+private
+  open import Cubical.Data.Unit
+  open import Cubical.Data.Bool
+  open import Cubical.Data.Sum
+  open import Cubical.Data.Sigma
+  open import Cubical.Functions.Involution
+
+  data UPairShape : Type where
+    ⋆ : UPairShape
+    swap : ⋆ ≡ ⋆
+    mul : compSquareFiller swap swap refl
+    trunc𝔹2 : isGroupoid UPairShape
+
+  upair-rec : ∀ {ℓ} {B : Type ℓ}
+    → (isGroupoid B)
+    → (b : B)
+    → (p : b ≡ b)
+    → (p² : p ∙ p ≡ refl)
+    → UPairShape → B
+  upair-rec {B} is-gpd-B b p p² = go where
+    go : _ → _
+    go ⋆ = b
+    go (swap i) = p i
+    go (mul i j) = goal i j where
+      goal : compSquareFiller p p refl
+      goal = coerceCompSquareFiller p²
+    go (trunc𝔹2 x y p q r s i j k) = is-gpd-B (go x) (go y) (cong go p) (cong go q) (cong (cong go) r) (cong (cong go) s) i j k
+
+  UPairPos : UPairShape → hSet _
+  UPairPos = upair-rec isGroupoidHSet (Bool , isSetBool) (TypeOfHLevel≡ 2 notEq) (ΣSquareSet (λ X → isProp→isSet isPropIsSet) (involPathComp notnot))
+
+  UPair : GCont ℓ-zero
+  UPair .Shape = UPairShape
+  UPair .Pos = ⟨_⟩ ∘ UPairPos
+  UPair .is-groupoid-shape = trunc𝔹2
+  UPair .is-set-pos = str ∘ UPairPos
+
+  _⊗_ : GCont ℓ → GCont ℓ → GCont ℓ
+  G ⊗ H = record
+    { Shape = G .Shape × H .Shape
+    ; Pos = λ { (g , h) → G .Pos g ⊎ H .Pos h }
+    ; is-groupoid-shape = isGroupoid× (G .is-groupoid-shape) (H .is-groupoid-shape)
+    ; is-set-pos = λ { (g , h) → isSet⊎ (G .is-set-pos g) (H .is-set-pos h) }
+    }
+
+  Id : GCont ℓ-zero
+  Id .Shape = Unit
+  Id .Pos _ = Unit
+  Id .is-groupoid-shape = isOfHLevelUnit 3
+  Id .is-set-pos _ = isOfHLevelUnit 2
+
+  proj-right : GContMorphism (G ⊗ H) H
+  proj-right .shape-mor = snd
+  proj-right .pos-path _ = inr
+
+  π₁ : GContMorphism (Id ⊗ UPair) UPair
+  π₁ = proj-right {G = Id} {H = UPair}

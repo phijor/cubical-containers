@@ -7,7 +7,7 @@ module GpdCont.QuotientContainer.Lift {ℓ} (Q : QCont ℓ) where
 open import GpdCont.Prelude hiding (Lift)
 open import GpdCont.Coffin.Base using (Coffin)
 open import GpdCont.Skeleton using (Skeleton)
-open import GpdCont.GroupAction using (_-Set)
+open import GpdCont.GroupAction using (Action)
 
 import GpdCont.Delooping
 
@@ -91,8 +91,8 @@ pattern ↑⟨_,_⟩ ↓shape symm = ↓shape , symm
 isSet-↑Pos : ∀ s → isSet (↑Pos s)
 isSet-↑Pos = str ∘ ↑PosSet
 
-↑PosAction : ∀ (s : ∥ ↑Shape ∥₂) → Skeleton.ComponentGroup ↑ShapeSkeleton s -Set
-↑PosAction _ ._-Set.action σ = ↑PosSet (σ .↓shape)
+↑PosAction : ∀ (s : ∥ ↑Shape ∥₂) → Action $ Skeleton.ComponentGroup ↑ShapeSkeleton s
+↑PosAction _ .Action.action σ = ↑PosSet (σ .↓shape)
 
 ↑ : Coffin ℓ
 ↑ .Coffin.Shape = ↑Shape

@@ -1,3 +1,4 @@
+{-# OPTIONS --lossy-unification #-}
 module GpdCont.QuotientContainer.Presentation where
 
 open import GpdCont.Prelude
@@ -192,7 +193,7 @@ module _ {ℓ} (Q : QCont ℓ) where
     isLanLanExtension .fst = α* , α*-factorization
     isLanLanExtension .snd (β* , β*-factorization) = Σ≡Prop (λ β* → NT.isSetNatTrans _ _) (α*-unique β* β*-factorization)
 
-  Lan : Extension.Lan {D = SET ℓ} K₁
+  Lan : Lan.Lan ⌜_⌝ K₁
   Lan .Lan.Lan.extension = LanExtension
   Lan .Lan.Lan.is-lan-extension = isLanLanExtension
 
@@ -221,7 +222,6 @@ module MorphismCorrespondence {ℓ} (Q R : QCont ℓ) where
       (NatTrans (Eval Q) (Eval R)) asΣ Iso⟨ invIso $ _ IsoΣ ⟩
       (NatTrans (Eval Q) (Eval R)) ∎Iso
 -}
-
 
 {-
 private module Example where

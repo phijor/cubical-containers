@@ -8,6 +8,7 @@ open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Path
+open import Cubical.Foundations.Pointed hiding (pt)
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
 open import Cubical.HITs.PropositionalTruncation.Monad using (_>>=_ ; return)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
@@ -44,6 +45,13 @@ record GroupStr {ℓ} (G : Type ℓ) : Type ℓ where
 
 Group : (ℓ : Level) → Type _
 Group ℓ = TypeWithStr ℓ GroupStr
+
+_∙ : ∀ {ℓ} (G : Group ℓ) → ⟨ G ⟩
+_∙ G = str G .GroupStr.pt
+
+⟨_⟩∙ : ∀ {ℓ} → Group ℓ → Pointed ℓ
+⟨ G ⟩∙ .fst = ⟨ G ⟩
+⟨ G ⟩∙ .snd = G ∙
 
 unquoteDecl GroupStrIsoΣ = declareRecordIsoΣ GroupStrIsoΣ (quote GroupStr)
 

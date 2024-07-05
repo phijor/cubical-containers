@@ -105,3 +105,13 @@ module GpdCont.Delooping.Base {ℓ} (G : Type ℓ) (γ : GroupStr G) where
     go (loop g i) = b-loop g i
     go (loop-comp g h i j) = b-comp g h i j
     go (isGroupoid𝔹 x y p q r s i j k) = is-gpd-B (go x) (go y) (cong go p) (cong go q) (cong (cong go) r) (cong (cong go) s) i j k
+
+  recSet : ∀ {ℓB} {B : Type ℓB}
+    → isSet B
+    → (b : B)
+    → (b-loop : (g : G) → b ≡ b)
+    → 𝔹 → B
+  recSet {B} is-set-B b b-loop = rec {B = B} (isSet→isGroupoid is-set-B) b b-loop b-comp where
+    opaque
+      b-comp : (g h : G) → compSquareFiller (b-loop g) (b-loop h) (b-loop (g · h))
+      b-comp g h = isSet→SquareP (λ i j → is-set-B) (b-loop g) (b-loop (g · h)) refl (b-loop h)

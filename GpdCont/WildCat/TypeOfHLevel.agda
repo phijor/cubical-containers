@@ -13,7 +13,7 @@ open import Cubical.WildCat.Instances.Types using (TypeCat)
 import Cubical.Foundations.GroupoidLaws as GL
 
 module _ (ℓ : Level) where
-  open WildCat
+  open WildCat hiding (_⋆_)
 
   TypeOfHLevelCat : (n : HLevel) → WildCat (ℓ-suc ℓ) ℓ
   TypeOfHLevelCat n = SubtypeCat (TypeCat ℓ) (isOfHLevel n)
@@ -95,12 +95,12 @@ module _ (ℓ : Level) where
   hGroupoidEndo .ob = WildFunctor hGroupoidCat hGroupoidCat
   hGroupoidEndo .Hom[_,_] = WildNatTrans hGroupoidCat hGroupoidCat
   hGroupoidEndo .id = idNat _
-  hGroupoidEndo ._⋆_ = _⊛_
+  hGroupoidEndo .WildCat._⋆_ = _⊛_
   hGroupoidEndo .⋆IdL = idNatTransₗ
   hGroupoidEndo .⋆IdR = idNatTransᵣ
   hGroupoidEndo .⋆Assoc = assocNatTrans
 
-open WildCat
+open WildCat hiding (_⋆_)
 hseq' : ∀ {ℓ} (x y z : hGroupoidCat ℓ .ob) (f : hGroupoidCat ℓ [ x , y ]) (g : hGroupoidCat ℓ [ y , z ]) → hGroupoidCat ℓ [ x , z ]
 hseq' x y z = seq' (hGroupoidCat _) {x = x} {y = y} {z = z}
 syntax hseq' x y z f g = f ⋆⟨hGpd[ x , y , z ]⟩ g

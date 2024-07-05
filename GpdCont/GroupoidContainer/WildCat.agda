@@ -13,14 +13,14 @@ open import Cubical.WildCat.Functor using (WildFunctor ; WildNatTrans ; compWild
 import Cubical.Foundations.GroupoidLaws as GL
 import Cubical.Foundations.Transport as Transport
 
-open WildCat
+open WildCat hiding (_⋆_)
 
 module _ (ℓ : Level) where
   GContCat : WildCat (ℓ-suc ℓ) (ℓ-suc ℓ)
   GContCat .ob = GCont ℓ
   GContCat .Hom[_,_] = GContMorphism
   GContCat .id = GContId _
-  GContCat ._⋆_ = compGContMorphism
+  GContCat .WildCat._⋆_ = compGContMorphism
   GContCat .⋆IdL = compGContMorphismIdL
   GContCat .⋆IdR = compGContMorphismIdR
   GContCat .⋆Assoc = compGContMorphismAssoc

@@ -55,51 +55,51 @@ module BoolExample where
   𝔹 .GCont.is-groupoid-shape = trunc𝔹2
   𝔹 .GCont.is-set-pos = str ∘ PosSet
 
-module Lower {ℓ} (G : GCont ℓ) (injPos : ∀ s t → G .GCont.Pos s ≡ G .GCont.Pos t → s ≡ t) where
-  open module G = GCont G using (Shape ; is-groupoid-shape ; Pos ; is-set-pos)
+-- module Lower {ℓ} (G : GCont ℓ) (injPos : ∀ s t → G .GCont.Pos s ≡ G .GCont.Pos t → s ≡ t) where
+--   open module G = GCont G using (Shape ; is-groupoid-shape ; Pos ; is-set-pos)
 
-  opaque
-    ↓Shape : Type ℓ
-    ↓Shape = ∥ Shape ∥₂
+--   opaque
+--     ↓Shape : Type ℓ
+--     ↓Shape = ∥ Shape ∥₂
 
-    isSet-↓Shape : isSet ↓Shape
-    isSet-↓Shape = ST.isSetSetTrunc
+--     isSet-↓Shape : isSet ↓Shape
+--     isSet-↓Shape = ST.isSetSetTrunc
 
-    -- False lmao
-    ↓pos-coherence : ∀ (s t : Shape) → (p q : s ≡ t) → Path (G.Pos s ≡ G.Pos t) (cong G.Pos p) (cong G.Pos q)
-    ↓pos-coherence s t p q = {! !}
+--     -- False lmao
+--     ↓pos-coherence : ∀ (s t : Shape) → (p q : s ≡ t) → Path (G.Pos s ≡ G.Pos t) (cong G.Pos p) (cong G.Pos q)
+--     ↓pos-coherence s t p q = {! !}
 
-    ↓PosSet : ↓Shape → hSet ℓ
-    ↓PosSet = Rec.fun where
-      opaque
-        unfolding G.PosSet
-        coherence : ∀ (s t : Shape) → (p q : s ≡ t) → Path (G.PosSet s ≡ G.PosSet t) (cong G.PosSet p) (cong G.PosSet q)
-        coherence s t p q = ΣSquareSet (λ X → isProp→isSet isPropIsSet) (↓pos-coherence s t p q)
-      module Rec = ST.rec→Gpd isGroupoidHSet G.PosSet coherence
+--     ↓PosSet : ↓Shape → hSet ℓ
+--     ↓PosSet = Rec.fun where
+--       opaque
+--         unfolding G.PosSet
+--         coherence : ∀ (s t : Shape) → (p q : s ≡ t) → Path (G.PosSet s ≡ G.PosSet t) (cong G.PosSet p) (cong G.PosSet q)
+--         coherence s t p q = ΣSquareSet (λ X → isProp→isSet isPropIsSet) (↓pos-coherence s t p q)
+--       module Rec = ST.rec→Gpd isGroupoidHSet G.PosSet coherence
 
-    ↓Pos : ↓Shape → Type ℓ
-    ↓Pos = ⟨_⟩ ∘ ↓PosSet
+--     ↓Pos : ↓Shape → Type ℓ
+--     ↓Pos = ⟨_⟩ ∘ ↓PosSet
 
-    isSet-↓Pos : (s : ↓Shape) → isSet (↓Pos s)
-    isSet-↓Pos = str ∘ ↓PosSet
+--     isSet-↓Pos : (s : ↓Shape) → isSet (↓Pos s)
+--     isSet-↓Pos = str ∘ ↓PosSet
 
-    ↓Symm′ : ∀ {s t} → ↓Pos s ≃ ↓Pos t → hProp ℓ
-    ↓Symm′ {s} {t} σ = {! !}
+--     ↓Symm′ : ∀ {s t} → ↓Pos s ≃ ↓Pos t → hProp ℓ
+--     ↓Symm′ {s} {t} σ = {! !}
 
-    ↓Symm : ∀ {s t} → ↓Pos s ≃ ↓Pos t → Type ℓ
-    ↓Symm {s} {t} = ⟨_⟩ ∘ ↓Symm′ {s} {t}
+--     ↓Symm : ∀ {s t} → ↓Pos s ≃ ↓Pos t → Type ℓ
+--     ↓Symm {s} {t} = ⟨_⟩ ∘ ↓Symm′ {s} {t}
 
-    isProp-↓Symm : ∀ {s t} → (σ : ↓Pos s ≃ ↓Pos t) → isProp (↓Symm σ)
-    isProp-↓Symm {s} {t} = str ∘ ↓Symm′ {s} {t}
+--     isProp-↓Symm : ∀ {s t} → (σ : ↓Pos s ≃ ↓Pos t) → isProp (↓Symm σ)
+--     isProp-↓Symm {s} {t} = str ∘ ↓Symm′ {s} {t}
 
-  ↓_ : QCont ℓ
-  ↓ .QCont.Shape = ↓Shape
-  ↓ .QCont.Pos = ↓Pos
-  ↓ .QCont.Symm = ↓Symm
-  ↓ .QCont.is-set-shape = isSet-↓Shape
-  ↓ .QCont.is-set-pos = isSet-↓Pos
-  ↓ .QCont.is-prop-symm = isProp-↓Symm
-  ↓ .QCont.symm-id = {! !}
-  ↓ .QCont.symm-comp = {! !}
-  ↓ .QCont.symm-sym = {! !}
+--   ↓_ : QCont ℓ
+--   ↓ .QCont.Shape = ↓Shape
+--   ↓ .QCont.Pos = ↓Pos
+--   ↓ .QCont.Symm = ↓Symm
+--   ↓ .QCont.is-set-shape = isSet-↓Shape
+--   ↓ .QCont.is-set-pos = isSet-↓Pos
+--   ↓ .QCont.is-prop-symm = isProp-↓Symm
+--   ↓ .QCont.symm-id = {! !}
+--   ↓ .QCont.symm-comp = {! !}
+--   ↓ .QCont.symm-sym = {! !}
 

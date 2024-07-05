@@ -54,10 +54,10 @@ isSetMorphism {Q} {R} = recordIsOfHLevel 2 $
   isSet-Premorphism/ shape-mor = SQ.squash/
 
 open Morphism
-private
-  pre→mor : ∀ {u : Q .Shape → R .Shape} (f : Premorphism Q R u) → Morphism Q R
-  pre→mor {u = u} f .shape-mor = u
-  pre→mor {u = u} f .pos-equiv = pre-morphism-class f
+
+pre→mor : ∀ {u : Q .Shape → R .Shape} (f : Premorphism Q R u) → Morphism Q R
+pre→mor {u = u} f .shape-mor = u
+pre→mor {u = u} f .pos-equiv = pre-morphism-class f
 
 opaque
   MorphismElimProp : ∀ {ℓP} (P : Morphism Q S → Type ℓP)
@@ -69,6 +69,15 @@ opaque
     (p* (α .shape-mor))
     (α .pos-equiv)
 
+  MorphismElimProp2 : ∀ {Q Q′ R R′ : QCont ℓ} {ℓP} (P : Morphism Q R → Morphism Q′ R′ → Type ℓP)
+    → (∀ α β → isProp (P α β))
+    → (∀ u v → (f : Premorphism Q R u) (g : Premorphism Q′ R′ v) → P (pre→mor f) (pre→mor g))
+    → ∀ α β → P α β
+  MorphismElimProp2 P is-prop-P p* α β = SQ.elimProp2 {P = λ f g → P (mk-qcont-morphism _ f) (mk-qcont-morphism _ g)}
+    (λ f g → is-prop-P _  _)
+    (p* _ _)
+    (α .pos-equiv) (β .pos-equiv)
+
   MorphismElimProp3 : ∀ {Q Q′ Q″ R R′ R″ : QCont ℓ} {ℓP} (P : Morphism Q R → Morphism Q′ R′ → Morphism Q″ R″ → Type ℓP)
     → (∀ α β γ → isProp (P α β γ))
     → (∀ u v w → (f : Premorphism Q R u) (g : Premorphism Q′ R′ v) (h : Premorphism Q″ R″ w) → P (pre→mor f) (pre→mor g) (pre→mor h))
@@ -77,6 +86,29 @@ opaque
     (λ f g h → is-prop-P _ _ _)
     (p* _ _ _)
     (α .pos-equiv) (β .pos-equiv) (γ .pos-equiv)
+
+MorphismRec : ∀ {ℓP} {P : Type ℓP}
+  → isSet P
+  → (rec* : (u : Q .Shape → S .Shape) (f : Premorphism Q S u) → P)
+  → (well-defined : ∀ {u} f f′ → (PremorphismEquiv f f′) →  rec* u f ≡ rec* u f′)
+  → Morphism Q S → P
+MorphismRec is-set-P rec* well-defined α = SQ.rec is-set-P (rec* (α .shape-mor)) well-defined (α .pos-equiv)
+
+MorphismElim : ∀ {ℓP} {P : Morphism Q S → Type ℓP}
+  → (∀ α → isSet (P α))
+  → (elim* : (u : Q .Shape → S .Shape) (f : Premorphism Q S u) → P (pre→mor f))
+  → (well-defined : ∀ {u} f f′ → (r : PremorphismEquiv f f′) → PathP (λ i → P (mk-qcont-morphism u (pre-morphism-eq/ r i))) (elim* u f) (elim* u f′))
+  → ∀ α  → P α
+MorphismElim {P} is-set-P elim* well-defined α =
+  SQ.elim {P = λ f → P (mk-qcont-morphism (α .shape-mor) f)} (is-set-P ∘ mk-qcont-morphism _) (elim* (α .shape-mor)) well-defined (α .pos-equiv)
+
+opaque
+  MorphismElimCompute : ∀ {ℓP} {P : Morphism Q S → Type ℓP}
+    → (is-set-P : ∀ α → isSet (P α))
+    → (elim* : (u : Q .Shape → S .Shape) (f : Premorphism Q S u) → P (pre→mor f))
+    → (well-defined : ∀ {u} f f′ → (r : PremorphismEquiv f f′) → PathP (λ i → P (mk-qcont-morphism u (pre-morphism-eq/ r i))) (elim* u f) (elim* u f′))
+    → ∀ (u : Q .Shape → S .Shape) (f : Premorphism Q S u) → MorphismElim is-set-P elim* well-defined (pre→mor f) ≡ elim* u f
+  MorphismElimCompute {P} is-set-P elim* well-defined u f = refl
 
 idQCont : {Q : QCont ℓ} → Morphism Q Q
 idQCont {Q} = pre→mor (Premorphism.idPremorphism Q)
@@ -87,7 +119,7 @@ compQContMorphism {Q} {R} {S} α β = composite where
     module R = QCont R
     module S = QCont S
 
-  open Premorphism.Composite {u = α .shape-mor} {v = β .shape-mor} using () renaming (compPremorphism to _⋆-pre_)
+  open Premorphism.Composite {Q = Q} {R = R} {S = S} {u = α .shape-mor} {v = β .shape-mor} using () renaming (compPremorphism to _⋆-pre_)
 
   composite : Morphism Q S
   composite .shape-mor = α .shape-mor ⋆ β .shape-mor

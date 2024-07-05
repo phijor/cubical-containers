@@ -1,0 +1,254 @@
+-- TODO:
+-- 1. Rename this to GpdCont.Skeleton
+-- 2. Define `Skeleton` as the data for a skeleton
+-- 3. Re-define `isSkeletal` to `hasSkeleton` / `isSkeletal` via (mere) path to some `Skeleton`
+module GpdCont.Groupoid where
+
+open import GpdCont.Prelude
+open import GpdCont.RecordEquiv
+open import GpdCont.Groups.Base
+open import GpdCont.SetTruncation using (isConnected-fiber-∣-∣₂ ; componentEquiv)
+
+open import Cubical.Data.Sigma
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism using (section ; Iso)
+open import Cubical.Foundations.Structure
+open import Cubical.Functions.Surjection
+open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
+open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
+
+private
+  variable
+    ℓ : Level
+
+record Skeleton (G* : hGroupoid ℓ) : Type (ℓ-suc ℓ) where
+  private
+    G = ⟨ G* ⟩
+
+  Component : ∥ G ∥₂ → Type ℓ
+  Component = fiber ∣_∣₂
+
+  isGroupoidComponent : ∀ x → isGroupoid (Component x)
+  isGroupoidComponent x = isGroupoidΣ (str G*) λ g → isProp→isOfHLevelSuc 2 (ST.squash₂ ∣ g ∣₂ x)
+
+  field
+    component-section : (x : ∥ G ∥₂) → Component x
+
+  Index : Type ℓ
+  Index = ∥ G ∥₂
+
+  isSetIndex : isSet Index
+  isSetIndex = ST.isSetSetTrunc
+
+  Total : Type ℓ
+  Total = Σ ∥ G ∥₂ (fiber ∣_∣₂)
+
+  TotalEquiv : G ≃ Total
+  TotalEquiv = componentEquiv G
+
+  index-of : G → Index
+  index-of = fst ∘ equivFun TotalEquiv
+
+  isGroupoidTotal : isGroupoid Total
+  isGroupoidTotal = isGroupoidΣ (isSet→isGroupoid ST.isSetSetTrunc) isGroupoidComponent
+
+  sk : ∥ G ∥₂ → G
+  sk = fst ∘ component-section
+
+  sk-section : section ∣_∣₂ sk
+  sk-section = snd ∘ component-section
+
+  ComponentGroupStr : ∀ x → GroupStr (Component x)
+  ComponentGroupStr x .GroupStr.is-connected = isConnected-fiber-∣-∣₂ x
+  ComponentGroupStr x .GroupStr.is-groupoid = isGroupoidComponent x
+  ComponentGroupStr x .GroupStr.pt = component-section x
+
+  ComponentGroup : ∥ G ∥₂ → Group _
+  ComponentGroup x = Component x , ComponentGroupStr x
+
+AC : ∀ ℓA ℓB → Type (ℓ-suc (ℓ-max ℓA ℓB))
+AC ℓA ℓB = ∀ {A : Type ℓA} {B : Type ℓB}
+  → (isSet A) → (isSet B)
+  → (f : A → B) → isSurjection f
+  → Σ[ g ∈ (B → A) ] section f g
+
+AC-Gpd : ∀ ℓA ℓB → Type _
+AC-Gpd ℓA ℓB = ∀ {A : Type ℓA} {B : Type ℓB}
+  → (isGroupoid A) → (isGroupoid B)
+  → (f : A → B) → (∀ b → ∥ fiber f b ∥₂)
+  → Σ[ g ∈ (B → A) ] section f g
+
+isTruncCong : ∀ {ℓA ℓB} {A : Type ℓA} {B : Type ℓB} (f : A → B)
+  → (∀ b → ∥ fiber f b ∥₂)
+  → ∀ {a₀ a₁} p → ∥ fiber (cong {x = a₀} {y = a₁} f) p ∥₁
+isTruncCong f fib₂ {a₀} {a₁} p = {! !} where
+  foo : PathP (λ i → ∥ fiber f (p i) ∥₂) (fib₂ (f a₀)) (fib₂ (f a₁))
+  foo i = fib₂ (p i)
+
+AC-Gpd→Skeleton : ∀ {ℓG} → AC-Gpd ℓG ℓG → (G : hGroupoid ℓG) → Skeleton G
+AC-Gpd→Skeleton ac (G , is-groupoid-G) .Skeleton.component-section = goal where
+  ∣-∣₂-section : Σ[ g ∈ (∥ G ∥₂ → G) ] section ∣_∣₂ g
+  ∣-∣₂-section = ac is-groupoid-G (isSet→isGroupoid ST.isSetSetTrunc) ∣_∣₂ $ ST.elim (λ _ → ST.isSetSetTrunc) λ { g → ST.∣ g , refl ∣₂ }
+
+  goal : ∀ (x : ∥ G ∥₂) → fiber ∣_∣₂ x
+  goal = Σ-Π-Iso .Iso.inv ∣-∣₂-section
+
+Skeleton→AC-Gpd : ∀ {ℓG} → (∀ (G : hGroupoid ℓG) → Skeleton G) → AC-Gpd ℓG ℓG
+Skeleton→AC-Gpd mk-skel {A} {B} is-groupoid-A is-groupoid-B f fib-components = g , section-f-g where
+  open import Cubical.HITs.GroupoidQuotients as GQ using (_//_)
+  open import Cubical.Relation.Binary.Base using (module BinaryRelation ; Rel)
+
+  Im-f : Type _
+  Im-f = Σ[ b ∈ B ] ∥ fiber f b ∥₂
+
+  Im-f-inc : Im-f → B
+  Im-f-inc = fst
+
+  Im-f-inc-fiber-equiv : ∀ b* → ∥ fiber f b* ∥₂ ≃ fiber Im-f-inc b*
+  Im-f-inc-fiber-equiv b* =
+    ∥ fiber f b* ∥₂ ≃⟨ invEquiv (Σ-contractFst (isContrSingl b*)) ⟩
+    Σ[ k ∈ singl b* ] (∥ fiber f (fst k) ∥₂) ≃⟨ shuffle ⟩
+    Σ[ x ∈ Σ[ b ∈ B ] ∥ fiber f b ∥₂ ] fst x ≡ b* ≃⟨⟩
+    fiber Im-f-inc b* ≃∎ where
+      shuffle : _ ≃ _
+      shuffle = strictEquiv
+        (λ { ((b , p) , fib) → ((b , fib) , sym p) })
+        (λ { ((b , fib) , p) → (b , sym p) , fib })
+
+  -- Image-restriction is a 2-truncated map
+  setTruncFun-Im-f-inc : ∀ (b : B) → isSet (fiber Im-f-inc b)
+  setTruncFun-Im-f-inc b* = isOfHLevelRespectEquiv 2 (Im-f-inc-fiber-equiv b*) ST.isSetSetTrunc
+
+  Im-f-res : A → Im-f
+  Im-f-res a .fst = f a
+  Im-f-res a .snd = ∣ a , refl ∣₂
+
+  -- Image-restriction is a 2-connected map
+  setConnFun-Im-f-res : ∀ (x : Im-f) → ∥ fiber Im-f-res x ∥₂
+  setConnFun-Im-f-res = uncurry λ (b : B) → ST.elim
+    (λ _ → ST.isSetSetTrunc)
+    (λ { (a , fa≡b) → ∣ a , (λ { i → fa≡b i , ∣ a , (λ j → fa≡b (i ∧ j)) ∣₂ }) ∣₂ })
+
+  -- f factors 
+  Im-f-factorization : f ≡ Im-f-inc ∘ Im-f-res
+  Im-f-factorization = refl
+
+  ker-f : A → A → Type _
+  ker-f a a' = f a ≡ f a'
+
+  A/f : Type _
+  A/f = _//_ A {R = ker-f} λ _ _ _ → _∙_
+
+  module A/f = Skeleton (mk-skel (A/f , GQ.squash//))
+
+  module A = Skeleton (mk-skel (A , is-groupoid-A))
+
+  fiber-proj : ∀ {b} → ∥ fiber f b ∥₂ → ∥ A ∥₂
+  fiber-proj = ST.map fst
+
+  h : B → ∥ A ∥₂
+  h = fiber-proj ∘ fib-components
+
+  h-fib : (x : ∥ A ∥₂) → ∥ fiber h x ∥₂
+  h-fib = ST.elim (λ _ → ST.isSetSetTrunc) λ a → ∣ f a , {!fib-components (f a) !} ∣₂
+
+  h-section : (b : B) → ∥ fiber f b ∥₂ → {! !}
+  h-section b = {!A/f.sk !}
+
+  k : ∥ A ∥₂ → A
+  k = A.sk
+
+  k-section : ∀ b → ∣ k b ∣₂ ≡ b
+  k-section = A.sk-section
+
+  g : B → A
+  g = k ∘ h
+
+  lemma : ∀ {b} → (x : fiber f b) → f (A.sk (fiber-proj ∣ x ∣₂)) ≡ b
+  lemma {b} (a , fa≡b) = PT.rec→Set (is-groupoid-B (f (A.sk ∣ a ∣₂)) b) go 2-const-go a-retr where
+    a-path : ∣ A.sk ∣ a ∣₂ ∣₂ ≡ ∣ a ∣₂
+    a-path = A.sk-section ∣ a ∣₂
+
+    a-retr : ∥ A.sk ∣ a ∣₂ ≡ a ∥₁
+    a-retr = ST.PathIdTrunc₀Iso .Iso.fun a-path
+
+    go : A.sk ∣ a ∣₂ ≡ a → f (A.sk ∣ a ∣₂) ≡ b
+    go q = cong f q ∙ fa≡b
+
+    2-const-go : ∀ q q' → go q ≡ go q'
+    2-const-go q q' = cong (_∙ fa≡b) {!isTruncCong f fib-components  !}
+
+  section-f-g : section f g
+  section-f-g b = ST.elim
+    {B = λ (x : ∥ fiber f b ∥₂) → f (A.sk (ST.map fst x)) ≡ b}
+    (λ _ → is-groupoid-B _ _)
+    lemma
+    (fib-components b)
+
+
+AC→Skeleton : ∀ {ℓG} → AC ℓG ℓG → (G : hGroupoid ℓG) → Skeleton G
+-- AC→Skeleton aoc (G , is-groupoid-G) .Skeleton.component-section x = ∣-∣₂-section .fst x , ∣-∣₂-section .snd x where
+AC→Skeleton aoc (G , is-groupoid-G) .Skeleton.component-section = goal where
+  FAIL : isSet G
+  FAIL = {! !}
+  goal′ : (x : ∥ G ∥₂) → Σ[ y ∈ ∥ G ∥₂ ] fiber ∣_∣₂ y
+  goal′ = ST.rec→Gpd.fun {! !} (λ { g → ∣ g ∣₂ , g , refl }) λ { a b p q i j → {! !} }
+
+  goal : ∀ x → fiber ∣_∣₂ x
+  goal = {!ST.rec→Gpd !}
+
+  ∣-∣₂-section : Σ[ g ∈ (∥ G ∥₂ → G) ] section ∣_∣₂ g
+  ∣-∣₂-section = aoc FAIL ST.isSetSetTrunc ∣_∣₂ (ST.elim (λ _ → isProp→isSet PT.isPropPropTrunc) λ { g → PT.∣ g , refl ∣₁ })
+
+module _ where
+  open import Cubical.HITs.Delooping.Two.Base as Bℤ₂ using (Bℤ₂)
+  open import Cubical.Relation.Nullary.Base
+  open import Cubical.Relation.Binary.Base using (module BinaryRelation ; Rel)
+
+  yes-skeleton : Skeleton (Bℤ₂ , Bℤ₂.trunc)
+  yes-skeleton .Skeleton.component-section = λ { x → Bℤ₂.base , ST.elim {B = λ x → ∣ Bℤ₂.base ∣₂ ≡ x} (λ _ → ST.isSetPathImplicit) lem x } where
+    -- Elimination into a proposition
+    lem : (z : Bℤ₂) → ∣ Bℤ₂.base ∣₂ ≡ ∣ z ∣₂
+    lem = Bℤ₂.Elim.elim {! !} refl {! !} {! !} {! !}
+{-
+Skeleton→AOC : ∀ {ℓG} → (∀ (G : hGroupoid ℓG) → Skeleton G) → AC∞ ℓG ℓG
+Skeleton→AOC skel {A} {B} is-set-A f surj-f = g , section-f-g where
+  open import Cubical.HITs.GroupoidQuotients as GQ using (_//_)
+  open import Cubical.Relation.Binary.Base using (module BinaryRelation ; Rel)
+
+  ker-f : Rel A A _
+  ker-f a b = f a ≡ f b
+
+  is-trans-ker-f : BinaryRelation.isTrans ker-f
+  is-trans-ker-f a b c = _∙_
+
+  G : Type _
+  G = A // is-trans-ker-f
+
+  is-groupoid-G : isGroupoid G
+  is-groupoid-G = GQ.squash//
+
+  G-skel : Skeleton (G , is-groupoid-G)
+  G-skel = skel (G , is-groupoid-G)
+
+  module G-skel = Skeleton G-skel
+
+  Im-equiv : B ≃ ∥ A // is-trans-ker-f ∥₂
+  Im-equiv = {! !}
+
+  h : B → G
+  h = G-skel.sk ∘ equivFun Im-equiv
+
+  h-section : ∀ b → ∣ G-skel.sk (equivFun Im-equiv b) ∣₂ ≡ equivFun Im-equiv b
+  h-section = G-skel.sk-section ∘ equivFun Im-equiv
+
+  k : G → A
+  k = {!G-skel.sk !}
+
+  g : B → A
+  g = {! !}
+
+  section-f-g : section f g
+  section-f-g = {! !}
+-}

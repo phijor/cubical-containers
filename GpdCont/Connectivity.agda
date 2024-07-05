@@ -1,6 +1,7 @@
 module GpdCont.Connectivity where
 
 open import GpdCont.Prelude
+open import GpdCont.SetTruncation as ST
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
@@ -26,6 +27,9 @@ isPathConnected A = isContr ∥ A ∥₂
 
 isPathConnectedFun : (f : A → B) → Type _
 isPathConnectedFun {B} f = (b : B) →  isPathConnected (fiber f b)
+
+isPathConnected→merePath : isPathConnected A → ∀ (a b : A) → ∥ a ≡ b ∥₁
+isPathConnected→merePath conn a b = equivFun PathSetTrunc≃PropTruncPath $ isContr→isProp conn ST.∣ a ∣₂ ST.∣ b ∣₂
 
 isPropIsConnected : ∀ {n : HLevel} → isProp (isConnected n A)
 isPropIsConnected = isPropIsContr
@@ -66,6 +70,12 @@ merelyInh×isConnectedPath→isConnectedSuc k = PT.rec
   (isProp→ isPropIsConnected)
   (pointed×isConnectedPath→isConnectedSuc k)
 
+isConnectedSuc→merelyInh×isConnectedPath : (k : HLevel)
+  → isConnected (suc k) A
+  → ∥ A ∥₁ × ((a b : A) → isConnected k (a ≡ b))
+isConnectedSuc→merelyInh×isConnectedPath k suc-conn-A .fst = isConnectedSuc→merelyInh k suc-conn-A
+isConnectedSuc→merelyInh×isConnectedPath k suc-conn-A .snd = isConnectedPath k suc-conn-A
+
 -- A type is k+1-connected whenever it is merely inhabited and has k-connected paths.
 merelyInh×isConnectedPath≃isConnectedSuc : ∀ (k : HLevel)
   → (∥ A ∥₁ × ((a b : A) → isConnected k (a ≡ b))) ≃ (isConnected (suc k) A)
@@ -73,9 +83,7 @@ merelyInh×isConnectedPath≃isConnectedSuc k = propBiimpl→Equiv
   (isProp× PT.isPropPropTrunc $ isPropΠ2 λ a b → isPropIsConnected)
   isPropIsConnected
   (uncurry $ merelyInh×isConnectedPath→isConnectedSuc k)
-  λ where
-    suc-conn-A .fst → isConnectedSuc→merelyInh k suc-conn-A
-    suc-conn-A .snd → isConnectedPath k suc-conn-A
+  (isConnectedSuc→merelyInh×isConnectedPath k)
 
 inhTruncSuc×isConnectedPath→isConnectedSuc : ∀ (k : HLevel)
   → ∥ A ∥ (suc k)
@@ -101,7 +109,7 @@ inhTruncSuc×isConnectedPath≃isConnectedSuc {A} k = equiv where
   is-contr-fiber-impl : (suc-conn-A : isConnected (suc k) A) → isContr (fiber impl suc-conn-A)
   is-contr-fiber-impl suc-conn-A = isContrΣ
     is-contr-trunc×conn-path
-    (λ x → isProp→isContrPath isPropIsConnected (impl x) suc-conn-A)
+    is-contr-impl-conn-path
     where
       is-contr-is-conn-path : isContr (∀ (a b : A) → isConnected k (a ≡ b))
       is-contr-is-conn-path = inhProp→isContr (isConnectedPath k suc-conn-A) (isPropΠ2 λ _ _ → isPropIsConnected)
@@ -109,9 +117,17 @@ inhTruncSuc×isConnectedPath≃isConnectedSuc {A} k = equiv where
       is-contr-trunc×conn-path : isContr (∥ A ∥ (suc k) × ∀ (a b : A) → isConnected k (a ≡ b))
       is-contr-trunc×conn-path = isContrΣ suc-conn-A λ _ → is-contr-is-conn-path
 
+      is-contr-impl-conn-path : (trunc×conn : (∥ A ∥ suc k) × (∀ a b → isConnected k (a ≡ b))) → isContr (impl trunc×conn ≡ suc-conn-A)
+      is-contr-impl-conn-path trunc×conn = isProp→isContrPath isPropIsConnected (impl trunc×conn) suc-conn-A
+
   equiv : _ ≃ _
   equiv .fst = impl
   equiv .snd .equiv-proof = is-contr-fiber-impl
+
+isConnectedSuc→inhTruncSuc×isConnectedPath : ∀ (k : HLevel)
+  → (isConnected (suc k) A)
+  → (∥ A ∥ (suc k) × ((a b : A) → isConnected k (a ≡ b)))
+isConnectedSuc→inhTruncSuc×isConnectedPath k = invEq $ inhTruncSuc×isConnectedPath≃isConnectedSuc k
 
 isContr→isConnected : (k : HLevel) → isContr A → isConnected k A
 isContr→isConnected = Tr.isContr→isContrTrunc
@@ -129,6 +145,16 @@ isOfHLevel×isConnected→isContr (suc k) A suc-k-level-A suc-k-conn-A = is-cont
 
   is-contr-A : isContr A
   is-contr-A = isOfHLevelRespectEquiv 0 universal-property-trunc suc-k-conn-A
+
+-- isConnectedΠ : {B : A → Type ℓ} (k : HLevel) → ((a : A) → isConnected k (B a)) → isConnected k ((a : A) → B a)
+-- isConnectedΠ {A} {B} zero _ = isConnectedZero (∀ a → B a)
+-- isConnectedΠ {A} {B} (suc k) conn = merelyInh×isConnectedPath→isConnectedSuc k merely-inh {! !} where
+
+--   foo : (a : A) → ∥ B a ∥₁ × ((b₀ b₁ : B a) → isConnected k (b₀ ≡ b₁))
+--   foo a = isConnectedSuc→merelyInh×isConnectedPath k (conn a)
+
+--   merely-inh : ∥ (∀ a → B a) ∥₁
+--   merely-inh = {!PT.elim !}
 
 conType→indMapEquiv' : ∀ {ℓ} {A : Type ℓ} (n : HLevel)
   → isConnected n A

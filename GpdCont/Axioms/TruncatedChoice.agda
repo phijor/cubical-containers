@@ -64,6 +64,9 @@ isSplit→isSurjection f = PT.elim
 AllSurjectionsSplit : (ℓ : Level) → Type _
 AllSurjectionsSplit ℓ = ∀ (X Y : hSet ℓ) (f : ⟨ X ⟩ → ⟨ Y ⟩) → isSurjection f → isSplit f
 
+isPropAllSurjectionsSplit : isProp (AllSurjectionsSplit ℓ)
+isPropAllSurjectionsSplit = isPropΠ4 λ { _ _ _ _ → isPropIsSplit _ }
+
 -- If we assume choice for the fibers of a function of sets,
 -- then the function splits if it is a surjection.
 module FiberChoice (X Y : hSet ℓ) (f : ⟨ X ⟩ → ⟨ Y ⟩) where

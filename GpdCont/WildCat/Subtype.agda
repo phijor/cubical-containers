@@ -1,6 +1,6 @@
 module GpdCont.WildCat.Subtype where
 
-open import GpdCont.Prelude renaming (id to idfun)
+open import GpdCont.Prelude renaming (id to idfun) hiding (_⋆_)
 
 open import Cubical.Foundations.Function using (flip) renaming (_∘_ to _∘fun_)
 open import Cubical.Foundations.HLevels

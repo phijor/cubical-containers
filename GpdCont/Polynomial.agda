@@ -2,9 +2,12 @@ module GpdCont.Polynomial where
 
 open import GpdCont.Prelude
 
+open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Structure
 open import Cubical.Data.Sigma.Properties
+open import Cubical.Reflection.StrictEquiv
 
 record Polynomial {ℓ} (S : Type ℓ) (P : S → Type ℓ) (X : Type ℓ) : Type ℓ where
   constructor poly⟨_,_⟩
@@ -67,6 +70,17 @@ Polynomial≡ : ∀ {p q : Polynomial S P X}
   → p ≡ q
 Polynomial≡ shape-path label-path i .shape = shape-path i
 Polynomial≡ shape-path label-path i .label = label-path i
+
+module _ {ℓ} {S X : Type ℓ} {P : S → Type ℓ} {p q : Polynomial S P X} where
+  Polynomial≡Iso : Iso (p ≡ q) (Σ[ shape-path ∈ p .shape ≡ q .shape ] PathP (λ i → P (shape-path i) → X) (p .label) (q .label))
+  Polynomial≡Iso .Iso.fun path .fst = cong shape path
+  Polynomial≡Iso .Iso.fun path .snd = cong label path
+  Polynomial≡Iso .Iso.inv = uncurry Polynomial≡
+  Polynomial≡Iso .Iso.rightInv _ = refl
+  Polynomial≡Iso .Iso.leftInv _ = refl
+
+  Polynomial≡Equiv : (p ≡ q) ≃ (Σ[ shape-path ∈ p .shape ≡ q .shape ] PathP (λ i → P (shape-path i) → X) (p .label) (q .label))
+  unquoteDef Polynomial≡Equiv = defStrictIsoToEquiv Polynomial≡Equiv Polynomial≡Iso
 
 module Map {ℓ} (S : Type ℓ) (P : S → Type ℓ) where
   map : ∀ {X Y : Type ℓ} → (f : X → Y) → Polynomial S P X → Polynomial S P Y

@@ -4,7 +4,7 @@ open import GpdCont.Prelude renaming (id to idfun)
 
 open import Cubical.Foundations.Function using (flip) renaming (_∘_ to _∘fun_)
 open import Cubical.Foundations.HLevels
-open import Cubical.WildCat.Base using (WildCat ; _[_,_] ; seq')
+open import Cubical.WildCat.Base using (WildCat ; _[_,_] ; concatMor)
 open import Cubical.WildCat.Functor as Functor using (WildFunctor ; WildNatTrans)
 
 private

@@ -5,6 +5,7 @@ open import GpdCont.Univalence
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
+open import Cubical.Data.Sigma
 open import Cubical.Functions.Logic using (hProp≡)
 open import Cubical.Relation.Binary.Base using (module BinaryRelation)
 open import Cubical.Algebra.Group.Base
@@ -39,6 +40,9 @@ record QCont (ℓ : Level) : Type (ℓ-suc ℓ) where
 
   _⁻ : ∀ {s} → Symm s → Pos s → Pos s
   (σ , _) ⁻ = invEq σ
+
+  Eq⁺ : ∀ {s} {σ τ : Symm s} → σ ⁺ ≡ τ ⁺ → σ ≡ τ
+  Eq⁺ p = Σ≡Prop is-prop-symm (equivEq p)
 
   infixr 9 _▷_ _◁_
   _▷_ : ∀ {ℓ'} {A : Type ℓ'} {s : Shape} → (f : A → Pos s) (σ : Symm s) → A → Pos s

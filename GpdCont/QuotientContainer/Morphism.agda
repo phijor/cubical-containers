@@ -124,18 +124,14 @@ compQContMorphism {Q} {R} {S} α β = composite where
   composite : Morphism Q S
   composite .shape-mor = α .shape-mor ⋆ β .shape-mor
   composite .pos-equiv = SQ.rec SQ.squash/ (composite' (β .pos-equiv)) (well-defined (β .pos-equiv)) (α .pos-equiv) where
+    open import Cubical.HITs.PropositionalTruncation.Monad using (_>>=_ ; return)
 
     open Premorphism.Premorphism
-    open PremorphismEquiv
     opaque
       well-defined' : (f : Premorphism Q R (α .shape-mor)) (g g′ : Premorphism R S (β .shape-mor)) → PremorphismEquiv g g′ → PremorphismEquiv (f ⋆-pre g) (f ⋆-pre g′)
-      well-defined' f g g′ g-equiv-g′ = λ where
-        .η q → g-equiv-g′ .η (α .shape-mor q)
-        .η-comm q →
-          (f ⋆-pre g) .pos-mor q ≡⟨⟩
-          (g .pos-mor _ ⋆ f .pos-mor _) ≡⟨ cong (_⋆ f .pos-mor _) (g-equiv-g′ .η-comm _) ⟩
-          g-equiv-g′ .η (α .shape-mor q) S.⁺ ⋆ g′ .pos-mor _ ⋆ f .pos-mor _ ≡⟨⟩
-          g-equiv-g′ .η (α .shape-mor q) S.◁ (f ⋆-pre g′) .pos-mor q ∎
+      well-defined' f g g′ g-equiv-g′ s = do
+        (σ , σ-comm) ← (g-equiv-g′ (α .shape-mor s))
+        return $ σ , cong (_⋆ f .pos-mor _) σ-comm
 
     composite' : Premorphism/ R S (β .shape-mor) → Premorphism Q R (α .shape-mor) → Premorphism/ Q S (α .shape-mor ⋆ β .shape-mor)
     composite' [g] f = SQ.rec SQ.squash/ (λ g → pre-morphism-class (f ⋆-pre g)) (λ { g g′ r → pre-morphism-eq/ (well-defined' f g g′ r) }) [g]
@@ -144,15 +140,16 @@ compQContMorphism {Q} {R} {S} α β = composite where
       well-defined : ([g] : Premorphism/ R S (β .shape-mor)) (f f′ : Premorphism Q R (α .shape-mor)) → PremorphismEquiv f f′ → composite' [g] f ≡ composite' [g] f′
       well-defined [g] f f′ f-equiv-f′ = SQ.elimProp {P = λ [g] → composite' [g] f ≡ composite' [g] f′} (λ [g] → SQ.squash/ _ _) (λ g → pre-morphism-eq/ $ comp-equiv g) [g] where
         comp-equiv : ∀ g → PremorphismEquiv (f ⋆-pre g) (f′ ⋆-pre g)
-        comp-equiv g = λ where
-          .η q → g .symm-pres (α .shape-mor q) (f-equiv-f′ .η q)
-          .η-comm q →
-            (f ⋆-pre g) .pos-mor q ≡⟨⟩
-            g .pos-mor _ ⋆ f .pos-mor _ ≡⟨ cong (g .pos-mor _ ⋆_) (f-equiv-f′ .η-comm q) ⟩
-            g .pos-mor _ ⋆ (f-equiv-f′ .η _ R.◁ f′ .pos-mor _) ≡⟨⟩
-            (g .pos-mor _ R.▷ f-equiv-f′ .η _) ⋆ f′ .pos-mor _ ≡⟨ cong (_⋆ f′ .pos-mor _) $ g .symm-pres-natural _ (f-equiv-f′ .η q) ⟩
-            (g .symm-pres _ (f-equiv-f′ .η q) S.◁ g .pos-mor (α .shape-mor q)) ⋆ f′ .pos-mor _ ≡⟨⟩
-            (g .symm-pres _ (f-equiv-f′ .η q)) S.◁ (f′ ⋆-pre g) .pos-mor q ∎
+        comp-equiv g s = do
+          (ρ , ρ-comm) ← f-equiv-f′ s
+          (σ , σ-nat)  ← g .symm-pres _ ρ
+          return $ σ , (
+              (f ⋆-pre g) .pos-mor s ≡⟨⟩
+              g .pos-mor _ ⋆ f .pos-mor _ ≡⟨ cong (g .pos-mor _ ⋆_) ρ-comm ⟩
+              g .pos-mor _ ⋆ (ρ R.⁺) ⋆ f′ .pos-mor _ ≡⟨ cong (_⋆ f′ .pos-mor _) σ-nat ⟩
+              (σ S.⁺ ⋆ g .pos-mor _) ⋆ f′ .pos-mor _ ≡⟨⟩
+              (σ S.◁ (f′ ⋆-pre g) .pos-mor s) ∎
+            )
 
 private
   _⋆Q_ = compQContMorphism

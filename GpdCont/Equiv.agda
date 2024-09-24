@@ -17,3 +17,9 @@ pathToEquivComp : ∀ {ℓ} {A B C : Type ℓ}
   → (p : A ≡ B) (q : B ≡ C)
   → pathToEquiv (p ∙ q) ≡ pathToEquiv p ∙ₑ pathToEquiv q
 pathToEquivComp p q = equivEq $ funExt $ transportComposite p q
+
+equivΠCodComp : ∀ {ℓ ℓ'} {A : Type ℓ} {F G H : A → Type ℓ'}
+  → (α : (a : A) → F a ≃ G a)
+  → (β : (a : A) → G a ≃ H a)
+  → equivΠCod (λ a → α a ∙ₑ β a) ≡ equivΠCod α ∙ₑ equivΠCod β
+equivΠCodComp α β = equivEq refl

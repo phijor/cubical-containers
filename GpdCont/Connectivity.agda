@@ -190,3 +190,26 @@ conType→indMapEquiv {A} n conn-A (B , lvl-B) .equiv-proof = goal where
     -- goal = isContrRetract {B = ∥ A ∥ n} ev un-ev ev-retr conn-A
     goal .fst = ∣f∣ (conn-A .fst) , funExt λ a → Tr.elim {B = λ ∣a∣ → ∣f∣ ∣a∣ ≡ f a} {! !} (λ a′ → Tr.recUniq lvl-B f a′ ∙ cong f {! !}) (conn-A .fst)
     goal .snd = {! !}
+
+-- isConnected→overCenter : ∀ {ℓ'} {B : A → Type ℓ'} {k}
+--   → isConnected k A
+--   → Type _
+-- isConnected→overCenter conn-A = {! !}
+--
+-- isPointedConnected→TruncSigmaContrFst : ∀ {ℓ'} {B : A → Type ℓ'} {k}
+--   → isConnected k A → (a₀ : A)
+--   → ∥ Σ A B ∥ k ≃ ∥ B a₀ ∥ k
+-- isPointedConnected→TruncSigmaContrFst conn-A a₀ .fst = Tr.rec {! !} λ { (a , b) → {! !} }
+-- isPointedConnected→TruncSigmaContrFst conn-A a₀ .snd = {! !}
+
+-- _>>=_ : ∥ A ∥₂ → (A → ∥ B ∥₂) → ∥ B ∥₂
+-- x >>= f = ST.rec ST.isSetSetTrunc f x
+
+-- isPointedConnected→TruncSigmaContrFst : ∀ {ℓ'} {B : A → Type ℓ'}
+--   → isPathConnected A → (a₀ : A)
+--   → ∥ Σ A B ∥₂ ≃ ∥ B a₀ ∥₂
+-- isPointedConnected→TruncSigmaContrFst {B} conn-A a₀ .fst x = do
+--   (a , b) ← x
+--   let q = isPathConnected→merePath conn-A a₀ a
+--   PT.elim→Set (λ _ → ST.isSetSetTrunc) (λ (p : a₀ ≡ a) → subst (∥_∥₂ ∘ B) (sym p) ST.∣ b ∣₂) (λ p p′ → cong ST.∣_∣₂ {! !}) q
+-- isPointedConnected→TruncSigmaContrFst conn-A a₀ .snd = {! !}

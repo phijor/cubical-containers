@@ -10,8 +10,8 @@
     src = fetchFromGitHub {
       owner = "agda";
       repo = "cubical";
-      rev = "d182af36a763d0a354f83650a44e5ac8d5c9726f";
-      sha256 = "sha256-O/ZMBgkg7d89JqlsT+MZoYtR1E1mGEgNxsNVLXi4F6E=";
+      rev = "502b1bb8a47fb8c07d82e1bc05020d5b4f10cede";
+      sha256 = "sha256-UOjI63wVoIIyAfMjAV2aQpU8wOnQiNZokDdxl168n7g=";
     };
   });
 in

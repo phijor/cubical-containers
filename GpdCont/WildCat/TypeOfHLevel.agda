@@ -7,8 +7,8 @@ open import GpdCont.WildCat.FunctorCategory public
 
 open import Cubical.Foundations.Function using (flip) renaming (_∘_ to _∘fun_)
 open import Cubical.Foundations.HLevels
-open import Cubical.WildCat.Base using (WildCat ; seq' ; _[_,_])
-open import Cubical.WildCat.Functor
+open import Cubical.WildCat.Base using (WildCat ; _[_,_] ; concatMor)
+open import Cubical.WildCat.Functor hiding (_$_)
 open import Cubical.WildCat.Instances.Types using (TypeCat)
 import Cubical.Foundations.GroupoidLaws as GL
 
@@ -102,5 +102,5 @@ module _ (ℓ : Level) where
 
 open WildCat hiding (_⋆_)
 hseq' : ∀ {ℓ} (x y z : hGroupoidCat ℓ .ob) (f : hGroupoidCat ℓ [ x , y ]) (g : hGroupoidCat ℓ [ y , z ]) → hGroupoidCat ℓ [ x , z ]
-hseq' x y z = seq' (hGroupoidCat _) {x = x} {y = y} {z = z}
+hseq' x y z = concatMor (hGroupoidCat _) {x = x} {y = y} {z = z}
 syntax hseq' x y z f g = f ⋆⟨hGpd[ x , y , z ]⟩ g

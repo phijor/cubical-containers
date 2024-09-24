@@ -135,6 +135,9 @@ R IsoΣ = isoΣ
 _≃Σ : ∀ {ℓ} (R : Type ℓ) {S : Type ℓ} → ⦃ RecordToΣ R {S} ⦄ → R ≃ S
 R ≃Σ = equivΣ
 
+Σ≃_ : ∀ {ℓ} (R : Type ℓ) {S : Type ℓ} → ⦃ RecordToΣ R {S} ⦄ → S ≃ R
+Σ≃ R = invEquiv equivΣ
+
 cast→Σ : ∀ {ℓ} {R : Type ℓ} {S : Type ℓ} → ⦃ RecordToΣ R {S} ⦄ → R → S
 cast→Σ = isoΣ .fun
 

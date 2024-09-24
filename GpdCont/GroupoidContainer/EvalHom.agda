@@ -29,3 +29,10 @@ Hom⟦_⟧₀-natural α X Y f = refl
 
 Hom⟦_⟧₀-id : ∀ (X : hGroupoid ℓ) x → Hom⟦ GContId G ⟧₀ X x ≡ x
 Hom⟦_⟧₀-id {G = G} X q = refl
+
+private
+  Π-nat-equiv : {A : Type} {B C : A → Type} → Iso ((∀ a → B a) → (∀ a → C a)) (∀ a → B a → C a)
+  Π-nat-equiv .Iso.fun f = λ a b → f (λ a′ → {! !}) a
+  Π-nat-equiv .Iso.inv g = λ Πb a → g a (Πb a)
+  Π-nat-equiv .Iso.rightInv = {! !}
+  Π-nat-equiv .Iso.leftInv = {! !}

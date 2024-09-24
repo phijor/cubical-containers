@@ -17,25 +17,25 @@ private
   open module Q = QCont Q
 
 LabelEquiv : (s : Shape) (X : Type ℓ) → (v w : Q.Label X s) → Type ℓ
-LabelEquiv s X v w = Σ[ σ ∈ Symm s ] PathP (λ i → ua (σ .fst) i → X) v w
+LabelEquiv s X v w = ∃[ σ ∈ Symm s ] PathP (λ i → ua (σ .fst) i → X) v w
 
 -- TODO: Get rid of mentions of _∼_
 
 _∼*_ : ∀ {s} {X : Type ℓ} → (v w : Pos s → X) → Type ℓ
 _∼*_ {s} {X} = LabelEquiv s X
 
-opaque
-  isTrans-∼* : ∀ {s} {X : Type ℓ} → isTrans (_∼*_ {s} {X})
-  isTrans-∼* v w u (σ , σ-label) (τ , τ-label) .fst = σ · τ
-  isTrans-∼* {s} {X} v w u (σ , σ-label) (τ , τ-label) .snd = ua→ λ (pos : Pos s) →
-    v pos ≡⟨ ua→⁻ σ-label pos ⟩
-    w (σ⁺ pos) ≡⟨ ua→⁻ τ-label (σ⁺ pos) ⟩
-    u (τ⁺ (σ⁺ pos)) ∎ where
-      σ⁺ : Pos s → Pos s
-      σ⁺ = equivFun (σ .fst)
+-- opaque
+  -- isTrans-∼* : ∀ {s} {X : Type ℓ} → isTrans (_∼*_ {s} {X})
+  -- isTrans-∼* v w u (σ , σ-label) (τ , τ-label) .fst = σ · τ
+  -- isTrans-∼* {s} {X} v w u (σ , σ-label) (τ , τ-label) .snd = ua→ λ (pos : Pos s) →
+  --   v pos ≡⟨ ua→⁻ σ-label pos ⟩
+  --   w (σ⁺ pos) ≡⟨ ua→⁻ τ-label (σ⁺ pos) ⟩
+  --   u (τ⁺ (σ⁺ pos)) ∎ where
+  --     σ⁺ : Pos s → Pos s
+  --     σ⁺ = equivFun (σ .fst)
 
-      τ⁺ : Pos s → Pos s
-      τ⁺ = equivFun (τ .fst)
+  --     τ⁺ : Pos s → Pos s
+  --     τ⁺ = equivFun (τ .fst)
 
   -- isTrans-∼* {s} {X} v w u σ* τ* .snd = λ i → comp (λ j → comp-equiv-square j i → X) (system i) {!isTransSymm  !} where
   --   σ τ σ∙τ : Pos s ≃ Pos s
@@ -49,14 +49,14 @@ opaque
   --   system i j (i = i0) = λ s → {! !}
   --   system i j (i = i1) = {!ua-unglue (σ∙τ) !}
 
-∼*→PosEquiv : ∀ {X} {s} {v w : Pos s → X} → v ∼* w → Pos s ≃ Pos s
-∼*→PosEquiv ((σ , is-symm-σ) , _) = σ
+-- ∼*→PosEquiv : ∀ {X} {s} {v w : Pos s → X} → v ∼* w → Pos s ≃ Pos s
+-- ∼*→PosEquiv ((σ , is-symm-σ) , _) = σ
 
-∼*→∼ : ∀ {X} {s} {v w : Pos s → X} → v ∼* w → Symm s
-∼*→∼ ((σ , is-symm-σ) , _) = σ , is-symm-σ
+-- ∼*→∼ : ∀ {X} {s} {v w : Pos s → X} → v ∼* w → Symm s
+-- ∼*→∼ ((σ , is-symm-σ) , _) = σ , is-symm-σ
 
-∼*→PathP* : ∀ {X} {s} {v w : Pos s → X} → (σ : v ∼* w) → PathP (λ i → ua (∼*→PosEquiv σ) i → X) v w
-∼*→PathP* ((_ , _) , p) = p
+-- ∼*→PathP* : ∀ {X} {s} {v w : Pos s → X} → (σ : v ∼* w) → PathP (λ i → ua (∼*→PosEquiv σ) i → X) v w
+-- ∼*→PathP* ((_ , _) , p) = p
 
 record ⟦_⟧ᵗ (X : Type ℓ) : Type ℓ where
   constructor mk⟦_,_⟧ᵗ
@@ -71,6 +71,10 @@ instance
   ⟦_⟧-to-Σ = toΣ ⟦_⟧ᵗ-Iso-Σ
 
 open ⟦_⟧ᵗ
+
+⟦_⟧Path : ∀ {X : Type ℓ} {x y : ⟦_⟧ᵗ X} → (p : x .shape ≡ y .shape) → PathP (λ i → (Pos (p i) → X) / LabelEquiv (p i) X) (x .label-class) (y .label-class) → x ≡ y
+⟦_⟧Path p q i .shape = p i
+⟦_⟧Path p q i .label-class = q i
 
 ⟦_⟧ᵗ-rec : ∀ {X : Type ℓ} {ℓ'} {A : Type ℓ'}
   → isSet A
@@ -126,7 +130,7 @@ LabelEquiv→⟦_⟧Path {s} v w eq i .label-class = SQ.eq/ v w eq i
 
 opaque
   preComp→⟦_⟧Path : ∀ {X : hSet ℓ} {s} → (v : Q.Label ⟨ X ⟩ s) (σ : Symm s) → Label→⟦ v ∘ σ ⁺ ⟧ᵗ ≡ Label→⟦ v ⟧ᵗ
-  preComp→⟦_⟧Path {X} v σ = LabelEquiv→⟦_⟧Path {X = ⟨ X ⟩} (v ∘ σ ⁺) v (σ , ua→ λ pos → refl)
+  preComp→⟦_⟧Path {X} v σ = LabelEquiv→⟦_⟧Path {X = ⟨ X ⟩} (v ∘ σ ⁺) v $ ∃-intro σ $ ua→ λ pos → refl
 
 private
   module on-labels {X Y : Type ℓ} (f : X → Y) where
@@ -135,10 +139,7 @@ private
         s : Shape
         v w : Pos s → X
     well-defined : (v w : Pos s → X) → v ∼* w → Path ((Pos s → Y) / _∼*_) SQ.[ f ∘ v ] SQ.[ f ∘ w ]
-    well-defined v w (σ , σ-label) = SQ.eq/ _ _ r where
-      r : (f ∘ v) ∼* (f ∘ w)
-      r .fst = σ
-      r .snd i pos = f (σ-label i pos)
+    well-defined v w = ∃-rec (SQ.squash/ _ _) λ σ σ-label → SQ.eq/ _ _ $ ∃-intro σ λ i pos → f (σ-label i pos)
 
     map : (Pos s → X) / _∼*_ → (Pos s → Y) / _∼*_
     map = SQ.rec SQ.squash/ (SQ.[_] ∘ (f ∘_)) well-defined

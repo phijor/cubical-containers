@@ -1,0 +1,65 @@
+module GpdCont.GroupAction.Base where
+
+open import GpdCont.Prelude hiding (_▷_)
+
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Data.Sigma.Properties using (Σ-cong-iso-snd)
+open import Cubical.Algebra.Group.Base
+open import Cubical.Algebra.Group.Morphisms
+open import Cubical.Algebra.Group.MorphismProperties using (makeIsGroupHom ; isPropIsGroupHom ; compGroupHom)
+
+import Cubical.Algebra.SymmetricGroup as SymmetricGroup
+
+𝔖 : ∀ {ℓ} (X : hSet ℓ) → Group ℓ
+𝔖 (X , is-set-X) = SymmetricGroup.Symmetric-Group X is-set-X
+
+record Action {ℓG ℓX} (G : Group ℓG) (X : hSet ℓX) : Type (ℓ-max ℓG ℓX) where
+  private
+    open module G = GroupStr (str G) using (_·_)
+
+  field
+    action : ⟨ G ⟩ → ⟨ 𝔖 X ⟩
+    pres· : ∀ g h → action (g · h) ≡ action g ∙ₑ (action h)
+
+  _▷_ : (g : ⟨ G ⟩) → ⟨ X ⟩ → ⟨ X ⟩
+  _▷_ g = equivFun (action g)
+
+open Action using (action ; pres·)
+
+unquoteDecl ActionIsoΣ = declareRecordIsoΣ ActionIsoΣ (quote Action)
+
+private
+  variable
+    ℓ : Level
+    G H : Group ℓ
+    X : hSet ℓ
+
+_⁺_ : Action G X → ⟨ G ⟩ → ⟨ X ⟩ → ⟨ X ⟩
+_⁺_ σ = _▷_ where open Action σ
+
+ActionGroupHomIso : Iso (Action G X) (GroupHom G (𝔖 X))
+ActionGroupHomIso {G} {X} =
+  Action G X                                                  Iso⟨ ActionIsoΣ ⟩
+  Σ[ φ ∈ (⟨ G ⟩ → ⟨ 𝔖 X ⟩) ] (∀ g h → φ (g · h) ≡ φ g ∙ₑ φ h) Iso⟨ Σ-cong-iso-snd recover-1-inv ⟩
+  GroupHom G (𝔖 X) Iso∎
+  where
+    open module G = GroupStr (str G) using (_·_)
+    module 𝔖X = GroupStr (str $ 𝔖 X)
+
+    recover-1-inv : (φ : ⟨ G ⟩ → ⟨ 𝔖 X ⟩) → Iso (∀ g h → φ (g · h) ≡ φ g ∙ₑ φ h) (IsGroupHom (str G) φ (str $ 𝔖 X))
+    recover-1-inv φ = isProp→Iso (isPropΠ2 λ g h → 𝔖X.is-set _ _) (isPropIsGroupHom _ _)
+      makeIsGroupHom IsGroupHom.pres·
+
+GroupHom→Action : GroupHom G (𝔖 X) → Action G X
+GroupHom→Action = ActionGroupHomIso .Iso.inv
+
+Action→GroupHom : Action G X → GroupHom G (𝔖 X)
+Action→GroupHom = ActionGroupHomIso .Iso.fun
+
+GroupHomPreCompAction : (φ : GroupHom G H) → Action H X → Action G X
+GroupHomPreCompAction {G} {X} φ σ = GroupHom→Action φ*σ where
+  φ*σ : GroupHom G (𝔖 X)
+  φ*σ = compGroupHom φ $ Action→GroupHom σ
+

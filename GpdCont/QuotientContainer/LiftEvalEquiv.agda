@@ -32,26 +32,27 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
   import GpdCont.GroupoidContainer.Eval
 
   open module Q = QCont Q using (Shape ; Pos ; isSymm ; Symm ; PosSet)
-  open module ⟦Q⟧ = QCEval Q using (_∼*_ ; ∼*→∼ ; ∼*→PathP*) renaming (⟦_⟧ to ⟦Q⟧ ; ⟦_⟧ᵗ to ⟦Q⟧ᵗ)
+  open module ⟦Q⟧ = QCEval Q using (_∼*_) renaming (⟦_⟧ to ⟦Q⟧ ; ⟦_⟧ᵗ to ⟦Q⟧ᵗ)
 
   open module ↑Q = Lift Q using (↑Shape ; ↑Pos ; ↑⟨_,_⟩ ; ↑Symm ; module ↑SymmElim) renaming (↑ to ↑Q)
   open module ⟦↑Q⟧ = CoffinEval ↑Q using () renaming (⟦_⟧ to ⟦↑Q⟧ ; ⟦_⟧ᵗ to ⟦↑Q⟧ᵗ ; ⟦-⟧ᵗ-Path to ⟦↑Q⟧ᵗ-Path)
 
   module LiftTruncEquiv (X : hSet ℓ) where
     opaque
-      unfolding Q.PosPath ua CoffinEval.label
+      unfolding Q.PosPath CoffinEval.label
       to-lift-trunc : (⟦Q⟧ᵗ ⟨ X ⟩) → ⟨ Tr ⟦↑Q⟧ X ⟩
       to-lift-trunc = QCEval.⟦ Q ⟧ᵗ-rec (isSetTr ⟦↑Q⟧ X) [_]* [-]*-well-defined where
         [_]* : ∀ {s} (v : Pos s → ⟨ X ⟩) → ⟨ Tr ⟦↑Q⟧ X ⟩
         [ v ]* = ST.∣ CoffinEval.mk⟦ ↑Q ⟧ᵗ (↑Q.↑shape _ , v) ∣₂
 
+        -- FIXME See below how to fix
         [-]*-well-defined : ∀ {s} (v w : Pos s → ⟨ X ⟩) → v ∼* w → [ v ]* ≡ [ w ]*
         [-]*-well-defined {s} v w r = cong ST.∣_∣₂ (⟦↑Q⟧ᵗ-Path shape-loop label-path) where
           shape-loop : ↑Q.↑shape s ≡ ↑Q.↑shape s
-          shape-loop = ↑Q.↑loop (∼*→∼ r)
+          shape-loop = ↑Q.↑loop {! !} -- (∼*→∼ r)
 
           label-path : PathP (λ i → ↑Q.↑Pos (shape-loop i) → ⟨ X ⟩) v w
-          label-path = ∼*→PathP* r
+          label-path = {! !} -- ∼*→PathP* r
 
       from-lift : CoffinEval.⟦ ↑Q ⟧ᵗ ⟨ X ⟩ → (⟦Q⟧ᵗ ⟨ X ⟩)
       from-lift = uncurry goal where
@@ -62,7 +63,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
         [ s ]* = QCEval.Label→⟦ Q ⟧ᵗ
 
         [_]*-loop : ∀ s → (σ : Symm s) → PathP (λ i → (ua (σ .fst) i → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩) [ s ]* [ s ]*
-        [_]*-loop s σ = funExtDep λ { {x₀ = v} {x₁ = w} p → ⟦Q⟧.LabelEquiv→⟦_⟧Path v w (σ , p) }
+        [_]*-loop s σ = funExtDep λ { {x₀ = v} {x₁ = w} p → ⟦Q⟧.LabelEquiv→⟦_⟧Path v w $ ∃-intro σ p }
 
         goal : (s : ↑Shape) → (v : ↑Pos s → ⟨ X ⟩) → ⟦Q⟧ᵗ ⟨ X ⟩
         goal = ↑Q.↑Shape-uncurry λ s → ↑SymmElim.elimSet s (λ σ → isSetΠ⟦Q⟧ ↑⟨ s , σ ⟩) [ s ]* [ s ]*-loop
@@ -120,7 +121,7 @@ module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
 
 module EvalLiftLoopEquational {ℓ} (Q : QCont ℓ) where
   open module Q = QCont Q using (Shape ; Pos ; Symm ; PosSet)
-  open module ⟦Q⟧ = QCEval Q using (_∼*_ ; ∼*→∼ ; ∼*→PathP*) renaming (⟦_⟧ to ⟦Q⟧ ; ⟦_⟧ᵗ to ⟦Q⟧ᵗ)
+  open module ⟦Q⟧ = QCEval Q using (_∼*_) renaming (⟦_⟧ to ⟦Q⟧ ; ⟦_⟧ᵗ to ⟦Q⟧ᵗ)
 
   open module ↑Q = Lift Q using (↑Shape ; ↑Pos ; ↑⟨_,_⟩ ; ↑Symm ; module ↑SymmElim) renaming (↑ to ↑Q)
   open module ⟦↑Q⟧ = CoffinEval ↑Q using () renaming (⟦_⟧ to ⟦↑Q⟧ ; ⟦_⟧ᵗ to ⟦↑Q⟧ᵗ ; ⟦-⟧ᵗ-Path to ⟦↑Q⟧ᵗ-Path)
@@ -131,7 +132,7 @@ module EvalLiftLoopEquational {ℓ} (Q : QCont ℓ) where
       Pos→X/∼ = (Pos s → X) / _∼*_
 
     opaque
-      unfolding Q.PosPath ua
+      unfolding Q.PosPath
       PosIso : Iso ∥ΣPos→X∥₂ Pos→X/∼
       PosIso = record { the-iso } where module the-iso where
         fun : ∥ΣPos→X∥₂ → Pos→X/∼
@@ -139,12 +140,12 @@ module EvalLiftLoopEquational {ℓ} (Q : QCont ℓ) where
           $ ↑SymmElim.elimSet s
             (λ σ → isSetΠ λ v → SQ.squash/)
             SQ.[_]
-            (λ σ → funExtDep λ {x₀ = v} {x₁ = w} vσ≡w → SQ.eq/ v w (σ , vσ≡w))
+            (λ σ → funExtDep λ {x₀ = v} {x₁ = w} vσ≡w → SQ.eq/ v w $ ∃-intro σ vσ≡w)
 
         inv : Pos→X/∼ → ∥ΣPos→X∥₂
         inv = SQ.rec ST.isSetSetTrunc
           (λ v → ST.∣ ↑Symm.⋆ , v ∣₂)
-          λ v w σ → cong ST.∣_∣₂ (ΣPathP (↑Symm.loop (∼*→∼ σ) , ∼*→PathP* σ))
+          λ v w → ∃-rec (ST.isSetSetTrunc _ _) λ σ label-path → cong ST.∣_∣₂ $ ΣPathP $ ↑Symm.loop σ , label-path
 
         leftInv : _
         leftInv = ST.elim (λ ∣v∣ → isProp→isSet (ST.isSetSetTrunc _ ∣v∣))
@@ -198,8 +199,8 @@ private module ViaGAction where
     _∼_ : (x y : ⟨ X ⟩) → Type _
     x ∼ y = ∃[ g ∈ ⟨ G ⟩ ] PathP (λ i → η .fst g i) x y
 
-    orbit-comp : ?
-    orbit-comp = ?
+    orbit-comp : {! !}
+    orbit-comp = {! !}
 
     Orbit : Type _
     Orbit = ⟨ X ⟩ / _∼_

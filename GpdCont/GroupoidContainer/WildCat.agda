@@ -7,8 +7,10 @@ open import GpdCont.GroupoidContainer.Eval
 open import GpdCont.GroupoidContainer.EvalHom
 open import GpdCont.WildCat.NatTrans using (WildNatTransPath)
 open import GpdCont.WildCat.TypeOfHLevel
+open import GpdCont.WildCat.HomotopyCategory using (ho)
 
-open import Cubical.WildCat.Base using (WildCat ; _[_,_] ; seq')
+open import Cubical.Categories.Category.Base using (Category)
+open import Cubical.WildCat.Base using (WildCat ; _[_,_] ; concatMor)
 open import Cubical.WildCat.Functor using (WildFunctor ; WildNatTrans ; compWildNatTrans)
 import Cubical.Foundations.GroupoidLaws as GL
 import Cubical.Foundations.Transport as Transport
@@ -24,6 +26,9 @@ module _ (ℓ : Level) where
   GContCat .⋆IdL = compGContMorphismIdL
   GContCat .⋆IdR = compGContMorphismIdR
   GContCat .⋆Assoc = compGContMorphismAssoc
+
+  ∥GCont∥₂ : Category _ _
+  ∥GCont∥₂ = ho GContCat
 
 private
   variable

@@ -1,34 +1,101 @@
-module GpdCont.ActionContainer.Morphism where
-
 open import GpdCont.Prelude
-open import GpdCont.ActionContainer.Base
-open import GpdCont.Groups.Homomorphism as GHom using (GroupHom)
-open import GpdCont.GroupAction using (Equivariant ; Action ; pullbackAction)
+open import GpdCont.ActionContainer.Abstract
 
-private
-  variable
-    ℓ : Level
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.HLevels
+open import Cubical.Algebra.Group.Morphisms using (GroupHom ; IsGroupHom)
 
-record ActionContMorphism {ℓ} (C D : ActionCont ℓ) : Type (ℓ-suc ℓ) where
+module GpdCont.ActionContainer.Morphism {ℓ} (C D : ActionContainer ℓ) where
   private
-    module C = ActionCont C
-    module D = ActionCont D
+    open module C = ActionContainer C using ()
+      renaming
+        ( Shape to S
+        ; Pos to P
+        ; Symm to G
+        ; action to σ
+        )
+    open module D = ActionContainer D using ()
+      renaming
+        ( Shape to T
+        ; Pos to Q
+        ; Symm to H
+        ; action to τ
+        )
 
-    G = C.SymmGroup
-    H = D.SymmGroup
+  isEquivariantPosMap : {u : S → T} (f : ∀ s → Q (u s) → P s) (φ : ∀ s → G s → H (u s)) → Type ℓ
+  isEquivariantPosMap f φ = ∀ (s : S) (g : G s) → equivFun (σ g) ∘ f s ≡ f s ∘ equivFun (τ (φ s g))
 
-    P = C.SymmAction
-    Q = D.SymmAction
+  isSymmGroupHom : {u : S → T} (φ : ∀ s → G s → H (u s)) → Type ℓ
+  isSymmGroupHom {u} φ = ∀ (s : S) → IsGroupHom (C.symm-group-str s) (φ s) (D.symm-group-str (u s))
 
-  field
-    shape : C.Shape → D.Shape
-    symm : (s : C.Shape) → GroupHom (G s) (H $ shape s)
+  record Morphismᴰ (shape-map : S → T) : Type ℓ where
+    constructor mkMorphismᴰ
+    field
+      pos-map : ∀ s → Q (shape-map s) → P s
+      symm-map : ∀ s → G s → H (shape-map s)
 
-  CodomAction : ∀ s → Action (G s)
-  CodomAction s = pullbackAction (symm s) (Q (shape s))
+    field
+      is-group-hom-symm-map : isSymmGroupHom symm-map
+      is-equivariant-pos-map : isEquivariantPosMap pos-map symm-map
 
-  private
-    symm*Q = CodomAction
+    symm-hom : ∀ s → GroupHom (C.SymmGroup s) (D.SymmGroup $ shape-map s)
+    symm-hom s .fst = symm-map s
+    symm-hom s .snd = is-group-hom-symm-map s
 
-  field
-    pos : ∀ (s : C.Shape) → Equivariant (symm*Q s) (P s)
+  unquoteDecl MorphismᴰIsoΣ = declareRecordIsoΣ MorphismᴰIsoΣ (quote Morphismᴰ)
+
+  instance
+    MorphismᴰToΣ : ∀ {u} → RecordToΣ (Morphismᴰ u)
+    MorphismᴰToΣ = toΣ MorphismᴰIsoΣ
+
+  opaque
+    isSetMorphismᴰ : ∀ u → isSet (Morphismᴰ u)
+    isSetMorphismᴰ u = recordIsOfHLevel 2 $ isSetΣ
+      (isSetΠ2 (λ _ _ → C.is-set-pos _))
+      λ f → isSetΣ
+        (isSetΠ2 (λ _ _ → {! !}))
+        λ φ → {! !}
+
+  record Morphism : Type ℓ where
+    constructor _▷[_]
+    field
+      shape-map : S → T
+      mor-str : Morphismᴰ shape-map
+
+    open Morphismᴰ mor-str public
+
+  unquoteDecl MorphismIsoΣ = declareRecordIsoΣ MorphismIsoΣ (quote Morphism)
+
+  instance
+    MorphismToΣ : RecordToΣ Morphism
+    MorphismToΣ = toΣ MorphismIsoΣ
+
+  opaque
+    isSetMorphism : isSet Morphism
+    isSetMorphism = recordIsOfHLevel 2 $ isSetΣ (isSet→ D.is-set-shape) isSetMorphismᴰ
+
+  open Morphismᴰ
+  open Morphism
+
+  mkMorphism : (u : S → T) (f : ∀ s → Q (u s) → P s) (φ : ∀ s → G s → H (u s))
+    → isEquivariantPosMap f φ
+    → isSymmGroupHom φ
+    → Morphism
+  mkMorphism u f φ is-equivariant-f is-group-hom-φ = λ where
+    .shape-map → u
+    .mor-str .pos-map → f
+    .mor-str .symm-map → φ
+    .mor-str .is-equivariant-pos-map → is-equivariant-f
+    .mor-str .is-group-hom-symm-map → is-group-hom-φ
+
+  mkMorphism-syntax : (u : S → T) (φ : ∀ s → GroupHom (C.SymmGroup s) (D.SymmGroup (u s))) (f : Σ[ f ∈ _ ] isEquivariantPosMap f (fst ∘ φ))
+    → Morphism
+  mkMorphism-syntax u φ f = mkMorphism u (f .fst) (fst ∘ φ) (f .snd) (snd ∘ φ)
+
+  syntax mkMorphism-syntax u φ f = u ▷ f ◁ φ
+
+  mkMorphismBundled : (u : S → T)
+    → (φ : ∀ s → GroupHom (C.SymmGroup s) (D.SymmGroup (u s)))
+    → Σ[ f ∈ (∀ s → Q (u s) → P s) ] isEquivariantPosMap f (fst ∘ φ)
+    → Morphism
+  mkMorphismBundled = {! !}

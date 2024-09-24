@@ -5,6 +5,7 @@ open import GpdCont.GroupoidContainer.Base
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
 
 private
   variable
@@ -29,6 +30,23 @@ GContMorphism≡ : {α β : GContMorphism G H}
   → α ≡ β
 GContMorphism≡ p q i .GContMorphism.shape-mor s = p i s
 GContMorphism≡ p q i .GContMorphism.pos-path s = q s i
+
+private
+  _≡Mor_ : (α β : GContMorphism G H) → Type _
+  _≡Mor_ {G} {H} α β = Σ[ p ∈ α .shape-mor ≡ β .shape-mor ] (∀ s → PathP (λ i → H .Pos (p i s) → G .Pos s) (α .pos-path s) (β .pos-path s))
+
+module _ {α β : GContMorphism G H} where
+  GContMorphism≡Iso : Iso (α ≡Mor β) (α ≡ β)
+  GContMorphism≡Iso .Iso.fun = uncurry GContMorphism≡
+  GContMorphism≡Iso .Iso.inv p .fst i = p i .shape-mor
+  GContMorphism≡Iso .Iso.inv p .snd s i = p i .pos-path s
+  GContMorphism≡Iso .Iso.rightInv p i j .shape-mor = p j .shape-mor
+  GContMorphism≡Iso .Iso.rightInv p i j .pos-path = p j .pos-path
+  GContMorphism≡Iso .Iso.leftInv p i .fst j = p .fst j
+  GContMorphism≡Iso .Iso.leftInv p i .snd s = p .snd s
+
+  GContMorphism≡Equiv : (α ≡Mor β) ≃ (α ≡ β)
+  GContMorphism≡Equiv = isoToEquiv GContMorphism≡Iso
 
 GContId : (G : GCont ℓ) → GContMorphism G G
 GContId G .GContMorphism.shape-mor = id $ G .Shape

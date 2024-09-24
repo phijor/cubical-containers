@@ -23,7 +23,7 @@ open import Cubical.Data.Sigma
 open import Cubical.Data.Empty using () renaming (rec to ex-falso)
 
 open import Cubical.Algebra.Group.Base
-open import Cubical.Algebra.Group.Morphisms using (GroupIso)
+open import Cubical.Algebra.Group.Morphisms using (GroupIso ; IsGroupHom)
 open import Cubical.Algebra.Group.MorphismProperties using (GroupIso→GroupEquiv)
 open import Cubical.Algebra.Group.GroupPath using (GroupPath)
 open import Cubical.Categories.Category using (isUnivalent ; CatIso ; isPropIsIso ; pathToIso)
@@ -43,16 +43,40 @@ UPair .symm-id _ = tt
 UPair .symm-sym _ _ = tt
 UPair .symm-comp _ _ _ _ = tt
 
-Id×UPair : QCont ℓ-zero
-Id×UPair .Shape = Unit
-Id×UPair .Pos _ = Unit ⊎ Bool
-Id×UPair .isSymm σ = equivFun σ (inl tt) ≡ inl tt
-Id×UPair .is-set-shape = isSetUnit
-Id×UPair .is-set-pos _ = isSet⊎ isSetUnit isSetBool
-Id×UPair .is-prop-symm _ = isSet⊎ isSetUnit isSetBool _ _
-Id×UPair .symm-id _ = refl
-Id×UPair .symm-sym σ σ-fix-0 = sym (invEq (equivAdjointEquiv σ) σ-fix-0)
-Id×UPair .symm-comp σ τ σ-fix-0 τ-fix-0 = cong (equivFun τ) σ-fix-0 ∙ τ-fix-0
+Unit×UPair : QCont ℓ-zero
+Unit×UPair .Shape = Unit
+Unit×UPair .Pos _ = Unit ⊎ Bool
+Unit×UPair .isSymm σ = equivFun σ (inl tt) ≡ inl tt
+Unit×UPair .is-set-shape = isSetUnit
+Unit×UPair .is-set-pos _ = isSet⊎ isSetUnit isSetBool
+Unit×UPair .is-prop-symm _ = isSet⊎ isSetUnit isSetBool _ _
+Unit×UPair .symm-id _ = refl
+Unit×UPair .symm-sym σ σ-fix-0 = sym (invEq (equivAdjointEquiv σ) σ-fix-0)
+Unit×UPair .symm-comp σ τ σ-fix-0 τ-fix-0 = cong (equivFun τ) σ-fix-0 ∙ τ-fix-0
+
+UnitC : QCont ℓ-zero
+UnitC .Shape = Unit
+UnitC .Pos _ = Unit
+UnitC .isSymm _ = Unit
+UnitC .is-set-shape = isSetUnit
+UnitC .is-set-pos = const isSetUnit
+UnitC .is-prop-symm = const isPropUnit
+UnitC .symm-id _ = tt
+UnitC .symm-sym _ _ = tt
+UnitC .symm-comp _ _ _ _ = tt
+
+dup : Premorphism UnitC UPair (id _)
+dup .pos-mor tt = const tt
+dup .symm-pres tt = const (notEquiv , tt)
+dup .symm-pres-natural tt = λ { _ → funExt λ (b : Bool) → refl {x = tt} }
+
+¬isGroupHomDupSymmPres : ¬ IsGroupHom (SymmGroupStr UnitC tt) (dup .symm-pres tt) (SymmGroupStr UPair tt)
+¬isGroupHomDupSymmPres is-group-hom = not≢const false (not≡const false) where
+  pres-id : (notEquiv , tt) ≡ (idEquiv _ , tt)
+  pres-id = is-group-hom .IsGroupHom.pres1
+
+  not≡const : ∀ (b : Bool) → not b ≡ b
+  not≡const = funExt⁻ $ cong (fst ∘ fst) pres-id
 
 private
   open module UPair = QCont UPair using (_⁻¹) renaming (_·_ to _⊕_)
@@ -100,7 +124,7 @@ private
   SymmAb = {!AbGroupPath _ BoolAb !}
 
 isCommUPairSymm : ∀ (g h : ℤ₂) → g ⊕ h ≡ h ⊕ g
-isCommUPairSymm = {!(IsAbGroup.+Comm) !} where
+isCommUPairSymm = {!(IsAbGroup.+Comm) !}
 
 swap₀-pos : Premorphism UPair UPair $ id (UPair .Shape)
 swap₀-pos .Premorphism.pos-mor _ = id _

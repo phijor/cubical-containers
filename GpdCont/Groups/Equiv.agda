@@ -113,21 +113,19 @@ GroupEquivRawUARel : ∀ {ℓ} → UARel (Group ℓ) ℓ
 GroupEquivRawUARel .UARel._≅_ = GroupEquivRaw
 GroupEquivRawUARel .UARel.ua = GroupEquivRaw≃Path
 
-opaque
-  unfolding ua
-  GroupEquiv≃GroupEquivRaw : (G H : Group ℓ) → GroupEquiv G H ≃ GroupEquivRaw G H
-  GroupEquiv≃GroupEquivRaw G H =
-    GroupEquiv G H ≃⟨ _ ≃Σ ⟩
-    Σ[ φ ∈ (⟨ G ⟩ → ⟨ H ⟩) ] (isEmbedding φ × (φ (snd G .GroupStr.pt) ≡ snd H .GroupStr.pt))  ≃⟨ Sigma.Σ-cong-equiv-snd (λ φ → Sigma.Σ-cong-equiv-fst (isEmbeddingGroup≃isEquiv {G = G} {H = H} φ)) ⟩
-    Σ[ φ ∈ (⟨ G ⟩ → ⟨ H ⟩) ] (isEquiv φ × (φ (snd G .GroupStr.pt) ≡ snd H .GroupStr.pt))      ≃⟨ invEquiv Sigma.Σ-assoc-≃ ⟩
-    Σ[ φ ∈ (⟨ G ⟩ ≃ ⟨ H ⟩) ] ((equivFun φ (snd G .GroupStr.pt) ≡ snd H .GroupStr.pt))         ≃⟨ Sigma.Σ-cong-equiv-snd (λ φ → invEquiv (GroupStrEquivRaw (str G) φ (str H) ≃Σ)) ⟩
-    Σ[ φ ∈ (⟨ G ⟩ ≃ ⟨ H ⟩) ] (GroupStrEquivRaw (G .snd) φ (H .snd))                           ≃∎
+GroupEquiv≃GroupEquivRaw : (G H : Group ℓ) → GroupEquiv G H ≃ GroupEquivRaw G H
+GroupEquiv≃GroupEquivRaw G H =
+  GroupEquiv G H ≃⟨ _ ≃Σ ⟩
+  Σ[ φ ∈ (⟨ G ⟩ → ⟨ H ⟩) ] (isEmbedding φ × (φ (snd G .GroupStr.pt) ≡ snd H .GroupStr.pt))  ≃⟨ Sigma.Σ-cong-equiv-snd (λ φ → Sigma.Σ-cong-equiv-fst (isEmbeddingGroup≃isEquiv {G = G} {H = H} φ)) ⟩
+  Σ[ φ ∈ (⟨ G ⟩ → ⟨ H ⟩) ] (isEquiv φ × (φ (snd G .GroupStr.pt) ≡ snd H .GroupStr.pt))      ≃⟨ invEquiv Sigma.Σ-assoc-≃ ⟩
+  Σ[ φ ∈ (⟨ G ⟩ ≃ ⟨ H ⟩) ] ((equivFun φ (snd G .GroupStr.pt) ≡ snd H .GroupStr.pt))         ≃⟨ Sigma.Σ-cong-equiv-snd (λ φ → invEquiv (GroupStrEquivRaw (str G) φ (str H) ≃Σ)) ⟩
+  Σ[ φ ∈ (⟨ G ⟩ ≃ ⟨ H ⟩) ] (GroupStrEquivRaw (G .snd) φ (H .snd))                           ≃∎
 
-  SIP : (G H : Group ℓ) → GroupEquiv G H ≃ (G ≡ H)
-  SIP G H =
-    GroupEquiv G H    ≃⟨ GroupEquiv≃GroupEquivRaw G H ⟩
-    GroupEquivRaw G H ≃⟨ GroupEquivRaw≃Path G H ⟩
-    G ≡ H ≃∎
+SIP : (G H : Group ℓ) → GroupEquiv G H ≃ (G ≡ H)
+SIP G H =
+  GroupEquiv G H    ≃⟨ GroupEquiv≃GroupEquivRaw G H ⟩
+  GroupEquivRaw G H ≃⟨ GroupEquivRaw≃Path G H ⟩
+  G ≡ H ≃∎
 
 module _ {ℓ : Level} where
   private

@@ -19,6 +19,7 @@ open import Cubical.Data.Sigma
 open import Cubical.Data.Unit
 open import Cubical.Functions.FunExtEquiv
 import Cubical.HITs.SetQuotients as SQ
+import Cubical.HITs.PropositionalTruncation as PT
 
 open import Cubical.Data.Equality as Eq using () renaming (_≡_ to Eq ; refl to reflEq)
 
@@ -122,7 +123,7 @@ module _ {ℓ} (Q : QCont ℓ) where
 
       opaque
         α*-ob-rep-well-defined : ∀ X {s} → (l₀ l₁ : Pos s → ⟨ X ⟩) → QEval.LabelEquiv Q s ⟨ X ⟩ l₀ l₁ → α*-ob-rep X l₀ ≡ α*-ob-rep X l₁
-        α*-ob-rep-well-defined _ {s} l₀ l₁ (σ , pσ) =
+        α*-ob-rep-well-defined X {s} l₀ l₁ = PT.rec (str (F ⟅ X ⟆) _ _) λ (σ , pσ) →
           (F ⟪ l₀ ⟫ $ α′ s)
             ≡⟨ cong (λ · → F ⟪ · ⟫ $ α′ s) (funExt $ ua→⁻ pσ) ⟩
           (F ⟪ l₁ ∘ σ ⁺ ⟫ $ α′ s)

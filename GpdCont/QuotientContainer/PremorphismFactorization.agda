@@ -76,6 +76,7 @@ private
 open QCont
 open Premorphism
 
+{-
 module _ {ℓ} (Q R : QCont ℓ) (u : Q .QCont.Shape → R .QCont.Shape) (α : Premorphism Q R u) where
   private
     module Q = QCont Q
@@ -153,3 +154,4 @@ module _ {ℓ} (Q R : QCont ℓ) (u : Q .QCont.Shape → R .QCont.Shape) (α : P
   ImCont .symm-id = {! !}
   ImCont .symm-sym = {! !}
   ImCont .symm-comp = compImageSymm
+  -}

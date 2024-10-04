@@ -1,3 +1,4 @@
+{-# OPTIONS --no-exact-split #-}
 module GpdCont.RecordEquiv where
 
 open import Cubical.Foundations.Prelude

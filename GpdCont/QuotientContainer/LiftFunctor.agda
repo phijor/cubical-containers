@@ -33,6 +33,7 @@ open Category hiding (id)
 
 open QMor using (idQCont)
 
+{-
 private
   module ↑-map (Q R : QCont ℓ) where
     module Q = QCont Q
@@ -108,3 +109,4 @@ private
     𝔹-map (φ s QMor.idQCont) ≡⟨ cong 𝔹-map (φ-id Q s) ⟩
     𝔹-map idGroupHom ≡⟨ 𝔹-map-id (Q.SymmGroup _) ⟩
     id _ ∎
+-}

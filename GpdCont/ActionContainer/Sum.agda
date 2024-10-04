@@ -41,7 +41,7 @@ module Sum (C D : ActionContainer ℓ) where
   inlMorphism = mkMorphism C self
     TypeSum.inl
     (λ s → id _)
-    (id _)
+    (λ s → id _)
     (λ _ _ → refl)
     (λ s → idGroupHom .snd)
 
@@ -49,7 +49,7 @@ module Sum (C D : ActionContainer ℓ) where
   inrMorphism = mkMorphism D self
     TypeSum.inr
     (λ s → id _)
-    (id _)
+    (λ s → id _)
     (λ _ _ → refl)
     (λ s → idGroupHom .snd)
 
@@ -91,8 +91,8 @@ module IndexedSum {J : Type ℓ} (is-set-J : isSet J) (C : J → ActionContainer
     inPos : (s : C.Shape j) → C.Pos j s → C.Pos j s
     inPos s = id _
 
-    inSymm : ∀ {s} → C.Symm j s → C.Symm j s
-    inSymm = id _
+    inSymm : ∀ s → C.Symm j s → C.Symm j s
+    inSymm s = id _
 
     inMorphism : Morphism (C j) self
     inMorphism = mkMorphism (C j) self inShape inPos inSymm

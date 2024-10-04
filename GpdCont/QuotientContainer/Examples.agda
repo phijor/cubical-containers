@@ -67,16 +67,15 @@ UnitC .symm-comp _ _ _ _ = tt
 
 dup : Premorphism UnitC UPair (id _)
 dup .pos-mor tt = const tt
-dup .symm-pres tt = const (notEquiv , tt)
-dup .symm-pres-natural tt = λ { _ → funExt λ (b : Bool) → refl {x = tt} }
+dup .symm-pres tt _ = ∃-intro (notEquiv , tt) (funExt λ _ → refl)
 
-¬isGroupHomDupSymmPres : ¬ IsGroupHom (SymmGroupStr UnitC tt) (dup .symm-pres tt) (SymmGroupStr UPair tt)
-¬isGroupHomDupSymmPres is-group-hom = not≢const false (not≡const false) where
-  pres-id : (notEquiv , tt) ≡ (idEquiv _ , tt)
-  pres-id = is-group-hom .IsGroupHom.pres1
+-- ¬isGroupHomDupSymmPres : ¬ IsGroupHom (SymmGroupStr UnitC tt) (dup .symm-pres tt) (SymmGroupStr UPair tt)
+-- ¬isGroupHomDupSymmPres is-group-hom = not≢const false (not≡const false) where
+--   pres-id : (notEquiv , tt) ≡ (idEquiv _ , tt)
+--   pres-id = is-group-hom .IsGroupHom.pres1
 
-  not≡const : ∀ (b : Bool) → not b ≡ b
-  not≡const = funExt⁻ $ cong (fst ∘ fst) pres-id
+--   not≡const : ∀ (b : Bool) → not b ≡ b
+--   not≡const = funExt⁻ $ cong (fst ∘ fst) pres-id
 
 private
   open module UPair = QCont UPair using (_⁻¹) renaming (_·_ to _⊕_)
@@ -128,8 +127,7 @@ isCommUPairSymm = {!(IsAbGroup.+Comm) !}
 
 swap₀-pos : Premorphism UPair UPair $ id (UPair .Shape)
 swap₀-pos .Premorphism.pos-mor _ = id _
-swap₀-pos .Premorphism.symm-pres _ = id _
-swap₀-pos .Premorphism.symm-pres-natural _ _ = refl
+swap₀-pos .Premorphism.symm-pres tt σ = ∃-intro σ refl
 
 swap₀ : Morphism UPair UPair
 swap₀ .Morphism.shape-mor = id (UPair .Shape)
@@ -137,13 +135,13 @@ swap₀ .Morphism.pos-equiv = SQ.[ swap₀-pos ]
 
 swap₁-pos : Premorphism UPair UPair $ id (UPair .Shape)
 swap₁-pos .Premorphism.pos-mor _ = not
-swap₁-pos .Premorphism.symm-pres _ = id _
-swap₁-pos .Premorphism.symm-pres-natural tt σ = cong UPair._⁺ $ isCommUPairSymm swap σ
+swap₁-pos .Premorphism.symm-pres tt σ = ∃-intro σ $ cong UPair._⁺ $ isCommUPairSymm swap σ
 
 swap₁ : Morphism UPair UPair
 swap₁ .Morphism.shape-mor = id (UPair .Shape)
 swap₁ .Morphism.pos-equiv = SQ.[ swap₁-pos ]
 
+{-
 r : PremorphismEquiv swap₀-pos swap₁-pos
 r .PremorphismEquiv.η _ = (notEquiv , tt)
 r .PremorphismEquiv.η-comm _ = funExt $ sym ∘ notnot
@@ -246,3 +244,4 @@ UPairPath i .symm-comp _ _ _ _ = tt
 
   UPairPath≡refl : UPairPath ≡ refl
   UPairPath≡refl = isoFunInjective (equivToIso $ _ , isUnivalent.univ univ _ _) UPairPath refl compare
+  -}

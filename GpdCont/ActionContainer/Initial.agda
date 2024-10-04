@@ -1,5 +1,7 @@
 open import GpdCont.Prelude
 open import GpdCont.ActionContainer.Abstract
+open import GpdCont.ActionContainer.Morphism as ActionContainerMorphism hiding (mkMorphism-syntax)
+open import GpdCont.ActionContainer.Transformation as Transformation
 open import GpdCont.HomotopySet using (EmptySet)
 open import GpdCont.GroupAction.Base
 
@@ -8,8 +10,8 @@ open import Cubical.Foundations.HLevels using (hSet ; inhProp→isContr)
 open import Cubical.Data.Empty as EmptyType using ()
 open import Cubical.Algebra.Group.Base
 
-open ActionContainerMorphism using (Morphism ; mkMorphism)
-open Transformation using (Transformation ; Transformationᴰ ; TransformationP)
+-- open ActionContainerMorphism using (Morphism ; mkMorphism)
+-- open Transformation using (Transformation ; Transformationᴰ ; TransformationP)
 
 module GpdCont.ActionContainer.Initial (ℓ : Level) where
 
@@ -39,7 +41,7 @@ module _ {C : ActionContainer ℓ} (F : Morphism InitContainer C) where
   initialTransformationP .TransformationP.conjugator₀ ()
   initialTransformationP .TransformationP.conjugator₁ ()
   initialTransformationP .TransformationP.conjugator-path i ()
-  initialTransformationP .TransformationP.is-conjugate {s = ()}
+  initialTransformationP .TransformationP.is-conjugate ()
   initialTransformationP .TransformationP.is-pos-equiv ()
 
   initialTransformation : Transformation (initMorphism C) F
@@ -50,7 +52,7 @@ module _ {C : ActionContainer ℓ} (F : Morphism InitContainer C) where
   isPropInitTransformationP α β i .TransformationP.conjugator₀ ()
   isPropInitTransformationP α β i .TransformationP.conjugator₁ ()
   isPropInitTransformationP α β i .TransformationP.conjugator-path j ()
-  isPropInitTransformationP α β i .TransformationP.is-conjugate {s = ()}
+  isPropInitTransformationP α β i .TransformationP.is-conjugate ()
   isPropInitTransformationP α β i .TransformationP.is-pos-equiv ()
 
   universalProperty : isContr (TransformationP (initMorphism C) F)

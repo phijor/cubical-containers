@@ -276,7 +276,7 @@ example-path' = invEq (mkCycPath≃intShift {A = ℕ} {xs = cyc3.vec 1 2 3} {ys 
   compute : cyc3.vec 1 2 3 ≡ cyc3.vec 3 1 2 ∘ transport (refl ∙ Modulo.shiftPath 3)
   compute =
     cyc3.vec 1 2 3 ≡⟨ cyc-shift-compute 1 2 3 ⟩
-    cyc3.vec 3 1 2 ∘ Modulo.shift ≡⟨ cong {x = Modulo.shift} (cyc3.vec 3 1 2 ∘_) {! (λ i → transp (λ _ → {!Modulo.Modulo 3 !}) i) !} ⟩
+    cyc3.vec 3 1 2 ∘ Modulo.shift ≡[ i ]⟨ cyc3.vec 3 1 2 ∘ {! !} ⟩
     cyc3.vec 3 1 2 ∘ transport (Modulo.shiftPath 3) ≡⟨ cong (λ p → cyc3.vec 3 1 2 ∘ transport p) (GL.lUnit (Modulo.shiftPath 3)) ⟩
     cyc3.vec 3 1 2 ∘ transport (refl ∙ Modulo.shiftPath 3) ∎
 

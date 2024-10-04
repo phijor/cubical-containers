@@ -1,4 +1,4 @@
-module GpdCont.ActionContainer.Morphism where
+module GpdCont.ActionContainer.ConcreteMorphism where
 
 open import GpdCont.Prelude
 open import GpdCont.ActionContainer.Base

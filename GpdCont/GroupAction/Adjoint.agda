@@ -1,33 +1,110 @@
+module GpdCont.GroupAction.Adjoint where
+
 open import GpdCont.Prelude
 open import GpdCont.HomotopySet using (_→Set_)
 open import GpdCont.GroupAction.Base
+open import GpdCont.GroupAction.Category
+open import GpdCont.GroupAction.Product
+open import GpdCont.Group.DirProd as GroupDirProd using (module DirProd ; DirProd)
 
 open import Cubical.Foundations.Equiv
-open import Cubical.Foundations.HLevels
+open import Cubical.Data.Sum
 open import Cubical.Algebra.Group.Base
+open import Cubical.Algebra.Group.Morphisms
+open import Cubical.Algebra.Group.MorphismProperties
+open import Cubical.Categories.Category.Base
 
-module GpdCont.GroupAction.Adjoint
-  {ℓ ℓG}
-  (G : Group ℓG)
-  (X Y : hSet ℓ)
-  (σ : Action G X)
-  (τ : Action G Y)
-  where
-  private
-    open module G = GroupStr (str G) using (_·_)
+private
+  module GroupAction ℓ = Category (GroupAction ℓ)
 
-  open Action using (action ; pres·)
+  variable
+    ℓ : Level
+    σ τ ρ : GroupAction.ob ℓ
 
-  adj : ⟨ G ⟩ → (⟨ X ⟩ → ⟨ Y ⟩) ≃ (⟨ X ⟩ → ⟨ Y ⟩)
-  adj g = equiv→ (σ .action g) (τ .action g)
+open Action
+
+adjointAction : (σ τ : GroupAction.ob ℓ) → GroupAction.ob ℓ
+adjointAction ((G , X) , σ) ((H , Y) , τ) = [σ,τ] where
+  G×H = DirProd G H
+
+  module G = GroupStr (str G)
+  module H = GroupStr (str H)
+
+  module G×H where
+    open GroupStr (str G×H) using () renaming (_·_ to _⊗_) public
+    open DirProd G H public
+
+
+  X←Y = Y →Set X
+
+  σ* : Action G×H X
+  σ* = GroupHomPreCompAction G×H.fstHom σ
+
+  τ* : Action G×H Y
+  τ* = GroupHomPreCompAction G×H.sndHom τ
+
+  adj : ⟨ G ⟩ × ⟨ H ⟩ → ⟨ 𝔖 X←Y ⟩
+  adj (g , h) = equiv→ (τ .action h) (σ .action g)
 
   opaque
-    adj-pres· : (g h : ⟨ G ⟩) → adj (g · h) ≡ adj g ∙ₑ adj h
-    adj-pres· g g′ =
-      adj (g · g′) ≡⟨ cong₂ equiv→ (σ .pres· g g′) (τ .pres· g g′) ⟩
-      equiv→ (σ .action g ∙ₑ σ .action g′) (τ .action g ∙ₑ τ .action g′) ≡⟨ equivEq refl ⟩
-      adj g ∙ₑ adj g′ ∎
+    adj· : ((g₀ , h₀) (g₁ , h₁) : ⟨ G ⟩ × ⟨ H ⟩) → adj (g₀ G.· g₁ , h₀ H.· h₁) ≡ adj (g₀ , h₀) ∙ₑ adj (g₁ , h₁)
+    adj· (g₀ , h₀) (g₁ , h₁) =
+      equiv→ (τ .action $ h₀ H.· h₁) (σ .action $ g₀ G.· g₁) ≡⟨ cong₂ equiv→ (τ .pres· _ _) (σ .pres· _ _) ⟩
+      equiv→ (τ .action h₀ ∙ₑ τ .action h₁) (σ .action g₀ ∙ₑ σ .action g₁) ≡⟨ equivEq refl ⟩
+      equiv→ _ _ ∙ₑ equiv→ _ _ ∎
 
-  AdjointAction : Action G (X →Set Y)
-  AdjointAction .action = adj
-  AdjointAction .pres· = adj-pres·
+  σ⇒τ : Action G×H X←Y
+  σ⇒τ .action = adj
+  σ⇒τ .pres· = adj·
+
+  [σ,τ] : GroupAction.ob _
+  [σ,τ] .fst .fst = G×H
+  [σ,τ] .fst .snd = X←Y
+  [σ,τ] .snd = σ⇒τ
+
+private
+  _⇒_ = adjointAction
+  _⊗_ = productAction
+
+hom-iso : Iso (GroupAction ℓ [ σ ⊗ τ , ρ ]) (GroupAction ℓ [ σ , τ ⇒ ρ ])
+hom-iso {ℓ} {σ = σ@((G , X), σ′)} {τ = τ@((H , Y), τ′)} {ρ = ρ@((K , Z), ρ′)} = go where
+  curry' : (GroupAction ℓ [ σ ⊗ τ , ρ ]) → (GroupAction ℓ [ σ , τ ⇒ ρ ])
+  curry' e using ((φ , f) , is-eqva) ← e = mkGroupActionHom curry-hom {! !} {! !} where
+    _ : GroupHom (DirProd G H) K
+    _ = φ
+
+    curry-hom : GroupHom G (DirProd H K)
+    curry-hom .fst g = {! !}
+    curry-hom .snd = {! !}
+
+  go : Iso _ _
+  go .Iso.fun = curry'
+  go .Iso.inv = {! !}
+  go .Iso.rightInv = {! !}
+  go .Iso.leftInv = {! !}
+
+eval' : GroupAction ℓ [ (τ ⇒ σ) ⊗ σ , τ ]
+eval' {τ = τ*@((H , Y) , τ)} {σ = σ*@((G , X) , σ)} = eval-at where
+  eval-hom : GroupHom (DirProd (DirProd H G) G) H
+  eval-hom = compGroupHom (DirProd.fstHom _ G) (DirProd.fstHom H G)
+
+  eval-fun : ⟨ Y ⟩ → (⟨ X ⟩ → ⟨ Y ⟩) ⊎ ⟨ X ⟩
+  eval-fun y = inl $ const y
+
+  eval-at : GroupAction _ [ productAction (adjointAction τ* σ*) σ* , τ* ]
+  eval-at .fst .fst = eval-hom
+  eval-at .fst .snd = eval-fun
+  eval-at .snd hgg = refl
+
+eval : GroupAction ℓ [ (σ ⇒ τ) ⊗ σ , τ ]
+eval {σ = σ*@((G , X) , σ)} {τ = τ*@((H , Y) , τ)} = eval-at where
+  eval-hom : GroupHom (DirProd (DirProd G H) G) H
+  eval-hom = {! !}
+
+  eval-fun : ⟨ Y ⟩ → (⟨ Y ⟩ → ⟨ X ⟩) ⊎ ⟨ X ⟩
+  eval-fun = {! !}
+
+  eval-at : GroupAction _ [ productAction (adjointAction σ* τ*) σ* , τ* ]
+  eval-at .fst .fst = eval-hom
+  eval-at .fst .snd = eval-fun
+  eval-at .snd = {! !}

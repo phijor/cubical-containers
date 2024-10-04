@@ -110,10 +110,10 @@ module LiftMorphism {ℓ} {C D : ActionContainer ℓ} (F : ACMorphism.Morphism C
     f⋆ : Q (u s) → P s
     f⋆ = f s
 
-    f⋆-equivariant : (g : G s) (q : Q (u s)) → equivFun (σ g) (f s q) ≡ f s (equivFun (τ $ φ g) q)
+    f⋆-equivariant : (g : G s) (q : Q (u s)) → equivFun (σ g) (f s q) ≡ f s (equivFun (τ $ φ s g) q)
     f⋆-equivariant g q = funExt⁻ (is-equivariant-f s g) q
 
-    f⋆-loop : (g : G s) → PathP (λ i → ua (τ (φ g)) i → ua (σ g) i) f⋆ f⋆
+    f⋆-loop : (g : G s) → PathP (λ i → ua (τ (φ s g)) i → ua (σ g) i) f⋆ f⋆
     f⋆-loop g = ua→ua (f⋆-equivariant g)
 
   LiftMorphism : SymmetricContainerMorphism (Lift C) (Lift D)
@@ -264,7 +264,7 @@ module _ {ℓ} (C D : ActionContainer ℓ)where
         Σ[ h₀ ∈ (∀ s → H (u s)) ]
         Σ[ h₁ ∈ (∀ s → H (u′ s)) ]
         Σ[ conj-h ∈ (PathP (λ i → ∀ s → H (p i s)) h₀ h₁) ]
-        (∀ s (g : G s) → PathP (λ i → H (p i s)) (φ g D.· h₀ s) (h₁ s D.· φ′ g))
+        (∀ s (g : G s) → PathP (λ i → H (p i s)) (φ s g D.· h₀ s) (h₁ s D.· φ′ s g))
           ×
         (∀ s → PathP (λ i → ua (τ (conj-h i s)) i → P s) (f s) (f′ s))
       )

@@ -13,6 +13,8 @@ private
     ℓ ℓ' : Level
     X Y : hSet ℓ
 
+hSet≡ : ⟨ X ⟩ ≡ ⟨ Y ⟩ → X ≡ Y
+hSet≡ = TypeOfHLevel≡ 2
 
 _→Set_ : (X : hSet ℓ) (Y : hSet ℓ') → hSet _
 _→Set_ X Y .fst = ⟨ X ⟩ → ⟨ Y ⟩

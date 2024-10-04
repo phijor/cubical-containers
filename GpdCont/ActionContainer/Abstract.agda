@@ -17,7 +17,7 @@ open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma
 open import Cubical.Algebra.Group.Base
 open import Cubical.Algebra.Group.Morphisms using (GroupHom ; IsGroupHom)
-open import Cubical.Algebra.Group.MorphismProperties using (makeIsGroupHom ; compGroupHom)
+open import Cubical.Algebra.Group.MorphismProperties using (makeIsGroupHom ; compGroupHom ; isPropIsGroupHom)
 open import Cubical.Algebra.Group.Instances.Pi using (ΠGroup)
 open import Cubical.Algebra.Group.DirProd using (DirProd)
 
@@ -65,6 +65,9 @@ record ActionContainer (ℓ : Level) : Type (ℓ-suc ℓ) where
   symm-id : ∀ {s} → Symm s
   symm-id {s} = GroupStr.1g (symm-group-str s)
 
+  symm-inv : ∀ {s} → Symm s → Symm s
+  symm-inv {s} = GroupStr.inv (symm-group-str s)
+
   opaque
     PosLoopCompSquare : {s : Shape} → (g h : Symm s) → compSquareFiller (PosLoop g) (PosLoop h) (PosLoop (g · h))
     PosLoopCompSquare g h = ΣSquareSet (λ X → isProp→isSet isPropIsSet) goal where
@@ -84,6 +87,36 @@ record ActionContainer (ℓ : Level) : Type (ℓ-suc ℓ) where
   action-pres-1 : ∀ {s} → action (GroupStr.1g (symm-group-str s)) ≡ idEquiv (Pos s)
   action-pres-1 = IsGroupHom.pres1 (is-group-hom-action _)
 
+open ActionContainer
+
+ActionContainer≡ : ∀ {ℓ} {C D : ActionContainer ℓ}
+  → (shape : C .Shape ≡ D .Shape)
+  → (pos : PathP (λ i → shape i → Type ℓ) (C .Pos) (D .Pos))
+  → (symm : PathP (λ i → shape i → Group ℓ) (SymmGroup C) (SymmGroup D))
+  → (action : PathP (λ i → ∀ {s : shape i} → ⟨ symm i s ⟩ → (pos i s ≃ pos i s)) (C .action) (D .action))
+  → C ≡ D
+ActionContainer≡ {C} {D} shape pos symm action′ = go where
+
+  opaque
+    go-is-set-shape : PathP (λ i → isSet (shape i)) (C .is-set-shape) (D .is-set-shape)
+    go-is-set-shape = isProp→PathP (λ i → isPropIsSet {A = shape i}) _ _
+
+    go-is-set-pos : PathP (λ i → ∀ s → isSet (pos i s)) (C .is-set-pos) (D .is-set-pos)
+    go-is-set-pos = isProp→PathP (λ i → isPropΠ λ s → isPropIsSet {A = pos i s}) _ _
+
+    go-is-group-hom-action : PathP (λ i → ∀ s → IsGroupHom (symm i s .snd) (action′ i {s}) (str (𝔖 (pos i s , go-is-set-pos i s)))) (C .is-group-hom-action) (D .is-group-hom-action)
+    go-is-group-hom-action = isProp→PathP (λ i → isPropΠ λ _ → isPropIsGroupHom _ _) _ _
+
+  go : C ≡ D
+  go i .Shape = shape i
+  go i .Pos = pos i
+  go i .Symm = fst ∘ symm i
+  go i .action = action′ i
+  go i .is-set-shape = go-is-set-shape i
+  go i .is-set-pos = go-is-set-pos i
+  go i .symm-group-str = snd ∘ symm i
+  go i .is-group-hom-action = go-is-group-hom-action i
+
 mkActionContainer : ∀ {ℓ} (S : hSet ℓ) (P : ⟨ S ⟩ → hSet ℓ) (G : ⟨ S ⟩ → Group ℓ) (σ : ∀ s → Action (G s) (P s)) → ActionContainer ℓ
 mkActionContainer S P G σ .ActionContainer.Shape = ⟨ S ⟩
 mkActionContainer S P G σ .ActionContainer.Pos = ⟨_⟩ ∘ P
@@ -94,6 +127,20 @@ mkActionContainer S P G σ .ActionContainer.is-set-pos = str ∘ P
 mkActionContainer S P G σ .ActionContainer.symm-group-str = str ∘ G
 mkActionContainer S P G σ .ActionContainer.is-group-hom-action s = Action→GroupHom (σ s) .snd
 
+unbundleContainer : ∀ {ℓ} (C : ActionContainer ℓ)
+  → Σ[ S ∈ hSet ℓ ]
+    Σ[ P ∈ (⟨ S ⟩ → hSet ℓ) ]
+    Σ[ G ∈ (⟨ S ⟩ → Group ℓ) ]
+    ∀ s → Action (G s) (P s)
+unbundleContainer C = let module C = ActionContainer C in
+  λ where
+    .fst → C.ShapeSet
+    .snd .fst → C.PosSet
+    .snd .snd .fst → C.SymmGroup
+    .snd .snd .snd → C.symmAction
+{-# INLINE unbundleContainer #-}
+
+{-
 [_⇒_] : ∀ {ℓ} (C D : ActionContainer ℓ) → ActionContainer ℓ
 [ C ⇒ D ] = mkActionContainer S→T ΠQ⇒P ΠH×G Πσ⇒τ where
   open ActionContainer
@@ -142,7 +189,6 @@ mkActionContainer S P G σ .ActionContainer.is-group-hom-action s = Action→Gro
 
       σ⇒τ = σ⇒τ.AdjointAction s τ* σ*
 
-{-
 module ActionContainerMorphism {ℓ} (C D : ActionContainer ℓ) where
   private
     open module C = ActionContainer C using ()

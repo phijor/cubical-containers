@@ -16,7 +16,7 @@ open import Cubical.Foundations.Transport as Transport using ()
 
 open import Cubical.Data.Nat.Base using (zero ; suc) public
 open import Cubical.Data.Nat.Literals public
-open import Cubical.Data.Sigma.Base using (∃ ; ∃-syntax) public
+open import Cubical.Data.Sigma.Base using (∃ ; ∃-syntax ; _×_) public
 
 import Cubical.HITs.PropositionalTruncation as PT
 

@@ -4,6 +4,7 @@ open import GpdCont.ActionContainer.Abstract
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Algebra.Group.Morphisms using (GroupHom ; IsGroupHom)
+open import Cubical.Algebra.Group.MorphismProperties using (isPropIsGroupHom)
 
 module GpdCont.ActionContainer.Morphism {ℓ} (C D : ActionContainer ℓ) where
   private
@@ -27,6 +28,9 @@ module GpdCont.ActionContainer.Morphism {ℓ} (C D : ActionContainer ℓ) where
 
   isSymmGroupHom : {u : S → T} (φ : ∀ s → G s → H (u s)) → Type ℓ
   isSymmGroupHom {u} φ = ∀ (s : S) → IsGroupHom (C.symm-group-str s) (φ s) (D.symm-group-str (u s))
+
+  isPropIsSymmGroupHom : ∀ {u} {φ} → isProp (isSymmGroupHom {u} φ)
+  isPropIsSymmGroupHom = isPropΠ λ s → isPropIsGroupHom _ _
 
   record Morphismᴰ (shape-map : S → T) : Type ℓ where
     constructor mkMorphismᴰ
@@ -53,8 +57,8 @@ module GpdCont.ActionContainer.Morphism {ℓ} (C D : ActionContainer ℓ) where
     isSetMorphismᴰ u = recordIsOfHLevel 2 $ isSetΣ
       (isSetΠ2 (λ _ _ → C.is-set-pos _))
       λ f → isSetΣ
-        (isSetΠ2 (λ _ _ → {! !}))
-        λ φ → {! !}
+        (isSetΠ2 (λ _ _ → D.isSetSymm (u _)))
+        λ φ → isProp→isSet (isProp× isPropIsSymmGroupHom (isPropΠ2 λ s g → isSet→ (C.is-set-pos s) _ _))
 
   record Morphism : Type ℓ where
     constructor _▷[_]
@@ -98,4 +102,15 @@ module GpdCont.ActionContainer.Morphism {ℓ} (C D : ActionContainer ℓ) where
     → (φ : ∀ s → GroupHom (C.SymmGroup s) (D.SymmGroup (u s)))
     → Σ[ f ∈ (∀ s → Q (u s) → P s) ] isEquivariantPosMap f (fst ∘ φ)
     → Morphism
-  mkMorphismBundled = {! !}
+  mkMorphismBundled u φ (f , is-equivariant-f) = mkMorphism u f (fst ∘ φ) is-equivariant-f (snd ∘ φ)
+
+  Morphism≡ : {f g : Morphism}
+    → (shape : f .shape-map ≡ g .shape-map)
+    → (pos : PathP (λ i → ∀ s → Q (shape i s) → P s) (f .pos-map) (g .pos-map))
+    → PathP (λ i → ∀ s → G s → H (shape i s)) (f .symm-map) (g .symm-map)
+    → f ≡ g
+  Morphism≡ shape pos symm i .shape-map = shape i
+  Morphism≡ shape pos symm i .mor-str .pos-map = pos i
+  Morphism≡ shape pos symm i .mor-str .symm-map = symm i
+  Morphism≡ shape pos symm i .mor-str .is-group-hom-symm-map = ? -- isProp→PathP (λ _ → isPropIsSymmGroupHom) (f .is-group-hom-symm-map) (g .is-group-hom-symm-map) i
+  Morphism≡ shape pos symm i .mor-str .is-equivariant-pos-map = ? -- isProp→PathP {! !}

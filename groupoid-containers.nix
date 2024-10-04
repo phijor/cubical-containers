@@ -1,19 +1,11 @@
 {
   agdaPackages,
-  fetchFromGitHub,
+  cubical,
+  cubical-categorical-logic,
   lib,
-  name,
   ...
 }: let
-  cubical = agdaPackages.cubical.overrideAttrs (old: {
-    version = "${old.version}-wildcats";
-    src = fetchFromGitHub {
-      owner = "agda";
-      repo = "cubical";
-      rev = "502b1bb8a47fb8c07d82e1bc05020d5b4f10cede";
-      sha256 = "sha256-UOjI63wVoIIyAfMjAV2aQpU8wOnQiNZokDdxl168n7g=";
-    };
-  });
+  name = "groupoid-containers";
 in
   agdaPackages.mkDerivation {
     pname = name;
@@ -28,7 +20,7 @@ in
     preBuild = ''
       ./gen-everything.sh
     '';
-    buildInputs = [cubical];
+    buildInputs = [cubical cubical-categorical-logic];
     everythingFile = "./Everything.agda";
     meta = {
       description = "An Agda playground 🛝";

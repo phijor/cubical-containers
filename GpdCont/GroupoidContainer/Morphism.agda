@@ -24,6 +24,12 @@ record GContMorphism {ℓ} (G H : GCont ℓ) : Type ℓ where
 open GCont
 open GContMorphism
 
+unquoteDecl GContMorphismIsoΣ = declareRecordIsoΣ GContMorphismIsoΣ (quote GContMorphism)
+
+instance
+  GContMorphismToΣ : ∀ {G H : GCont ℓ} → RecordToΣ (GContMorphism G H)
+  GContMorphismToΣ {G} {H} = toΣ (GContMorphismIsoΣ {G = G} {H = H})
+
 GContMorphism≡ : {α β : GContMorphism G H}
   → (p : α .shape-mor ≡ β .shape-mor)
   → (q : ∀ s → PathP (λ i → H .Pos (p i s) → G .Pos s) (α .pos-path s) (β .pos-path s))
@@ -47,6 +53,12 @@ module _ {α β : GContMorphism G H} where
 
   GContMorphism≡Equiv : (α ≡Mor β) ≃ (α ≡ β)
   GContMorphism≡Equiv = isoToEquiv GContMorphism≡Iso
+
+isGroupoidGContMorphism : isGroupoid (GContMorphism G H)
+isGroupoidGContMorphism {G} {H} = recordIsOfHLevel 3 $
+  isGroupoidΣ
+    (isGroupoidΠ λ _ → H .is-groupoid-shape)
+    λ u → isSet→isGroupoid (isSetΠ2 λ s _ → G .is-set-pos s)
 
 GContId : (G : GCont ℓ) → GContMorphism G G
 GContId G .GContMorphism.shape-mor = id $ G .Shape

@@ -10,6 +10,7 @@ open import GpdCont.WildCat.TypeOfHLevel
 open import GpdCont.WildCat.HomotopyCategory using (ho)
 
 open import Cubical.Categories.Category.Base using (Category)
+open import Cubical.Categories.Instances.Discrete using (DiscreteCategory)
 open import Cubical.WildCat.Base using (WildCat ; _[_,_] ; concatMor)
 open import Cubical.WildCat.Functor using (WildFunctor ; WildNatTrans ; compWildNatTrans)
 import Cubical.Foundations.GroupoidLaws as GL
@@ -29,6 +30,9 @@ module _ (ℓ : Level) where
 
   ∥GCont∥₂ : Category _ _
   ∥GCont∥₂ = ho GContCat
+
+  GContLocal : (C D : GCont ℓ) → Category _ _
+  GContLocal C D = DiscreteCategory (GContMorphism C D , isGroupoidGContMorphism)
 
 private
   variable

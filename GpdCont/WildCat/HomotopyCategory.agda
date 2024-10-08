@@ -2,7 +2,7 @@ module GpdCont.WildCat.HomotopyCategory where
 
 open import GpdCont.Prelude
 
-open import Cubical.WildCat.Base
+open import Cubical.WildCat.Base renaming (_[_,_] to _[_,_]ʷ)
 open import Cubical.Categories.Category.Base
 
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
@@ -30,3 +30,9 @@ ho C = def where
   def .Category.⋆IdR = {! !}
   def .Category.⋆Assoc = {! !}
   def .Category.isSetHom = isSet-∥C[-,-]∥₂
+
+module _ {C : WildCat ℓo ℓh} where
+  private module C = WildCat C
+
+  trunc-hom : {c d : C.ob} → C [ c , d ]ʷ → ho C [ c , d ]
+  trunc-hom = ST.∣_∣₂

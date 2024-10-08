@@ -33,7 +33,9 @@ module Lift {ℓ} (C : ActionContainer ℓ) where
         ; action to σ
         )
 
+  -- TODO: remove alias
   module BG {s : S} = Delooping (G s) (C.symm-group-str s)
+  module ShapeDelooping {s : S} = BG {s}
 
   Shape : Type ℓ
   Shape = Σ[ s ∈ S ] BG.𝔹 {s}
@@ -279,3 +281,33 @@ module _ {ℓ} (C D : ActionContainer ℓ)where
     UnliftMorphismPathP p .conjugator-path i s = {!p i0 .SymmetricContainerMorphism.shape-mor (s , BG.⋆) .snd !}
     UnliftMorphismPathP p .is-conjugate = {! !}
     UnliftMorphismPathP p .is-pos-equiv = {! !}
+
+module Functor {ℓ} where
+  open import Cubical.Categories.Category.Base
+  open import Cubical.Categories.Functor.Base
+  open import Cubical.WildCat.Base
+
+  open import GpdCont.WildCat.HomotopyCategory
+  open import GpdCont.GroupoidContainer.WildCat renaming (GContCat to SymmCont)
+  open import GpdCont.ActionContainer.Category
+
+  private
+    module Act ℓ = Category (Act {ℓ})
+    module SymmCont ℓ = WildCat (SymmCont ℓ)
+
+  LiftId : (C : Act.ob ℓ) → LiftMorphism (Act.id _ {C}) ≡ SymmCont.id ℓ
+  LiftId C = GContMorphism≡ (funExt shape-path) {! !} where
+    module C = ActionContainer C
+
+    module 𝔹C where
+      open SymmetricContainer (Lift C) public
+      open Lift C using (module ShapeDelooping) public
+
+    shape-path : ∀ (x : 𝔹C.Shape) → LiftMorphism.shape-mor (Act.id ℓ) x ≡ x
+    shape-path = uncurry λ s → 𝔹C.ShapeDelooping.elimSet {! !} refl λ g i j → s , 𝔹C.ShapeDelooping.𝔹.loop g i
+
+  DeloopingFunctor : Functor (Act {ℓ}) (ho $ SymmCont ℓ)
+  DeloopingFunctor .Functor.F-ob = Lift
+  DeloopingFunctor .Functor.F-hom = trunc-hom ∘ LiftMorphism
+  DeloopingFunctor .Functor.F-id {(C)} = cong (trunc-hom {C = SymmCont ℓ}) (LiftId C)
+  DeloopingFunctor .Functor.F-seq = {! !}

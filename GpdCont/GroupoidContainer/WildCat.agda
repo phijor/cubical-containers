@@ -28,8 +28,8 @@ module _ (ℓ : Level) where
   GContCat .⋆IdR = compGContMorphismIdR
   GContCat .⋆Assoc = compGContMorphismAssoc
 
-  ∥GCont∥₂ : Category _ _
-  ∥GCont∥₂ = ho GContCat
+  TruncGContCat : Category _ _
+  TruncGContCat = ho GContCat
 
   GContLocal : (C D : GCont ℓ) → Category _ _
   GContLocal C D = DiscreteCategory (GContMorphism C D , isGroupoidGContMorphism)

@@ -12,7 +12,7 @@ private
     ℓ : Level
     G H K L : GCont ℓ
 
-record GContMorphism {ℓ} (G H : GCont ℓ) : Type (ℓ-suc ℓ) where
+record GContMorphism {ℓ} (G H : GCont ℓ) : Type ℓ where
   private
     module G = GCont G
     module H = GCont H

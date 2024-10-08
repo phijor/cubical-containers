@@ -18,7 +18,7 @@ import Cubical.Foundations.Transport as Transport
 open WildCat hiding (_⋆_)
 
 module _ (ℓ : Level) where
-  GContCat : WildCat (ℓ-suc ℓ) (ℓ-suc ℓ)
+  GContCat : WildCat (ℓ-suc ℓ) ℓ
   GContCat .ob = GCont ℓ
   GContCat .Hom[_,_] = GContMorphism
   GContCat .id = GContId _

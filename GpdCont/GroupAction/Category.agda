@@ -80,6 +80,99 @@ mkGroupActionHom φ f is-eqva = λ where
 GroupActionHom≡ : ∀ {ℓ} {G×X H×Y} → {f g : GroupAction ℓ [ G×X , H×Y ]} → f .fst ≡ g .fst → f ≡ g
 GroupActionHom≡ {G×X} {H×Y} = Sigma.Σ≡Prop (λ φ×f → EquivariantMapStr _ .StructureOver.isPropHomᴰ {f = φ×f} {xᴰ = G×X .snd} {yᴰ = H×Y .snd})
 
+private
+  module GroupAction {ℓ} = Category (GroupAction ℓ)
+
+module LocalCategory {ℓ} (σ*@((G , X) , σ) τ*@((H , Y), τ): GroupAction.ob {ℓ}) where
+  private
+    open module H = GroupStr (str H) using (_·_)
+    module τ where
+      open Action τ public
+      open ActionProperties τ public
+
+    Cell = GroupAction.Hom[ σ* , τ* ]
+    variable
+      φ ψ ρ : Cell
+
+    cellData : (φ : Cell) → (⟨ G ⟩ → ⟨ H ⟩) × (⟨ Y ⟩ → ⟨ X ⟩)
+    cellData (((φ , _) , f) , _) = φ , f
+
+  -- H seen as a one-object category
+  SymmCat : Category ℓ-zero _
+  SymmCat .Category.ob = Unit
+  SymmCat .Category.Hom[_,_] _ _ = ⟨ H ⟩
+  SymmCat .Category.id = H.1g
+  SymmCat .Category._⋆_ = H._·_
+  SymmCat .Category.⋆IdL = H.·IdL
+  SymmCat .Category.⋆IdR = H.·IdR
+  SymmCat .Category.⋆Assoc _ _ _ = sym $ H.·Assoc _ _ _
+  SymmCat .Category.isSetHom = H.is-set
+
+
+  isConjugator : (φ ψ : Cell) → ⟨ H ⟩ → Type _
+  isConjugator φ* ψ* h
+    using (φ , f) ← cellData φ*
+    using (ψ , e) ← cellData ψ*
+    = (∀ g → (φ g · h) ≡ (h · ψ g)) × (f ≡ e ∘ (τ ⁺ h))
+
+  opaque
+    isPropIsConjugator : (φ ψ : Cell) (h : ⟨ H ⟩) → isProp (isConjugator φ ψ h)
+    isPropIsConjugator φ ψ h = isProp× (isPropΠ λ g → H.is-set _ _) (isSet→ (str X) _ _)
+
+  opaque
+    isConjugator-1g : isConjugator φ φ H.1g
+    isConjugator-1g .fst g = H.·IdR _ ∙ sym (H.·IdL _)
+    isConjugator-1g {φ} .snd using (_ , f) ← cellData φ = cong (f ∘_) $ sym τ.action-1-id
+
+  opaque
+    isConjugator-· : (φ ψ ρ : Cell) (h₁ h₂ : ⟨ H ⟩)
+      → isConjugator φ ψ h₁
+      → isConjugator ψ ρ h₂
+      → isConjugator φ ρ (h₁ · h₂)
+    isConjugator-· φ* ψ* ρ* h₁ h₂ (h-conj₁ , h-act₁) (h-conj₂ , h-act₂)
+      using (φ , f) ← cellData φ*
+      using (ψ , e) ← cellData ψ*
+      using (ρ , d) ← cellData ρ*
+      = goal where
+      goal : isConjugator φ* ρ* (h₁ · h₂)
+      goal .fst g =
+        φ g · (h₁ · h₂) ≡⟨ H.·Assoc _ _ _ ⟩
+        (φ g · h₁) · h₂ ≡⟨ cong (_· h₂) (h-conj₁ g) ⟩
+        (h₁ · ψ g) · h₂ ≡⟨ sym $ H.·Assoc _ _ _ ⟩
+        h₁ · (ψ g · h₂) ≡⟨ cong (h₁ ·_) (h-conj₂ g) ⟩
+        h₁ · (h₂ · ρ g) ≡⟨ H.·Assoc _ _ _ ⟩
+        (h₁ · h₂) · ρ g ∎
+      goal .snd =
+        f ≡⟨ h-act₁ ⟩
+        e ∘ (τ ⁺ h₁) ≡⟨ cong (_∘ τ ⁺ h₁) h-act₂ ⟩
+        d ∘ τ ⁺ h₂ ∘ τ ⁺ h₁ ≡⟨ cong (d ∘_) $ sym (τ.action-comp h₁ h₂) ⟩
+        d ∘ τ ⁺ (h₁ · h₂) ∎
+
+  -- The conjugation structure, displayed over H.
+  -- A displayed object is an equivariant map, and displayed morphisms over some
+  -- "conjugator" (h : H) are proofs that two equivariant maps are conjugate by `h`.
+  ConjugatorStructure : StructureOver SymmCat _ _
+  ConjugatorStructure .StructureOver.ob[_] = const GroupAction.Hom[ σ* , τ* ]
+  ConjugatorStructure .StructureOver.Hom[_][_,_] h φ ψ = isConjugator φ ψ h
+  ConjugatorStructure .StructureOver.idᴰ {p = φ} = isConjugator-1g {φ}
+  ConjugatorStructure .StructureOver._⋆ᴰ_ {xᴰ = φ} {yᴰ = ψ} {zᴰ = ρ} = isConjugator-· φ ψ ρ _ _
+  ConjugatorStructure .StructureOver.isPropHomᴰ {xᴰ = φ} {yᴰ = ψ} = isPropIsConjugator φ ψ _
+
+  ConjugatorCat : Category ℓ ℓ
+  ConjugatorCat = ∫C {C = SymmCat} (StructureOver→Catᴰ ConjugatorStructure)
+
+  module ConjugatorCat = Category ConjugatorCat
+
+  conjugator : ConjugatorCat.ob → ⟨ H ⟩
+  conjugator (x , y) = {! !}
+
+  Conjugator≡ : (h₁ h₂ : ConjugatorCat.ob) → (h₁ .snd) ≡ (h₂ .snd) → h₁ ≡ h₂
+  Conjugator≡ = {! !}
+
+  -- Conjugator≡ : (φ ψ : Cell) → {h₁ h₂ : Conjugator φ ψ} → h₁ .fst ≡ h₂ .fst → h₁ ≡ h₂
+  -- Conjugator≡ _ _ p i .fst = p i
+  -- Conjugator≡ φ ψ {h₁} {h₂} p i .snd = isProp→PathP (λ i → isPropIsConjugator φ ψ (p i)) (h₁ .snd) (h₂ .snd) i
+
 
 {-
   Actᴰ : Categoryᴰ (GroupCategory {ℓ = ℓ}) (ℓ-suc ℓ) ℓ

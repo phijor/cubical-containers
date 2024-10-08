@@ -10,6 +10,7 @@ open import GpdCont.ActionContainer.Abstract
 open import GpdCont.ActionContainer.Morphism hiding (mkMorphism-syntax)
 open import GpdCont.ActionContainer.Transformation
 
+open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation as PT using ()
 open import Cubical.Data.Sigma as Sigma using ()
@@ -34,31 +35,43 @@ module _ {ℓ} where
   idAct C = ( id _ ▷ ((λ s → id _) , λ s g → refl) ◁ λ s → idGroupHom ) where
     open GpdCont.ActionContainer.Morphism C C using (mkMorphism-syntax)
 
-  compAct' : ∀ {C D E : ActionContainer ℓ} → Morphism C D → Morphism D E → Morphism C E
-  compAct' {C} {E} f g = f⋆g where
+  compAct : ∀ {C D E : ActionContainer ℓ} → Morphism C D → Morphism D E → Morphism C E
+  compAct {C} {D} {E} f g = mkMorphismBundled _ _
+      f⋆g-shape
+      f⋆g-hom
+      (f⋆g-pos , f⋆g-pos-is-eqva) where
+    module C = ActionContainer C
+    module D = ActionContainer D
+    module E = ActionContainer E
+
     module f = Morphism f
     module g = Morphism g
 
-    f⋆g : Morphism C E
-    f⋆g = mkMorphismBundled _ _
-      (f.shape-map ⋆ g.shape-map)
-      (λ s → compGroupHom (f.symm-hom s) (g.symm-hom (f.shape-map s)))
-      ({! !} , {! !})
+    f⋆g-shape : C.Shape → E.Shape
+    f⋆g-shape = f.shape-map ⋆ g.shape-map
 
-  compAct : ∀ {C D E : ActionContainer ℓ} → Morphism C D → Morphism D E → Morphism C E
-  compAct {C} {E} f g = ( (f .shape-map ⋆ g .shape-map) ▷ ((λ _ → g .pos-map _ ⋆ f .pos-map _) , {! !}) ◁ λ _ → compGroupHom (Morphism.symm-hom f _) (Morphism.symm-hom g _)) where
-    open Morphism
-    open Morphismᴰ
-    open GpdCont.ActionContainer.Morphism C E using (mkMorphism-syntax)
+    f⋆g-hom : ∀ s → GroupHom (C.SymmGroup s) (E.SymmGroup _)
+    f⋆g-hom s = compGroupHom (f.symm-hom s) (g.symm-hom (f.shape-map s))
+
+    f⋆g-pos : ∀ s → E.Pos _ → C.Pos s
+    f⋆g-pos s = f.pos-map s ∘ g.pos-map (f.shape-map s)
+
+    abstract
+      f⋆g-pos-is-eqva : isEquivariantPosMap C E f⋆g-pos (fst ∘ f⋆g-hom)
+      f⋆g-pos-is-eqva s g =
+        equivFun (C.action g) ∘ (f⋆g-pos s) ≡⟨⟩
+        equivFun (C.action g) ∘ f.pos-map s ∘ g.pos-map (f.shape-map s) ≡[ i ]⟨ f.is-equivariant-pos-map s g i ∘ g.pos-map _ ⟩
+        f.pos-map s ∘ equivFun (D.action _) ∘ g.pos-map (f.shape-map s) ≡[ i ]⟨ f.pos-map s ∘ g.is-equivariant-pos-map (f.shape-map s) (f.symm-map s g) i ⟩
+        f⋆g-pos s ∘ (equivFun $ E.action (f⋆g-hom s .fst g)) ∎
 
   Act : Category _ _
   Act .Category.ob = ActionContainer ℓ
   Act .Category.Hom[_,_] = Morphism
   Act .Category.id {x = C} = idAct C
   Act .Category._⋆_ = compAct
-  Act .Category.⋆IdL = {! !}
-  Act .Category.⋆IdR = {! !}
-  Act .Category.⋆Assoc = {! !}
+  Act .Category.⋆IdL f = Morphism≡ _ _ refl refl refl
+  Act .Category.⋆IdR f = Morphism≡ _ _ refl refl refl
+  Act .Category.⋆Assoc f g h = Morphism≡ _ _ refl refl refl
   Act .Category.isSetHom = isSetMorphism _ _
 
 

@@ -63,3 +63,15 @@ GroupHomPreCompAction {G} {X} φ σ = GroupHom→Action φ*σ where
   φ*σ : GroupHom G (𝔖 X)
   φ*σ = compGroupHom φ $ Action→GroupHom σ
 
+module ActionProperties {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
+  private
+    open module G = GroupStr (str G) using (_·_)
+    module σ = Action σ
+
+  open IsGroupHom (Action→GroupHom σ .snd) using (pres1 ; presinv) public
+
+  action-1-id : σ ⁺ G.1g ≡ id ⟨ X ⟩
+  action-1-id = cong equivFun pres1
+
+  action-comp : ∀ g h → σ ⁺ (g · h) ≡ σ ⁺ h ∘ σ ⁺ g
+  action-comp g h = cong equivFun $ σ.pres· g h

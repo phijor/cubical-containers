@@ -9,8 +9,8 @@ open import Cubical.Foundations.Function
   public
 open import Cubical.Foundations.Structure public using (⟨_⟩ ; str)
 open import Cubical.Foundations.Equiv using (_≃_ ; _≃⟨_⟩_) renaming (_■ to _≃∎) public
-open import Cubical.Foundations.Equiv using (equivFun ; invEq)
-open import Cubical.Foundations.Equiv.Properties using (equivAdjointEquiv ; preCompEquiv)
+open import Cubical.Foundations.Equiv using (equivFun ; invEq ; isEquiv)
+open import Cubical.Foundations.Equiv.Properties using (equivAdjointEquiv ; preCompEquiv ; congEquiv)
 open import Cubical.Foundations.Isomorphism as Isomorphism using (Iso ; _Iso⟨_⟩_) renaming (_∎Iso to _Iso∎) public
 open import Cubical.Foundations.Transport as Transport using ()
 
@@ -110,6 +110,30 @@ doubleCompPathP A p q r j = comp (λ i → A i j) {φ = j ∨ ~ j}
     i (j = i1) → r i
   )
   (q j)
+
+opaque
+  compPath≡Square : {a b c d : A} {p : a ≡ c} {q : b ≡ d} {r : a ≡ b} {s : c ≡ d}
+    → (p ∙ s ≡ r ∙ q) ≡ (Square r s p q)
+  compPath≡Square {A} {a} {d} {p} {q} {r} {s} = goal where
+    open import Cubical.Foundations.Path
+    open import Cubical.Foundations.Univalence
+    open import Cubical.Foundations.GroupoidLaws
+
+    goal : (p ∙ s ≡ r ∙ q) ≡ (Square r s p q)
+    goal =
+      (p ∙ s ≡ r ∙ q)                     ≡⟨ ua (strictIsoToEquiv symIso) ⟩
+      (r ∙ q ≡ p ∙ s)                     ≡⟨ ua (congEquiv (compPathlEquiv (sym p))) ⟩
+      (sym p ∙ (r ∙ q) ≡ sym p ∙ (p ∙ s)) ≡[ i ]⟨ sym p ∙ (r ∙ q) ≡ assoc (sym p) p s i ⟩
+      (sym p ∙ (r ∙ q) ≡ (sym p ∙ p) ∙ s) ≡[ i ]⟨ sym p ∙ (r ∙ q) ≡ lCancel p i ∙ s ⟩
+      (sym p ∙ (r ∙ q) ≡ refl ∙ s)        ≡[ i ]⟨ sym p ∙ (r ∙ q) ≡ lUnit s (~ i) ⟩
+      (sym p ∙ (r ∙ q) ≡ s)               ≡⟨ cong (_≡ s) $ sym (doubleCompPath-elim' (sym p) r q) ⟩
+      (sym p ∙∙ r ∙∙ q ≡ s)               ≡⟨ sym (PathP≡doubleCompPathˡ p r s q) ⟩
+      (Square r s p q) ∎
+
+compPath≃Square : {a b c d : A} {p : a ≡ c} {q : b ≡ d} {r : a ≡ b} {s : c ≡ d}
+  → (p ∙ s ≡ r ∙ q) ≃ (Square r s p q)
+compPath≃Square {p} {q} {r} {s} = pathToEquiv compPath≡Square where
+  open import Cubical.Foundations.Univalence using (pathToEquiv)
 
 substCodomain : ∀ {ℓ′ ℓ″} {x y : A} (B : A → Type ℓ′) {C : Type ℓ″} (p : x ≡ y) (f : B x → C)
   → subst (λ a → B a → C) p f ≡ f ∘ subst B (sym p)

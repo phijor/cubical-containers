@@ -13,14 +13,16 @@ private
 open import GpdCont.Groups.Base
 open import GpdCont.Delooping.Base G γ as Delooping using (𝔹)
 open import GpdCont.Connectivity using (isPathConnected)
+open import GpdCont.Univalence using (ua→)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Equiv.Properties
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Path using (compPath→Square)
-open import Cubical.Foundations.Univalence hiding (elimIso)
+open import Cubical.Foundations.Univalence hiding (elimIso ; ua→)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
+open import Cubical.Functions.FunExtEquiv
 open import Cubical.Functions.Embedding
 
 isPropSetTruncDelooping : isProp ∥ 𝔹 ∥₂
@@ -157,6 +159,16 @@ encodeDecode = isoToEquiv encodeDecodeIso
 π₁ X x₀ .snd .AbsGroupStr.inv = sym
 π₁ X x₀ .snd .AbsGroupStr.isGroup = makeIsGroup (str X x₀ x₀) assoc (sym ∘ rUnit) (sym ∘ lUnit) rCancel lCancel where
   open import Cubical.Foundations.GroupoidLaws
+
+private
+  π₁𝔹 : AbsGroup _
+  π₁𝔹 = π₁ (𝔹 , 𝔹.isGroupoid𝔹) 𝔹.⋆
+
+loopHom : GroupHom (G , γ) π₁𝔹
+loopHom .fst = 𝔹.loop
+loopHom .snd .IsGroupHom.pres· g h = sym $ Delooping.loop-∙ g h
+loopHom .snd .IsGroupHom.pres1 = Delooping.loop-1
+loopHom .snd .IsGroupHom.presinv = Delooping.loop-inv
 
 elimSetIso : ∀ {ℓB} {B : 𝔹 → Type ℓB}
   → (∀ x → isSet (B x))

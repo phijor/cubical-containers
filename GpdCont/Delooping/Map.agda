@@ -4,9 +4,13 @@ open import GpdCont.Prelude
 
 import GpdCont.Delooping as Delooping
 
-import Cubical.Foundations.Path as Path
+open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Equiv.Properties
+open import Cubical.Foundations.Path as Path
+open import Cubical.Foundations.Univalence using (pathToEquiv)
+open import Cubical.Functions.FunExtEquiv
+open import Cubical.Data.Sigma
 open import Cubical.Algebra.Group
 open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Algebra.Group.MorphismProperties using (idGroupHom)
@@ -60,38 +64,64 @@ module _
   map≡-ext : (x : 𝔹 G) → map φ* x ≡ map ψ* x
   map≡-ext = BG.elimSet (λ x → BH.isGroupoid𝔹 (map φ* x) (map ψ* x)) map-ext-⋆ map-ext-loop
 
-  map≡ : map φ* ≡ map ψ*
-  map≡ = funExt map≡-ext
+Conjugator : (φ ψ : GroupHom G H) → Type _
+Conjugator {H} (φ , _) (ψ , _) = Σ[ h ∈ ⟨ H ⟩ ] ∀ g → φ g · h ≡ h · ψ g where
+  open GroupStr (str H) using (_·_)
 
-mapEquiv' : (G H : Group ℓ) → (f g : 𝔹 G → 𝔹 H) → (f ≡ g) ≃ {! !}
-mapEquiv' G H f g =
-  (f ≡ g) ≃⟨ {! !} ⟩
-  ((x : 𝔹 G) → f x ≡ g x) ≃⟨ invEquiv (Delooping.elimSetEquiv ⟨ G ⟩ (str G) λ x → BH.isGroupoid𝔹 (f x) (g x)) ⟩
-  (Σ[ q₀ ∈ (f BG.⋆ ≡ g BG.⋆) ] (∀ k → PathP (λ i → f (BG.loop k i) ≡ g (BG.loop k i)) q₀ q₀)) ≃⟨ ? ⟩
-  {! !} ≃∎
+map≡ : (φ ψ : GroupHom G H) → Conjugator φ ψ → map φ ≡ map ψ
+map≡ φ ψ (h , h-conj) = funExt $ map≡-ext {φ* = φ} {ψ* = ψ} h h-conj
+
+module _ {f g : 𝔹 G → 𝔹 H}
+  {p₀ : (x : 𝔹 G) → f x ≡ g x}
+  {p₁ : (x : 𝔹 G) → f x ≡ g x}
+  (sq⋆ : p₀ Delooping.⋆ ≡ p₁ Delooping.⋆)
   where
-  module BG = Delooping ⟨ G ⟩ (str G)
-  module BH = Delooping ⟨ H ⟩ (str H)
-mapEquivTrunc : (G H : Group ℓ) → (GroupHom G H) ≃ ∥ (𝔹 G → 𝔹 H) ∥₂
-mapEquivTrunc G H =
-  {! !} ≃⟨ {! !} ⟩
-  ∥ Σ[ y₀ ∈ 𝔹 H ] (Σ[ φ ∈ (⟨ G ⟩ → y₀ ≡ y₀) ] (∀ g h → compSquareFiller (φ g) (φ h) (φ $ (G .snd GroupStr.· g) h))) ∥₂ ≃⟨ cong≃ ∥_∥₂ $ Delooping.recEquiv _ _ {X = _ , BH.isGroupoid𝔹} ⟩
-  ∥ (𝔹 G → 𝔹 H) ∥₂ ≃∎ where
+  private
+    module 𝔹G = Delooping ⟨ G ⟩ (str G)
+    module 𝔹H = Delooping ⟨ H ⟩ (str H)
 
-  module BG = Delooping ⟨ G ⟩ (str G)
-  module BH = Delooping ⟨ H ⟩ (str H)
+  mapDepSquareExt : (x : 𝔹 G) → p₀ x ≡ p₁ x
+  mapDepSquareExt = 𝔹G.elimProp isPropDepSquare sq⋆ where
+    isPropDepSquare : ∀ (x : 𝔹 G) → isProp (p₀ x ≡ p₁ x)
+    isPropDepSquare x = 𝔹H.isGroupoid𝔹 (f x) (g x) (p₀ x) (p₁ x)
 
-mapIso : (G H : Group ℓ) → Iso (GroupHom G H) (𝔹 G → 𝔹 H)
-mapIso G H = go where
-  -- {! !} ≃⟨ {! !} ⟩
-  -- Σ[ y₀ ∈ BH.𝔹 ] (Σ[ φ ∈ (G .fst → y₀ ≡ y₀) ] (∀ g h → compSquareFiller (φ g) (φ h) (φ $ (G .snd GroupStr.· g) h))) ≃⟨ Delooping.recEquiv _ _ {X = _ , BH.isGroupoid𝔹} ⟩
-  -- (𝔹 G → 𝔹 H) ≃∎ where
+  mapDepSquare : p₀ ≡ p₁
+  mapDepSquare = funExt mapDepSquareExt
 
-  module BG = Delooping ⟨ G ⟩ (str G)
-  module BH = Delooping ⟨ H ⟩ (str H)
+module MapPathEquiv {G H : Group ℓ} where
+  private
+    open module H = GroupStr (str H) using (_·_)
+    module 𝔹G = Delooping ⟨ G ⟩ (str G)
+    module 𝔹H = Delooping ⟨ H ⟩ (str H)
 
-  go : Iso _ _
-  go .Iso.fun = map
-  go .Iso.inv f = (λ g → {!  cong f $ BG.loop g !}) , {! !}
-  go .Iso.rightInv = {! !}
-  go .Iso.leftInv = {! !}
+  map≡'Equiv : (φ ψ : GroupHom G H) → (Conjugator φ ψ) ≃ (map φ ≡ map ψ)
+  map≡'Equiv φ*@(φ , _) ψ*@(ψ , _) =
+    (Σ[ h ∈ ⟨ H ⟩ ] ∀ g → φ g · h ≡ h · ψ g)
+      ≃⟨ Σ-cong-equiv (invEquiv 𝔹H.ΩDelooping≃) (equivΠCod ∘ lemma) ⟩
+    (Σ[ l ∈ 𝔹H.⋆ ≡ 𝔹H.⋆ ] ∀ g → Square l l (𝔹H.loop (φ g)) (𝔹H.loop (ψ g)))
+      ≃⟨ 𝔹G.elimSetEquiv {B = λ x → map φ* x ≡ map ψ* x} (λ x → 𝔹H.isGroupoid𝔹 _ _) ⟩
+    (∀ (x : 𝔹 G) → map φ* x ≡ map ψ* x)
+      ≃⟨ funExtEquiv ⟩
+    (map φ* ≡ map ψ*) ≃∎ where
+
+    lemma : ∀ h g → ((φ g) · h ≡ h · (ψ g)) ≃ Square (𝔹H.loop h) (𝔹H.loop h) (𝔹H.loop (φ g)) (𝔹H.loop (ψ g))
+    lemma h g =
+      ((φ g) · h ≡ h · (ψ g)) ≃⟨ congEquiv $ invEquiv 𝔹H.ΩDelooping≃ ⟩
+      𝔹H.loop ((φ g) · h) ≡ 𝔹H.loop (h · (ψ g)) ≃⟨ pathToEquiv $ sym $ cong₂ _≡_ (𝔹H.loop-∙ _ _) (𝔹H.loop-∙ _ _) ⟩
+      𝔹H.loop (φ g) ∙ (𝔹H.loop h) ≡ 𝔹H.loop h ∙ 𝔹H.loop (ψ g) ≃⟨ compPath≃Square ⟩
+      Square (𝔹H.loop h) (𝔹H.loop h) (𝔹H.loop (φ g)) (𝔹H.loop (ψ g)) ≃∎
+
+  map≡' : (φ ψ : GroupHom G H) → (Σ[ h ∈ ⟨ H ⟩ ] ∀ g → φ .fst g · h ≡ h · ψ .fst g) → (map φ ≡ map ψ)
+  map≡' φ ψ = equivFun (map≡'Equiv φ ψ)
+
+  map≡'-map≡-path : (φ ψ : GroupHom G H) → map≡' φ ψ ≡ map≡ φ ψ
+  map≡'-map≡-path φ ψ = funExt λ { (h , h-conj) → cong funExt $ (mapDepSquare $ refl′ (𝔹H.𝔹.loop h)) }
+
+  isEquiv-map≡ : ∀ (φ ψ : GroupHom G H) → isEquiv (map≡ φ ψ)
+  isEquiv-map≡ φ ψ = subst isEquiv (map≡'-map≡-path φ ψ) (equivIsEquiv (map≡'Equiv φ ψ))
+
+  map≡Equiv : (φ ψ : GroupHom G H) → (Conjugator φ ψ) ≃ (map φ ≡ map ψ)
+  map≡Equiv φ ψ .fst = map≡ φ ψ
+  map≡Equiv φ ψ .snd = isEquiv-map≡ φ ψ
+
+open MapPathEquiv using (map≡Equiv) public

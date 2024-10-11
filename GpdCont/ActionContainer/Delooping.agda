@@ -292,22 +292,48 @@ module Functor {ℓ} where
   open import GpdCont.ActionContainer.Category
 
   private
-    module Act ℓ = Category (Act {ℓ})
-    module SymmCont ℓ = WildCat (SymmCont ℓ)
+    module Act {ℓ} = Category (Act {ℓ})
+    module SymmCont {ℓ} = WildCat (SymmCont ℓ)
 
-  LiftId : (C : Act.ob ℓ) → LiftMorphism (Act.id _ {C}) ≡ SymmCont.id ℓ
-  LiftId C = GContMorphism≡ (funExt shape-path) {! !} where
-    module C = ActionContainer C
+    -- Notation for action containers lifted to symmetric containers.
+    module LiftNotation (X : ActionContainer ℓ) where
+      open SymmetricContainer (Lift X) public
+      open Lift X using () renaming (module ShapeDelooping to Shape) public
+      
 
-    module 𝔹C where
-      open SymmetricContainer (Lift C) public
-      open Lift C using (module ShapeDelooping) public
+  LiftId : (C : Act.ob {ℓ}) → LiftMorphism (Act.id {x = C}) ≡ SymmCont.id {ℓ}
+  LiftId C = GContMorphism≡ (funExt shape-path) pos-path where
+    module 𝔹C = LiftNotation C
 
-    shape-path : ∀ (x : 𝔹C.Shape) → LiftMorphism.shape-mor (Act.id ℓ) x ≡ x
-    shape-path = uncurry λ s → 𝔹C.ShapeDelooping.elimSet {! !} refl λ g i j → s , 𝔹C.ShapeDelooping.𝔹.loop g i
+    shape-path : ∀ (x : 𝔹C.Shape) → LiftMorphism.shape-mor Act.id x ≡ x
+    shape-path = uncurry λ s → 𝔹C.Shape.elimSet (λ x → 𝔹C.is-groupoid-shape _ (s , x)) refl λ g i j → s , 𝔹C.Shape.loop g i
+
+    pos-path : ∀ (x : 𝔹C.Shape) → PathP (λ i → 𝔹C.Pos (shape-path x i) → 𝔹C.Pos x) (LiftMorphism.pos-mor (Act.id {x = C}) x) (id (𝔹C.Pos x))
+    pos-path = uncurry λ s → 𝔹C.Shape.elimProp (λ x → isOfHLevelPathP' 1 (isSetΠ λ _ → 𝔹C.is-set-pos (s , x)) _ _) refl
+
+  LiftComp : ∀ {C D E : ActionContainer ℓ} (F : Act.Hom[ C , D ]) (G : Act.Hom[ D , E ])
+    → LiftMorphism (F Act.⋆ G) ≡ (LiftMorphism F SymmCont.⋆ LiftMorphism G)
+  LiftComp {C} {D} {E} F G = GContMorphism≡ (funExt $ uncurry shape-path) (uncurry pos-path) where
+    module 𝔹C = LiftNotation C
+    module 𝔹E = LiftNotation E
+    module F⋆G = ACMorphism.Morphism (F Act.⋆ G)
+
+    shape-path = λ s → 𝔹C.Shape.elimSet (λ x → 𝔹E.is-groupoid-shape _ _)
+      refl
+      λ g i j → F⋆G.shape-map s , 𝔹E.Shape.loop (F⋆G.symm-map s g) i
+
+    pos-path = λ s → 𝔹C.Shape.elimProp
+      (λ x → isOfHLevelPathP' 1 (isSetΠ λ _ → 𝔹C.is-set-pos (s , x)) _ _)
+      refl
+
+  trunc-symm = trunc-hom {C = SymmCont ℓ}
+
+  opaque
+    trunc-symm-path : ∀ {C D} {F G : SymmCont.Hom[ C , D ]} → F ≡ G → trunc-symm F ≡ trunc-symm G
+    trunc-symm-path = cong trunc-symm
 
   DeloopingFunctor : Functor (Act {ℓ}) (ho $ SymmCont ℓ)
   DeloopingFunctor .Functor.F-ob = Lift
   DeloopingFunctor .Functor.F-hom = trunc-hom ∘ LiftMorphism
-  DeloopingFunctor .Functor.F-id {(C)} = cong (trunc-hom {C = SymmCont ℓ}) (LiftId C)
-  DeloopingFunctor .Functor.F-seq = {! !}
+  DeloopingFunctor .Functor.F-id {(C)} = trunc-symm-path $ LiftId C
+  DeloopingFunctor .Functor.F-seq F G = trunc-symm-path $ LiftComp F G

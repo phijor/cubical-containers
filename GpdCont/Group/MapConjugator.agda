@@ -85,8 +85,8 @@ module GpdCont.Group.MapConjugator {ℓ} {G H : Group ℓ} where
   Conjugatorsᴰ : Categoryᴰ (DeloopingCategory H) ℓ ℓ
   Conjugatorsᴰ = StructureOver→Catᴰ ConjugatorStr
 
-  Conjugators : Category ℓ ℓ
-  Conjugators = ∫C {C = DeloopingCategory H} Conjugatorsᴰ
-
   Conjugators′ : Category ℓ ℓ
-  Conjugators′ = ∫DeloopingCategory H Conjugatorsᴰ
+  Conjugators′ = ∫C {C = DeloopingCategory H} Conjugatorsᴰ
+
+  Conjugators : Category ℓ ℓ
+  Conjugators = ∫DeloopingCategory H Conjugatorsᴰ

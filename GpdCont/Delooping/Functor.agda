@@ -49,43 +49,43 @@ module Local {ℓ} {G H : Group ℓ} where
   DeloopingPathCategory = DiscreteCategory ((𝔹G → 𝔹H) , isGroupoidΠ λ _ → 𝔹H.isGroupoid𝔹)
 
   opaque
-    map≡'-id-refl : (φ : Conjugators.ob) → map≡' (φ .snd) (φ .snd) (Conjugators.id {φ}) ≡ refl′ (map (φ .snd))
+    map≡'-id-refl : (φ : Conjugators.ob) → map≡' φ φ (Conjugators.id {φ}) ≡ refl′ (map φ)
     map≡'-id-refl _ = cong funExt $ Map.mapDepSquare 𝔹H.loop-1
 
     map≡'-comp-∙ : (φ ψ ρ : Conjugators.ob)
       (h₁ : Conjugators [ φ , ψ ])
       (h₂ : Conjugators [ ψ , ρ ])
       → (let _⋆̂_ = Conjugators._⋆_ {x = φ} {y = ψ} {z = ρ})
-      → map≡' (φ .snd) (ρ .snd) (h₁ ⋆̂ h₂) ≡ map≡' (φ .snd) (ψ .snd) h₁ ∙ map≡' (ψ .snd) (ρ .snd) h₂
+      → map≡' φ ρ (h₁ ⋆̂ h₂) ≡ map≡' φ ψ h₁ ∙ map≡' ψ ρ h₂
     map≡'-comp-∙ _ _ _ (h₁ , _) (h₂ , _) = cong funExt $ Map.mapDepSquare $ sym (𝔹H.loop-∙ h₁ h₂)
 
   map≡'Functor : Functor Conjugators DeloopingPathCategory
-  map≡'Functor .Functor.F-ob (_ , φ) = map φ
-  map≡'Functor .Functor.F-hom {x = (_ , φ)} {y = (_ , ψ)} = map≡' φ ψ
+  map≡'Functor .Functor.F-ob φ = map φ
+  map≡'Functor .Functor.F-hom {x = φ} {y = ψ} = map≡' φ ψ
   map≡'Functor .Functor.F-id {x = φ} = map≡'-id-refl φ
   map≡'Functor .Functor.F-seq {x = φ} {y = ψ} {z = ρ} = map≡'-comp-∙ φ ψ ρ
 
   isFullyFaithful-map≡'Functor : Functor.isFullyFaithful map≡'Functor
-  isFullyFaithful-map≡'Functor (_ , φ) (_ , ψ) = equivIsEquiv (map≡'Equiv φ ψ)
+  isFullyFaithful-map≡'Functor φ ψ = equivIsEquiv (map≡'Equiv φ ψ)
 
-  map≡-id-refl : (φ : Conjugators.ob) → map≡ (φ .snd) (φ .snd) (Conjugators.id {φ}) ≡ refl′ (map (φ .snd))
+  map≡-id-refl : (φ : Conjugators.ob) → map≡ φ φ (Conjugators.id {φ}) ≡ refl′ (map φ)
   map≡-id-refl φ = cong funExt (Map.mapDepSquare 𝔹H.loop-1)
 
   map≡-comp-∙ : (φ ψ ρ : Conjugators.ob)
     (h₁ : Conjugators [ φ , ψ ])
     (h₂ : Conjugators [ ψ , ρ ])
     → (let _⋆̂_ = Conjugators._⋆_ {x = φ} {y = ψ} {z = ρ})
-    → map≡ (φ .snd) (ρ .snd) (h₁ ⋆̂ h₂) ≡ map≡ (φ .snd) (ψ .snd) h₁ ∙ map≡ (ψ .snd) (ρ .snd) h₂
+    → map≡ φ ρ (h₁ ⋆̂ h₂) ≡ map≡ φ ψ h₁ ∙ map≡ ψ ρ h₂
   map≡-comp-∙ _ _ _ (h₁ , _) (h₂ , _) = cong funExt (Map.mapDepSquare (sym (𝔹H.loop-∙ h₁ h₂)))
 
   map≡Functor : Functor Conjugators DeloopingPathCategory
-  map≡Functor .Functor.F-ob (_ , φ) = map φ
-  map≡Functor .Functor.F-hom {x = (_ , φ)} {y = (_ , ψ)} = map≡ φ ψ
+  map≡Functor .Functor.F-ob φ = map φ
+  map≡Functor .Functor.F-hom {x = φ} {y = ψ} = map≡ φ ψ
   map≡Functor .Functor.F-id {x = φ} = map≡-id-refl φ
   map≡Functor .Functor.F-seq {x = φ} {y = ψ} {z = ρ} = map≡-comp-∙ φ ψ ρ
 
   isFullyFaithful-map≡Functor : Functor.isFullyFaithful map≡Functor
-  isFullyFaithful-map≡Functor (_ , φ) (_ , ψ) = equivIsEquiv (map≡Equiv φ ψ)
+  isFullyFaithful-map≡Functor φ ψ = equivIsEquiv (map≡Equiv φ ψ)
 
 module Global {ℓ : Level} where
   open import GpdCont.WildCat.HomotopyCategory as HomotopyCategory using (ho)

@@ -31,8 +31,11 @@ ho C = def where
   def .Category.⋆Assoc = {! !}
   def .Category.isSetHom = isSet-∥C[-,-]∥₂
 
-module _ {C : WildCat ℓo ℓh} where
+module Notation (C : WildCat ℓo ℓh) where
   private module C = WildCat C
+
+  hoHom : (c d : C.ob) → Type _
+  hoHom = ho C .Category.Hom[_,_]
 
   trunc-hom : {c d : C.ob} → C [ c , d ]ʷ → ho C [ c , d ]
   trunc-hom = ST.∣_∣₂

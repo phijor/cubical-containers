@@ -5,6 +5,8 @@ open import GpdCont.HomotopySet using (_→Set_)
 open import GpdCont.GroupAction.Base
 open import GpdCont.GroupAction.Equivariant
 open import GpdCont.DisplayedCategories using (Fam ; Famᴰ ; constᴰ)
+open import GpdCont.Group.DeloopingCategory using (DeloopingCategory)
+open import GpdCont.Group.MapConjugator using (Conjugatorsᴰ)
 
 open import Cubical.Foundations.Equiv using (equiv→ ; _∙ₑ_ ; equivEq)
 open import Cubical.Foundations.HLevels
@@ -97,17 +99,14 @@ module LocalCategory {ℓ} (σ*@((G , X) , σ) τ*@((H , Y), τ): GroupAction.ob
     cellData : (φ : Cell) → (⟨ G ⟩ → ⟨ H ⟩) × (⟨ Y ⟩ → ⟨ X ⟩)
     cellData (((φ , _) , f) , _) = φ , f
 
+  homData = cellData
+
+  hom→isGroupHom : (φ* : Cell) → (let (φ , _) = cellData φ*) → IsGroupHom (str G) φ (str H)
+  hom→isGroupHom (((φ , φ-hom) , f) , _) = φ-hom
+
   -- H seen as a one-object category
   SymmCat : Category ℓ-zero _
-  SymmCat .Category.ob = Unit
-  SymmCat .Category.Hom[_,_] _ _ = ⟨ H ⟩
-  SymmCat .Category.id = H.1g
-  SymmCat .Category._⋆_ = H._·_
-  SymmCat .Category.⋆IdL = H.·IdL
-  SymmCat .Category.⋆IdR = H.·IdR
-  SymmCat .Category.⋆Assoc _ _ _ = sym $ H.·Assoc _ _ _
-  SymmCat .Category.isSetHom = H.is-set
-
+  SymmCat = DeloopingCategory H
 
   isConjugator : (φ ψ : Cell) → ⟨ H ⟩ → Type _
   isConjugator φ* ψ* h
@@ -163,16 +162,29 @@ module LocalCategory {ℓ} (σ*@((G , X) , σ) τ*@((H , Y), τ): GroupAction.ob
 
   module ConjugatorCat = Category ConjugatorCat
 
-  conjugator : ConjugatorCat.ob → ⟨ H ⟩
-  conjugator (x , y) = {! !}
+  EquivariantConjugatorStr : StructureOver SymmCat _ _
+  EquivariantConjugatorStr .StructureOver.ob[_] = const (⟨ Y ⟩ → ⟨ X ⟩)
+  EquivariantConjugatorStr .StructureOver.Hom[_][_,_] h f₁ f₂ = f₁ ≡ f₂ ∘ (τ ⁺ h)
+  EquivariantConjugatorStr .StructureOver.idᴰ {p = f} = cong (f ∘_) $ sym τ.action-1-id
+  EquivariantConjugatorStr .StructureOver._⋆ᴰ_ {f = h} {g = h′} {xᴰ = f₁} {yᴰ = f₂} {zᴰ = f₃} f₁≡f₂∘τh f₂≡f₃∘τh′ =
+    f₁ ≡⟨ f₁≡f₂∘τh ⟩
+    f₂ ∘ (τ ⁺ h) ≡⟨ cong (_∘ τ ⁺ h) f₂≡f₃∘τh′ ⟩
+    f₃ ∘ (τ ⁺ h′) ∘ (τ ⁺ h) ≡⟨ cong (f₃ ∘_) $ sym (τ.action-comp h h′) ⟩
+    f₃ ∘ τ ⁺ (h · h′) ∎
+  EquivariantConjugatorStr .StructureOver.isPropHomᴰ = isSet→ (str X) _ _
 
-  Conjugator≡ : (h₁ h₂ : ConjugatorCat.ob) → (h₁ .snd) ≡ (h₂ .snd) → h₁ ≡ h₂
-  Conjugator≡ = {! !}
+  EquivariantConjugatorᴰ : Categoryᴰ SymmCat _ _
+  EquivariantConjugatorᴰ = StructureOver→Catᴰ EquivariantConjugatorStr
 
-  -- Conjugator≡ : (φ ψ : Cell) → {h₁ h₂ : Conjugator φ ψ} → h₁ .fst ≡ h₂ .fst → h₁ ≡ h₂
-  -- Conjugator≡ _ _ p i .fst = p i
-  -- Conjugator≡ φ ψ {h₁} {h₂} p i .snd = isProp→PathP (λ i → isPropIsConjugator φ ψ (p i)) (h₁ .snd) (h₂ .snd) i
+  ConjugatorCat' : Category ℓ ℓ
+  ConjugatorCat' = ∫C {C = SymmCat} (Conjugatorsᴰ {G = G} {H} ×ᴰ EquivariantConjugatorᴰ)
 
+  conjugator :  ∀ φ ψ → (h : ConjugatorCat.Hom[ φ , ψ ]) → ⟨ H ⟩
+  conjugator _ _ = fst
+
+  Conjugator≡ : ∀ {φ ψ} → (h₁ h₂ : ConjugatorCat.Hom[ φ , ψ ]) → conjugator φ ψ h₁ ≡ conjugator φ ψ h₂ → h₁ ≡ h₂
+  Conjugator≡ {φ} {ψ} (h₁ , h₁-conj) (h₂ , h₂-conj) p = Sigma.ΣPathP
+    (p , isProp→PathP (λ i → isPropIsConjugator (φ .snd) (ψ .snd) (p i)) h₁-conj h₂-conj)
 
 {-
   Actᴰ : Categoryᴰ (GroupCategory {ℓ = ℓ}) (ℓ-suc ℓ) ℓ

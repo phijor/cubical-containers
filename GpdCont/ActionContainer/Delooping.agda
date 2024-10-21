@@ -326,7 +326,7 @@ module Functor {ℓ} where
       (λ x → isOfHLevelPathP' 1 (isSetΠ λ _ → 𝔹C.is-set-pos (s , x)) _ _)
       refl
 
-  trunc-symm = trunc-hom {C = SymmCont ℓ}
+  trunc-symm = Notation.trunc-hom (SymmCont ℓ)
 
   opaque
     trunc-symm-path : ∀ {C D} {F G : SymmCont.Hom[ C , D ]} → F ≡ G → trunc-symm F ≡ trunc-symm G
@@ -334,6 +334,6 @@ module Functor {ℓ} where
 
   DeloopingFunctor : Functor (Act {ℓ}) (ho $ SymmCont ℓ)
   DeloopingFunctor .Functor.F-ob = Lift
-  DeloopingFunctor .Functor.F-hom = trunc-hom ∘ LiftMorphism
+  DeloopingFunctor .Functor.F-hom = trunc-symm ∘ LiftMorphism
   DeloopingFunctor .Functor.F-id {(C)} = trunc-symm-path $ LiftId C
   DeloopingFunctor .Functor.F-seq F G = trunc-symm-path $ LiftComp F G

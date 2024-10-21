@@ -1,3 +1,4 @@
+{-# OPTIONS --lossy-unification #-}
 module GpdCont.Delooping.Map where
 
 open import GpdCont.Prelude
@@ -9,20 +10,24 @@ open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Equiv.Properties
 open import Cubical.Foundations.Path as Path
 open import Cubical.Foundations.Univalence using (pathToEquiv)
+open import Cubical.Foundations.Pointed using (_→∙_ ; idfun∙)
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma
 open import Cubical.Algebra.Group
 open import Cubical.Algebra.Group.Morphisms
-open import Cubical.Algebra.Group.MorphismProperties using (idGroupHom)
+open import Cubical.Algebra.Group.MorphismProperties using (idGroupHom ; compGroupHom)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 
 private
   variable
     ℓ : Level
-    G H : Group ℓ
+    G H K : Group ℓ
 
   𝔹 : (G : Group ℓ) → Type ℓ
   𝔹 = uncurry Delooping.𝔹
+
+  𝔹⋆ : {G : Group ℓ} → 𝔹 G
+  𝔹⋆ = Delooping.𝔹.⋆
 
 map : (φ : GroupHom G H) → 𝔹 G → 𝔹 H
 map {G} {H} (φ , is-hom-φ) = Delooping.rec ⟨ G ⟩ (str G) Delooping.isGroupoid𝔹 Delooping.⋆ φ′ φ′-comm where
@@ -40,6 +45,13 @@ map {G} {H} (φ , is-hom-φ) = Delooping.rec ⟨ G ⟩ (str G) Delooping.isGroup
 map-id : (G : Group ℓ) → map (idGroupHom {G = G}) ≡ id (𝔹 G)
 map-id G = funExt (Delooping.elimSet ⟨ G ⟩  (str G) (λ _ → Delooping.isGroupoid𝔹 _ _) refl λ g i j → Delooping.loop g i)
 
+map-comp : (φ : GroupHom G H) (ψ : GroupHom H K) → map (compGroupHom φ ψ) ≡ map φ ⋆ map ψ
+map-comp {G} (φ , _) (ψ , _) = funExt $ Delooping.elimSet ⟨ G ⟩ (str G) (λ _ → Delooping.isGroupoid𝔹 _ _) refl λ g i j → Delooping.loop (ψ $ φ g) i
+
+map∙ : (φ : GroupHom G H) → (𝔹 G , 𝔹⋆) →∙ (𝔹 H , 𝔹⋆)
+map∙ φ .fst = map φ
+map∙ φ .snd = refl
+
 module _
   {φ*@(φ , _) ψ*@(ψ , _) : GroupHom G H}
   (open GroupStr (str H) using (_·_))
@@ -51,15 +63,39 @@ module _
     module BH = Delooping ⟨ H ⟩ (str H)
     module H = GroupStr (str H)
 
-    map-ext-⋆ : BH.⋆ ≡ BH.⋆
-    map-ext-⋆ = BH.loop h
+  map-ext-⋆ : BH.⋆ ≡ BH.⋆
+  map-ext-⋆ = BH.loop h
 
-    map-ext-loop : ∀ g → Square (BH.loop h) (BH.loop h) (BH.loop (φ g)) (BH.loop (ψ g))
-    map-ext-loop g = Path.compPath→Square $
-      BH.loop (φ g) ∙ BH.loop h ≡⟨ BH.loop-∙ (φ g) h ⟩
-      BH.loop (φ g H.· h)       ≡⟨ cong BH.loop (h-conj g) ⟩
-      BH.loop (h H.· ψ g)       ≡⟨ sym $ BH.loop-∙ h (ψ g) ⟩
-      BH.loop h ∙ BH.loop (ψ g) ∎
+  map-ext-loop' : ∀ g → Square (BH.loop h) (BH.loop h) (BH.loop (φ g)) (BH.loop (ψ g))
+  map-ext-loop' g = λ i j → hcomp {φ = ∂² i j} (sides i j) (base i j) where
+    -- base : Square (BH.loop $ φ g H.· h) (BH.loop $ h H.· ψ g) refl refl
+    -- base = cong BH.loop (h-conj g)
+
+    base : Square refl refl (BH.loop $ φ g H.· h) (BH.loop $ h H.· ψ g)
+    base i j = BH.loop (h-conj g j) i
+
+    side-φg·h : Square refl (sym $ BH.loop h) (BH.loop (φ g H.· h)) (BH.loop (φ g))
+    side-φg·h i k = BH.loop-comp (φ g) h (~ k) i
+
+    side-h·ψg : Square (BH.loop h) refl (BH.loop (h H.· ψ g)) (BH.loop (ψ g))
+    side-h·ψg i k = {!BH.loop-comp h (ψ g) !}
+
+
+    sides : (i j k : I) → Partial (∂² i j) BH.𝔹
+    sides i j k (i = i0) = {! !} -- side-φg·h j k
+    sides i j k (i = i1) = {!  !}
+    sides i j k (j = i0) = side-φg·h i k
+    sides i j k (j = i1) = side-h·ψg i k
+
+  map-ext-loop : ∀ g → Square (BH.loop h) (BH.loop h) (BH.loop (φ g)) (BH.loop (ψ g))
+  map-ext-loop g = Path.compPath→Square $ BH.loop-∙ (φ g) h ∙∙ cong BH.loop (h-conj g) ∙∙ (sym $ BH.loop-∙ h (ψ g))
+
+  map-ext-loop₂ : ∀ g → Square (BH.loop h) (BH.loop h) (BH.loop (φ g)) (BH.loop (ψ g))
+  map-ext-loop₂ g = Path.compPath→Square $
+    BH.loop (φ g) ∙ BH.loop h ≡⟨ BH.loop-∙ (φ g) h ⟩
+    BH.loop (φ g H.· h)       ≡⟨ cong BH.loop (h-conj g) ⟩
+    BH.loop (h H.· ψ g)       ≡⟨ sym $ BH.loop-∙ h (ψ g) ⟩
+    BH.loop h ∙ BH.loop (ψ g) ∎
 
   map≡-ext : (x : 𝔹 G) → map φ* x ≡ map ψ* x
   map≡-ext = BG.elimSet (λ x → BH.isGroupoid𝔹 (map φ* x) (map ψ* x)) map-ext-⋆ map-ext-loop
@@ -70,6 +106,17 @@ Conjugator {H} (φ , _) (ψ , _) = Σ[ h ∈ ⟨ H ⟩ ] ∀ g → φ g · h ≡
 
 map≡ : (φ ψ : GroupHom G H) → Conjugator φ ψ → map φ ≡ map ψ
 map≡ φ ψ (h , h-conj) = funExt $ map≡-ext {φ* = φ} {ψ* = ψ} h h-conj
+
+-- Computation rule for map≡ on loops
+module _ {G H : Group ℓ} where
+  open GroupStr (str H) using (_·_)
+
+  map≡-loopᵝ : (φ ψ : GroupHom G H) (h : Conjugator φ ψ) (g : ⟨ G ⟩)
+    → cong₂ _$_ (map≡ φ ψ h) (Delooping.loop g) ≡ Delooping.loop (h .fst · ψ .fst g)
+  map≡-loopᵝ φ ψ h*@(h , h-conj) g =
+    cong₂ _$_ (map≡ φ ψ h*) (Delooping.loop g)    ≡⟨ SquareDiag≡pathComp $ map-ext-loop {φ* = φ} {ψ* = ψ} h h-conj g ⟩
+    Delooping.loop h ∙ Delooping.loop (ψ .fst g)  ≡⟨ Delooping.loop-∙ _ _ h (ψ .fst g) ⟩
+    Delooping.loop (h · ψ .fst g) ∎
 
 module _ {f g : 𝔹 G → 𝔹 H}
   {p₀ : (x : 𝔹 G) → f x ≡ g x}

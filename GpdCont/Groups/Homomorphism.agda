@@ -47,3 +47,18 @@ compIdR : (φ : GroupHom G H) → comp φ (id H) ≡ φ
 compIdR {H} φ = GroupHom≡ refl pres-pt-path where
   pres-pt-path : cong ⟪ id H ⟫ ⟪ φ ⟫-pres-pt ∙ refl ≡ ⟪ φ ⟫-pres-pt
   pres-pt-path = sym $ GL.rUnit $ ⟪ φ ⟫-pres-pt
+
+private
+  _⋆Grp_ = comp
+
+compAssoc : {G H K L : Group ℓ} (φ : GroupHom G H) (ψ : GroupHom H K) (ρ : GroupHom K L)
+  → (φ ⋆Grp ψ) ⋆Grp ρ ≡ φ ⋆Grp (ψ ⋆Grp ρ)
+compAssoc φ ψ ρ = GroupHom≡ refl $
+    cong ⟪ ρ ⟫ (cong ⟪ ψ ⟫ ⟪ φ ⟫-pres-pt ∙ ⟪ ψ ⟫-pres-pt) ∙ ⟪ ρ ⟫-pres-pt
+  ≡[ i ]⟨ GL.cong-∙ ⟪ ρ ⟫ (cong ⟪ ψ ⟫ ⟪ φ ⟫-pres-pt) ⟪ ψ ⟫-pres-pt i ∙ ⟪ ρ ⟫-pres-pt ⟩
+    (cong ⟪ ρ ⟫ (cong ⟪ ψ ⟫ ⟪ φ ⟫-pres-pt) ∙ (cong ⟪ ρ ⟫ ⟪ ψ ⟫-pres-pt)) ∙ ⟪ ρ ⟫-pres-pt
+  ≡⟨ sym (GL.assoc _ _ _) ⟩
+    cong ⟪ ρ ⟫ (cong ⟪ ψ ⟫ ⟪ φ ⟫-pres-pt) ∙ ((cong ⟪ ρ ⟫ ⟪ ψ ⟫-pres-pt) ∙ ⟪ ρ ⟫-pres-pt)
+  ≡⟨⟩
+    cong ⟪ ψ ⋆Grp ρ ⟫ ⟪ φ ⟫-pres-pt ∙ ⟪ ψ ⋆Grp ρ ⟫-pres-pt
+  ∎

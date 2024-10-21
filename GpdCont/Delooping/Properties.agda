@@ -19,6 +19,7 @@ open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Equiv.Properties
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.GroupoidLaws
 open import Cubical.Foundations.Path using (compPath→Square)
 open import Cubical.Foundations.Univalence hiding (elimIso ; ua→)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
@@ -51,6 +52,13 @@ coerceLoopCompSquareFiller {g} {h} {r} p i j = hcomp {φ = i ∨ ~ i ∨ j ∨ ~
     k (j = i1) → Delooping.loop h i
   )
   (𝔹.loop-comp g h i j)
+
+isPropDeloopingSquare :
+  {x₀₀ x₀₁ : 𝔹} {x₀₋ : x₀₀ ≡ x₀₁}
+  {x₁₀ x₁₁ : 𝔹} {x₁₋ : x₁₀ ≡ x₁₁}
+  {x₋₀ : x₀₀ ≡ x₁₀} {x₋₁ : x₀₁ ≡ x₁₁}
+  → isProp (Square x₀₋ x₁₋ x₋₀ x₋₁)
+isPropDeloopingSquare sq₁ sq₂ = isGroupoid→isGroupoid' Delooping.isGroupoid𝔹 sq₁ sq₂ refl refl refl refl
 
 private
   conjugate : (g : G) → G → G
@@ -157,8 +165,7 @@ encodeDecode = isoToEquiv encodeDecodeIso
 π₁ X x₀ .snd .AbsGroupStr.1g = refl
 π₁ X x₀ .snd .AbsGroupStr._·_ = _∙_
 π₁ X x₀ .snd .AbsGroupStr.inv = sym
-π₁ X x₀ .snd .AbsGroupStr.isGroup = makeIsGroup (str X x₀ x₀) assoc (sym ∘ rUnit) (sym ∘ lUnit) rCancel lCancel where
-  open import Cubical.Foundations.GroupoidLaws
+π₁ X x₀ .snd .AbsGroupStr.isGroup = makeIsGroup (str X x₀ x₀) assoc (sym ∘ rUnit) (sym ∘ lUnit) rCancel lCancel
 
 private
   π₁𝔹 : AbsGroup _
@@ -204,6 +211,13 @@ recEquiv {X = (X , is-gpd-X)} = rec-equiv , is-equiv where
 
   is-equiv : isEquiv rec-equiv
   is-equiv = isoToIsEquiv recIso
+
+module _ {ℓ'} {B : 𝔹 → Type ℓ'} where
+  cong⋆ : {f g : ∀ x → B x} (p : f ≡ g) → PathP (λ i → B 𝔹.⋆) (f 𝔹.⋆) (g 𝔹.⋆)
+  cong⋆ = cong (λ f → f 𝔹.⋆)
+
+  cong⋆-∙ : {f g h : ∀ x → B x} (p : f ≡ g) (q : g ≡ h) → cong⋆ (p ∙ q) ≡ cong⋆ p ∙ cong⋆ q
+  cong⋆-∙ = cong-∙ (λ f → f 𝔹.⋆)
 
 private
   variable

@@ -1,4 +1,4 @@
 name: groupoid-containers
 include: .
 depend: cubical cubical-categorical-logic
-flags: --cubical --postfix-projections --hidden-argument-puns --exact-split --no-save-metas --allow-unsolved-metas
+flags: --cubical --postfix-projections --hidden-argument-puns --exact-split --allow-unsolved-metas --no-require-unique-meta-solutions

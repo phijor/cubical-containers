@@ -7,8 +7,12 @@ import GpdCont.HomotopySet as HSet
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism as Iso using ()
 open import Cubical.Data.Sigma
+open import Cubical.HITs.PropositionalTruncation as PT using ()
 
 open import Cubical.Categories.Category.Base using (Category ; _[_,_] ; seq')
+open import Cubical.Categories.Functor.Base
+open import Cubical.Categories.Equivalence.Base using (_≃ᶜ_)
+open import Cubical.Categories.Equivalence.AdjointEquivalence using (AdjointEquivalence)
 open import Cubical.Categories.Instances.Sets using (SET)
 open import Cubical.Categories.Limits.BinProduct as BP using (BinProducts)
 open import Cubical.Categories.Limits.BinProduct.More as BP
@@ -159,3 +163,63 @@ module FamExponentials {ℓ} (C : Category ℓ ℓ) (bp : BinProducts C) (exp : 
     ue .UniversalElement.vertex = x ⇒Π y
     ue .UniversalElement.element = (λ { x₁ → {! !} }) , {! !}
     ue .UniversalElement.universal = {! !}
+    -}
+
+module DisplayedOverContr {ℓo ℓh ℓoᴰ ℓhᴰ} (C : Category ℓo ℓh) (Cᴰ : Categoryᴰ C ℓoᴰ ℓhᴰ)
+  (contr-ob : isContr (C .Category.ob))
+  where
+
+  private
+    x₀ = contr-ob .fst
+
+    contr-x₀ : ∀ x → x₀ ≡ x
+    contr-x₀ = contr-ob .snd
+
+    contr′-x₀ : ∀ {x} → x ≡ x₀
+    contr′-x₀ = sym $ contr-x₀ _
+
+    module C = Category C
+    E = C.Hom[ x₀ , x₀ ]
+    module Cᴰ = Categoryᴰ Cᴰ
+
+    ob-elim : ∀ {ℓ} {B : C.ob → Type ℓ} → (b₀ : B x₀) → ∀ x → B x
+    ob-elim {B} b₀ x = subst B (contr-x₀ x) b₀
+
+    ob-elim2 : ∀ {ℓ} {B : (x x′ : C.ob) → Type ℓ} → (b₀ : B x₀ x₀) → ∀ x x′ → B x x′
+    ob-elim2 {B} b₀ x x′ = subst2 B (contr-x₀ x) (contr-x₀ x′) b₀
+
+  ∫ᶜ : Category ℓoᴰ (ℓ-max ℓh ℓhᴰ)
+  ∫ᶜ .Category.ob = Cᴰ.ob[ x₀ ]
+  ∫ᶜ .Category.Hom[_,_] x y = Σ[ e ∈ E ] Cᴰ.Hom[ e ][ x , y ]
+  ∫ᶜ .Category.id .fst = C.id
+  ∫ᶜ .Category.id .snd = Cᴰ.idᴰ
+  ∫ᶜ .Category._⋆_ (e₁ , fᴰ) (e₂ , gᴰ) .fst = e₁ C.⋆ e₂
+  ∫ᶜ .Category._⋆_ (e₁ , fᴰ) (e₂ , gᴰ) .snd = fᴰ Cᴰ.⋆ᴰ gᴰ
+  ∫ᶜ .Category.⋆IdL (e , fᴰ) i .fst = C.⋆IdL e i
+  ∫ᶜ .Category.⋆IdL (e , fᴰ) i .snd = Cᴰ.⋆IdLᴰ fᴰ i
+  ∫ᶜ .Category.⋆IdR (e , fᴰ) i .fst = C.⋆IdR e i
+  ∫ᶜ .Category.⋆IdR (e , fᴰ) i .snd = Cᴰ.⋆IdRᴰ fᴰ i
+  ∫ᶜ .Category.⋆Assoc (e₁ , fᴰ) (e₂ , gᴰ) (e₃ , hᴰ) i .fst = C.⋆Assoc e₁ e₂ e₃ i
+  ∫ᶜ .Category.⋆Assoc (e₁ , fᴰ) (e₂ , gᴰ) (e₃ , hᴰ) i .snd = Cᴰ.⋆Assocᴰ fᴰ gᴰ hᴰ i
+  ∫ᶜ .Category.isSetHom = isSetΣ C.isSetHom λ _ → Cᴰ.isSetHomᴰ
+
+  open Functor
+
+  ∫ᶜ→∫C : Functor ∫ᶜ (∫C Cᴰ)
+  ∫ᶜ→∫C .F-ob xᴰ = x₀ , xᴰ
+  ∫ᶜ→∫C .F-hom (e , fᴰ) = e , fᴰ
+  ∫ᶜ→∫C .F-id = refl
+  ∫ᶜ→∫C .F-seq (e₁ , fᴰ) (e₂ , gᴰ) = refl
+
+  ∫C→∫ᶜ : Functor (∫C Cᴰ) ∫ᶜ
+  ∫C→∫ᶜ .F-ob = uncurry $ ob-elim (id _)
+  ∫C→∫ᶜ .F-hom = goal _ _ _ _ where
+    goal : (x y : C.ob) → (xᴰ : Cᴰ.ob[ x ]) (yᴰ : Cᴰ.ob[ y ])
+      → (f : (∫C Cᴰ) [ (x , xᴰ) , (y , yᴰ) ])
+      → ∫ᶜ [ ∫C→∫ᶜ .F-ob (x , xᴰ) , ∫C→∫ᶜ .F-ob (y , yᴰ) ]
+    goal = ob-elim2 λ xᴰ yᴰ (e , f) → e , {! !}
+  ∫C→∫ᶜ .F-id = {! !}
+  ∫C→∫ᶜ .F-seq = {! !}
+
+  ∫ᶜ-equiv : ∫ᶜ ≃ᶜ ∫C {C = C} Cᴰ
+  ∫ᶜ-equiv = AdjointEquivalence.to≃ᶜ {! !}

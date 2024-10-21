@@ -1,6 +1,5 @@
 open import GpdCont.Prelude hiding (_⋆_)
 open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.HLevels.Extend using (∂)
 open import Cubical.Foundations.GroupoidLaws
 open import Cubical.Algebra.Group.Base
 
@@ -33,7 +32,7 @@ module GpdCont.Delooping.Base {ℓ} (G : Type ℓ) (γ : GroupStr G) where
     rhs : Square refl (sym $ loop 1g) (loop 1g) refl
     rhs j k = loop 1g (j ∧ ~ k)
 
-    sides : (k : I) → Partial (∂ i ∨ ∂ j) 𝔹
+    sides : (k : I) → Partial (∂² i j) 𝔹
     sides k (i = i0) = lhs j k
     sides k (i = i1) = rhs j k
     sides k (j = i0) = ⋆

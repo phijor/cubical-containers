@@ -61,111 +61,204 @@ module LevelNumber where
 
 open LevelNumber public
 
-private
-  variable
-    ℓ : Level
-    A : Type ℓ
-    x y z : A
+∂ : (i : I) → I
+∂ i = i ∨ ~ i
 
-compSquareFiller : (p : x ≡ y) (q : y ≡ z) (p∙q : x ≡ z) → Type _
-compSquareFiller {x} p q p∙q = Square p p∙q refl q
+∂² : (i j : I) → I
+∂² i j = ∂ i ∨ ∂ j
 
-pathComp→compSquareFiller : (p : x ≡ y) (q : y ≡ z) → compSquareFiller p q (p ∙ q)
-pathComp→compSquareFiller = compPath-filler
+module _ where
+  private
+    variable
+      ℓ : Level
+      A : Type ℓ
+      x y z w : A
 
-isPropCompSquareFiller : ∀ (p : x ≡ y) (q : y ≡ z) → isProp (Σ[ r ∈ x ≡ z ] compSquareFiller p q r)
-isPropCompSquareFiller p q = compPath-unique refl p q
+  compSquareFiller : (p : x ≡ y) (q : y ≡ z) (p∙q : x ≡ z) → Type _
+  compSquareFiller {x} p q p∙q = Square p p∙q refl q
 
-isContrCompSquareFiller : ∀ (p : x ≡ y) (q : y ≡ z) → isContr (Σ[ r ∈ x ≡ z ] compSquareFiller p q r)
-isContrCompSquareFiller p q .fst = p ∙ q , pathComp→compSquareFiller p q
-isContrCompSquareFiller p q .snd = isPropCompSquareFiller p q _
+  pathComp→compSquareFiller : (p : x ≡ y) (q : y ≡ z) → compSquareFiller p q (p ∙ q)
+  pathComp→compSquareFiller = compPath-filler
 
-coerceCompSquareFiller : {p : x ≡ y} {q : y ≡ z} {r : x ≡ z}
-  → (H : p ∙ q ≡ r)
-  → compSquareFiller p q r
-coerceCompSquareFiller {p} {q} H = subst (compSquareFiller p q) H $ pathComp→compSquareFiller p q
+  isPropCompSquareFiller : ∀ (p : x ≡ y) (q : y ≡ z) → isProp (Σ[ r ∈ x ≡ z ] compSquareFiller p q r)
+  isPropCompSquareFiller p q = compPath-unique refl p q
 
-compSquareFillerUnique : {p : x ≡ y} {q : y ≡ z} {r : x ≡ z}
-  → compSquareFiller p q r
-  → p ∙ q ≡ r
-compSquareFillerUnique sq = cong fst (isContrCompSquareFiller _ _ .snd (_ , sq))
+  isContrCompSquareFiller : ∀ (p : x ≡ y) (q : y ≡ z) → isContr (Σ[ r ∈ x ≡ z ] compSquareFiller p q r)
+  isContrCompSquareFiller p q .fst = p ∙ q , pathComp→compSquareFiller p q
+  isContrCompSquareFiller p q .snd = isPropCompSquareFiller p q _
 
-compSquarePFiller : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}
-  → ∀ {x y z : A} {p : x ≡ y} {q : y ≡ z} {p∙q : x ≡ z}
-  → (sq : compSquareFiller p q p∙q)
-  → (sec : (a : A) → B a)
-  → (sec-path : ∀ {x y : A} → (p : x ≡ y) → PathP (λ i → B (p i)) (sec x) (sec y))
-  → Type ℓB
-compSquarePFiller {B} {x} {p} {q} {p∙q} sq sec sec-path = SquareP (λ i j → B (sq i j)) (sec-path p) (sec-path p∙q) (refl {x = sec x}) (sec-path q)
+  coerceCompSquareFiller : {p : x ≡ y} {q : y ≡ z} {r : x ≡ z}
+    → (H : p ∙ q ≡ r)
+    → compSquareFiller p q r
+  coerceCompSquareFiller {p} {q} H = subst (compSquareFiller p q) H $ pathComp→compSquareFiller p q
 
-doubleCompPathP : ∀ {ℓ} (A : (i j : I) → Type ℓ)
-  → {a₀₀ : A i0 i0} {a₀₁ : A i0 i1} {a₁₀ : A i1 i0} {a₁₁ : A i1 i1}
-  → PathP (λ i → A i i0) a₀₀ a₁₀
-  → PathP (λ j → A i0 j) a₀₀ a₀₁
-  → PathP (λ i → A i i1) a₀₁ a₁₁
-  → PathP (λ j → A i1 j) a₁₀ a₁₁
-doubleCompPathP A p q r j = comp (λ i → A i j) {φ = j ∨ ~ j}
-  (λ where
-    i (j = i0) → p i
-    i (j = i1) → r i
-  )
-  (q j)
+  compSquareFillerUnique : {p : x ≡ y} {q : y ≡ z} {r : x ≡ z}
+    → compSquareFiller p q r
+    → p ∙ q ≡ r
+  compSquareFillerUnique sq = cong fst (isContrCompSquareFiller _ _ .snd (_ , sq))
 
-opaque
-  compPath≡Square : {a b c d : A} {p : a ≡ c} {q : b ≡ d} {r : a ≡ b} {s : c ≡ d}
+  compSquarePFiller : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}
+    → ∀ {x y z : A} {p : x ≡ y} {q : y ≡ z} {p∙q : x ≡ z}
+    → (sq : compSquareFiller p q p∙q)
+    → (sec : (a : A) → B a)
+    → (sec-path : ∀ {x y : A} → (p : x ≡ y) → PathP (λ i → B (p i)) (sec x) (sec y))
+    → Type ℓB
+  compSquarePFiller {B} {x} {p} {q} {p∙q} sq sec sec-path = SquareP (λ i j → B (sq i j)) (sec-path p) (sec-path p∙q) (refl {x = sec x}) (sec-path q)
+
+  module _ {A : Type ℓ} {x y z w : A} {p : x ≡ y} {q : y ≡ z} {r : x ≡ w} {s : w ≡ z} (sq : Square p s r q) where
+    SquareDiag : x ≡ z
+    SquareDiag i = sq i i
+
+    diagFiller : compSquareFiller p q SquareDiag
+    diagFiller i j = sq (j ∧ i) j
+
+    diagFiller' : compSquareFiller r s SquareDiag
+    diagFiller' i j = sq j (j ∧ i)
+
+    SquareDiag≡pathComp : SquareDiag ≡ p ∙ q
+    SquareDiag≡pathComp = sym $ compSquareFillerUnique diagFiller
+
+    SquareDiag≡pathComp' : SquareDiag ≡ r ∙ s
+    SquareDiag≡pathComp' = sym $ compSquareFillerUnique diagFiller'
+
+  doubleCompPathP : ∀ {ℓ} (A : (i j : I) → Type ℓ)
+    → {a₀₀ : A i0 i0} {a₀₁ : A i0 i1} {a₁₀ : A i1 i0} {a₁₁ : A i1 i1}
+    → PathP (λ i → A i i0) a₀₀ a₁₀
+    → PathP (λ j → A i0 j) a₀₀ a₀₁
+    → PathP (λ i → A i i1) a₀₁ a₁₁
+    → PathP (λ j → A i1 j) a₁₀ a₁₁
+  doubleCompPathP A p q r j = comp (λ i → A i j) {φ = j ∨ ~ j}
+    (λ where
+      i (j = i0) → p i
+      i (j = i1) → r i
+    )
+    (q j)
+
+  compPath≡Square' : {a b c d : A} {p : a ≡ c} {q : b ≡ d} {r : a ≡ b} {s : c ≡ d}
     → (p ∙ s ≡ r ∙ q) ≡ (Square r s p q)
-  compPath≡Square {A} {a} {d} {p} {q} {r} {s} = goal where
+  compPath≡Square' {A} {a} {b} {d} {p} {q} {r} {s} = goal where
     open import Cubical.Foundations.Path
-    open import Cubical.Foundations.Univalence
-    open import Cubical.Foundations.GroupoidLaws
+    goal : PathP (λ i → a ≡ d) (p ∙ s) (r ∙ q) ≡ PathP (λ i → p i ≡ q i) r s
+    goal i = PathP Sq (sq₀ i) (sq₁ i) where
+      Sq : (j : I) → Type _
+      Sq j = p (i ∧ j) ≡ q (~ i ∨ j)
 
-    goal : (p ∙ s ≡ r ∙ q) ≡ (Square r s p q)
-    goal =
-      (p ∙ s ≡ r ∙ q)                     ≡⟨ ua (strictIsoToEquiv symIso) ⟩
-      (r ∙ q ≡ p ∙ s)                     ≡⟨ ua (congEquiv (compPathlEquiv (sym p))) ⟩
-      (sym p ∙ (r ∙ q) ≡ sym p ∙ (p ∙ s)) ≡[ i ]⟨ sym p ∙ (r ∙ q) ≡ assoc (sym p) p s i ⟩
-      (sym p ∙ (r ∙ q) ≡ (sym p ∙ p) ∙ s) ≡[ i ]⟨ sym p ∙ (r ∙ q) ≡ lCancel p i ∙ s ⟩
-      (sym p ∙ (r ∙ q) ≡ refl ∙ s)        ≡[ i ]⟨ sym p ∙ (r ∙ q) ≡ lUnit s (~ i) ⟩
-      (sym p ∙ (r ∙ q) ≡ s)               ≡⟨ cong (_≡ s) $ sym (doubleCompPath-elim' (sym p) r q) ⟩
-      (sym p ∙∙ r ∙∙ q ≡ s)               ≡⟨ sym (PathP≡doubleCompPathˡ p r s q) ⟩
-      (Square r s p q) ∎
+      constr : (j : I) → Partial (i ∨ ~ i) (Type _)
+      constr j (i = i0) = a ≡ d
+      constr j (i = i1) = p j ≡ q j
 
-compPath≃Square : {a b c d : A} {p : a ≡ c} {q : b ≡ d} {r : a ≡ b} {s : c ≡ d}
-  → (p ∙ s ≡ r ∙ q) ≃ (Square r s p q)
-compPath≃Square {p} {q} {r} {s} = pathToEquiv compPath≡Square where
-  open import Cubical.Foundations.Univalence using (pathToEquiv)
+      _ : (j : I) → Type _ [ (i ∨ ~ i) ↦ constr j ]
+      _ = λ j → inS (Sq j)
 
-substCodomain : ∀ {ℓ′ ℓ″} {x y : A} (B : A → Type ℓ′) {C : Type ℓ″} (p : x ≡ y) (f : B x → C)
-  → subst (λ a → B a → C) p f ≡ f ∘ subst B (sym p)
-substCodomain {A} {x} B {C} = J (λ y p → (f : B x → C) → subst (λ a → B a → C) p f ≡ f ∘ subst B (sym p)) goal
-  where module _ (f : B x → C) where
-    B→C = λ a → B a → C
+      sq₀ : PathP (λ i → a ≡ q (~ i)) (p ∙ s) r
+      sq₀ i j = {! !}
 
-    step₁ : subst B→C refl f ≡ f
-    step₁ = substRefl {B = B→C} f
+      sq₁ : PathP (λ i → p i ≡ d) (r ∙ q) s
+      sq₁ i j = {! !}
 
-    step₂ : f ≡ f ∘ subst B refl
-    step₂ = funExt λ a → cong f $ sym (substRefl {B = B} a)
+  opaque
+    compPath≡Square : {a b c d : A} {p : a ≡ c} {q : b ≡ d} {r : a ≡ b} {s : c ≡ d}
+      → (p ∙ s ≡ r ∙ q) ≡ (Square r s p q)
+    compPath≡Square {A} {a} {d} {p} {q} {r} {s} = goal where
+      open import Cubical.Foundations.Path
+      open import Cubical.Foundations.Univalence
+      open import Cubical.Foundations.GroupoidLaws
 
-    goal : subst (λ a → B a → C) refl f ≡ f ∘ subst B refl
-    goal = step₁ ∙ step₂
+      goal : (p ∙ s ≡ r ∙ q) ≡ (Square r s p q)
+      goal =
+        (p ∙ s ≡ r ∙ q)                     ≡⟨ ua (strictIsoToEquiv symIso) ⟩
+        (r ∙ q ≡ p ∙ s)                     ≡⟨ ua (congEquiv (compPathlEquiv (sym p))) ⟩
+        (sym p ∙ (r ∙ q) ≡ sym p ∙ (p ∙ s)) ≡[ i ]⟨ sym p ∙ (r ∙ q) ≡ assoc (sym p) p s i ⟩
+        (sym p ∙ (r ∙ q) ≡ (sym p ∙ p) ∙ s) ≡[ i ]⟨ sym p ∙ (r ∙ q) ≡ lCancel p i ∙ s ⟩
+        (sym p ∙ (r ∙ q) ≡ refl ∙ s)        ≡[ i ]⟨ sym p ∙ (r ∙ q) ≡ lUnit s (~ i) ⟩
+        (sym p ∙ (r ∙ q) ≡ s)               ≡⟨ cong (_≡ s) $ sym (doubleCompPath-elim' (sym p) r q) ⟩
+        (sym p ∙∙ r ∙∙ q ≡ s)               ≡⟨ sym (PathP≡doubleCompPathˡ p r s q) ⟩
+        (Square r s p q) ∎
 
-preCompAdjointEquiv : ∀ {ℓ ℓ′ ℓ″} {A : Type ℓ} {B : Type ℓ′} {C : Type ℓ″}
-  → (e : A ≃ B)
-  → (f : A → C)
-  → (g : B → C)
-  → (g ≡ f ∘ invEq e) ≃ (g ∘ equivFun e ≡ f)
-preCompAdjointEquiv e f g = equivAdjointEquiv (preCompEquiv e) {a = g} {b = f}
+  compPath≃Square : {a b c d : A} {p : a ≡ c} {q : b ≡ d} {r : a ≡ b} {s : c ≡ d}
+    → (p ∙ s ≡ r ∙ q) ≃ (Square r s p q)
+  compPath≃Square {p} {q} {r} {s} = pathToEquiv compPath≡Square where
+    open import Cubical.Foundations.Univalence using (pathToEquiv)
+
+  substCodomain : ∀ {ℓ′ ℓ″} {x y : A} (B : A → Type ℓ′) {C : Type ℓ″} (p : x ≡ y) (f : B x → C)
+    → subst (λ a → B a → C) p f ≡ f ∘ subst B (sym p)
+  substCodomain {A} {x} B {C} = J (λ y p → (f : B x → C) → subst (λ a → B a → C) p f ≡ f ∘ subst B (sym p)) goal
+    where module _ (f : B x → C) where
+      B→C = λ a → B a → C
+
+      step₁ : subst B→C refl f ≡ f
+      step₁ = substRefl {B = B→C} f
+
+      step₂ : f ≡ f ∘ subst B refl
+      step₂ = funExt λ a → cong f $ sym (substRefl {B = B} a)
+
+      goal : subst (λ a → B a → C) refl f ≡ f ∘ subst B refl
+      goal = step₁ ∙ step₂
+
+  preCompAdjointEquiv : ∀ {ℓ ℓ′ ℓ″} {A : Type ℓ} {B : Type ℓ′} {C : Type ℓ″}
+    → (e : A ≃ B)
+    → (f : A → C)
+    → (g : B → C)
+    → (g ≡ f ∘ invEq e) ≃ (g ∘ equivFun e ≡ f)
+  preCompAdjointEquiv e f g = equivAdjointEquiv (preCompEquiv e) {a = g} {b = f}
 
 
-isProp∃ : ∀ {ℓ'} (A : Type ℓ) (B : A → Type ℓ') → isProp (∃[ a ∈ A ] B a)
+module _ {ℓA ℓB ℓC} {A : Type ℓA} {B : Type ℓB} {C : Type ℓC}
+  (_□_ : A → B → C)
+  where
+    private
+      cong-□ : ∀ {x y u v} → x ≡ y → u ≡ v → x □ u ≡ y □ v
+      cong-□ p q = cong₂ _□_ p q
+
+    module _
+      {x₁ y₁ z₁ w₁ : A}
+      {x₂ y₂ z₂ w₂ : B}
+      (p₁ : x₁ ≡ y₁) (q₁ : y₁ ≡ z₁) (r₁ : z₁ ≡ w₁)
+      (p₂ : x₂ ≡ y₂) (q₂ : y₂ ≡ z₂) (r₂ : z₂ ≡ w₂)
+      where
+        cong₂-∙∙-filler : (k j i : I) → C
+        cong₂-∙∙-filler k j i = hfill sides base k where
+          φ = i ∨ ~ i ∨ j ∨ ~ j
+
+          sides : (k : I) → Partial φ C
+          sides k (i = i0) = p₁ (~ k) □ p₂ (~ k)
+          sides k (i = i1) = r₁ k □ r₂ k
+          sides k (j = i0) = doubleCompPath-filler p₁ q₁ r₁ k i □ doubleCompPath-filler p₂ q₂ r₂ k i
+          sides k (j = i1) = doubleCompPath-filler (cong-□ p₁ p₂) (cong-□ q₁ q₂) (cong-□ r₁ r₂) k i
+
+          base : C [ φ ↦ sides i0 ]
+          base = inS (q₁ i □ q₂ i)
+
+        cong₂-∙∙ : cong₂ _□_ (p₁ ∙∙ q₁ ∙∙ r₁) (p₂ ∙∙ q₂ ∙∙ r₂) ≡ cong₂ _□_ p₁ p₂ ∙∙ cong₂ _□_ q₁ q₂ ∙∙ cong₂ _□_ r₁ r₂
+        cong₂-∙∙ j i = cong₂-∙∙-filler i1 j i
+
+    cong₂-∙ : {x₁ y₁ z₁ : A} {x₂ y₂ z₂ : B}
+      (p₁ : x₁ ≡ y₁) (q₁ : y₁ ≡ z₁)
+      (p₂ : x₂ ≡ y₂) (q₂ : y₂ ≡ z₂)
+      → cong₂ _□_ (p₁ ∙ q₁) (p₂ ∙ q₂) ≡ cong₂ _□_ p₁ p₂ ∙ cong₂ _□_ q₁ q₂
+    cong₂-∙ p₁ q₁ p₂ q₂ = cong₂-∙∙ refl p₁ q₁ refl p₂ q₂
+
+funExtSquare : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → (i j : I) → Type ℓB}
+  → {f₀₀ : ∀ a → B a i0 i0}
+  → {f₀₁ : ∀ a → B a i0 i1}
+  → (f₀₋ : PathP (λ j → ∀ a → B a i0 j) f₀₀ f₀₁)
+  → {f₁₀ : ∀ a → B a i1 i0}
+  → {f₁₁ : ∀ a → B a i1 i1}
+  → (f₁₋ : PathP (λ j → ∀ a → B a i1 j) f₁₀ f₁₁)
+  → (f₋₀ : PathP (λ i → ∀ a → B a i i0) f₀₀ f₁₀)
+  → (f₋₁ : PathP (λ i → ∀ a → B a i i1) f₀₁ f₁₁)
+  → (f : (a : A) → SquareP (B a) (λ j → f₀₋ j a) (λ j → f₁₋ j a) (λ i → f₋₀ i a) (λ i → f₋₁ i a))
+  → SquareP (λ i j → (a : A) → B a i j) f₀₋ f₁₋ f₋₀ f₋₁
+funExtSquare _ _ _ _ f i j a = f a i j
+
+isProp∃ : ∀ {ℓ ℓ'} (A : Type ℓ) (B : A → Type ℓ') → isProp (∃[ a ∈ A ] B a)
 isProp∃ A B = PT.isPropPropTrunc {A = Σ A B}
 
 module _ where
   private
     variable
-      ℓᴰ : Level
-      A′ A″ : Type ℓ
+      ℓ ℓᴰ : Level
+      A A′ A″ : Type ℓ
       B : A → Type ℓᴰ
       B′ : A′ → Type ℓᴰ
       B″ : A″ → Type ℓᴰ

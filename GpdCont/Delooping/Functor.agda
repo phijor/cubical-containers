@@ -7,7 +7,7 @@ open import GpdCont.Group.MapConjugator using (Conjugator ; idConjugator ; compC
 open import GpdCont.Group.TwoCategory using (TwoGroup)
 
 open import GpdCont.TwoCategory.Base
-open import GpdCont.TwoCategory.Pseudofunctor
+open import GpdCont.TwoCategory.LaxFunctor
 open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
 open import GpdCont.TwoCategory.LocalCategory using (LocalCategory)
 open import GpdCont.TwoCategory.LocalFunctor using (LocalFunctor)

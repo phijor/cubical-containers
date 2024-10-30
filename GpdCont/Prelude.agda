@@ -45,6 +45,7 @@ module _ where
   A ≃⟨⟩ e = e
 
 module LevelNumber where
+  open import Agda.Primitive using (LevelUniv)
   open import Agda.Builtin.Nat
   open import Agda.Builtin.Unit
   open import Agda.Builtin.FromNat public
@@ -57,6 +58,14 @@ module LevelNumber where
     NumberLevel : Number Level
     NumberLevel .Number.Constraint n = ⊤
     NumberLevel .Number.fromNat n = ℓ# n
+
+  LevelTele : (n : Nat) → LevelUniv
+  LevelTele zero = Level
+  LevelTele (suc n) = Level × LevelTele n
+
+  ℓMax : {n : Nat} → LevelTele n → Level
+  ℓMax {n = zero} = λ ℓ → ℓ
+  ℓMax {n = (suc n)} (ℓ , ℓs) = ℓ-max ℓ (ℓMax {n} ℓs)
 
 ℓ-of : ∀ {ℓ} {A : Type ℓ} (a : A) → Level
 ℓ-of {ℓ} _ = ℓ

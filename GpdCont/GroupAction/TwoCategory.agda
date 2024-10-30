@@ -6,6 +6,7 @@ open import GpdCont.Prelude
 open import GpdCont.GroupAction.Base
 open import GpdCont.GroupAction.Category
 open import GpdCont.TwoCategory.Base
+open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ ; module TotalTwoCategory)
 
 open import Cubical.Categories.Category.Base
 open import Cubical.Algebra.Group.Base
@@ -19,15 +20,17 @@ module _ (ℓ : Level) where
     -- module Conjugator {σ} {τ} = Category (GroupActionLocal.ConjugatorCat σ τ)
 
     module ConjugatorAt (σ τ : GroupAction.ob) where
-      -- Pattern to turn an equivariant map into an object of the conjugator category
-      pattern _′ φ = (tt , φ)
-
       open module Conjugator = Category (GroupActionLocal.ConjugatorCat σ τ)
         using (Hom[_,_])
         public
 
+      -- Turn an equivariant map into an object of the conjugator category,
+      -- by dropping the proof that the map is equivariant
+      _′ : GroupAction.Hom[ σ , τ ] → Conjugator.ob
+      _′ = fst
+
       conj : (f g : GroupAction.Hom[ σ , τ ]) → Type _
-      conj f g = Hom[ f ′ , g ′ ]
+      conj f g = Conjugator.Hom[ f ′ , g ′ ]
 
       id-conj : (f : GroupAction.Hom[ σ , τ ]) → conj f f
       id-conj f = Conjugator.id {x = f ′}

@@ -5,8 +5,8 @@ open import GpdCont.HomotopySet using (_→Set_)
 open import GpdCont.GroupAction.Base
 open import GpdCont.GroupAction.Equivariant
 open import GpdCont.DisplayedCategories using (Fam ; Famᴰ ; constᴰ)
-open import GpdCont.Group.DeloopingCategory using (DeloopingCategory)
-open import GpdCont.Group.MapConjugator using (Conjugatorsᴰ)
+open import GpdCont.Group.DeloopingCategory using (DeloopingCategory ; ∫DeloopingCategory)
+open import GpdCont.Group.MapConjugator using (Conjugatorsᴰ ; ConjugatorStr)
 
 open import Cubical.Foundations.Equiv using (equiv→ ; _∙ₑ_ ; equivEq)
 open import Cubical.Foundations.HLevels
@@ -24,10 +24,11 @@ open import Cubical.Categories.Constructions.TotalCategory.Base using (∫C)
 open import Cubical.Categories.Constructions.TotalCategory.Properties using (Fst)
 open import Cubical.Categories.Constructions.BinProduct as Prod using (_×C_)
 open import Cubical.Categories.Displayed.Base as Disp using (Categoryᴰ)
+open import Cubical.Categories.Displayed.HLevels using (hasPropHoms)
 open import Cubical.Categories.Displayed.Constructions.Weaken.Base using (weaken)
 open import Cubical.Categories.Displayed.Constructions.TotalCategory using (∫Cᴰ)
 open import Cubical.Categories.Displayed.Constructions.Reindex.Base using (reindex)
-open import Cubical.Categories.Displayed.Constructions.StructureOver using (StructureOver ; StructureOver→Catᴰ)
+open import Cubical.Categories.Displayed.Constructions.StructureOver using (StructureOver ; StructureOver→Catᴰ ; hasPropHomsStructureOver)
 open import Cubical.Categories.Displayed.BinProduct using (_×ᴰ_)
 
 {-# INJECTIVE_FOR_INFERENCE ⟨_⟩ #-}
@@ -108,60 +109,6 @@ module LocalCategory {ℓ} (σ*@((G , X) , σ) τ*@((H , Y), τ): GroupAction.ob
   SymmCat : Category ℓ-zero _
   SymmCat = DeloopingCategory H
 
-  isConjugator : (φ ψ : Cell) → ⟨ H ⟩ → Type _
-  isConjugator φ* ψ* h
-    using (φ , f) ← cellData φ*
-    using (ψ , e) ← cellData ψ*
-    = (∀ g → (φ g · h) ≡ (h · ψ g)) × (f ≡ e ∘ (τ ⁺ h))
-
-  opaque
-    isPropIsConjugator : (φ ψ : Cell) (h : ⟨ H ⟩) → isProp (isConjugator φ ψ h)
-    isPropIsConjugator φ ψ h = isProp× (isPropΠ λ g → H.is-set _ _) (isSet→ (str X) _ _)
-
-  opaque
-    isConjugator-1g : isConjugator φ φ H.1g
-    isConjugator-1g .fst g = H.·IdR _ ∙ sym (H.·IdL _)
-    isConjugator-1g {φ} .snd using (_ , f) ← cellData φ = cong (f ∘_) $ sym τ.action-1-id
-
-  opaque
-    isConjugator-· : (φ ψ ρ : Cell) (h₁ h₂ : ⟨ H ⟩)
-      → isConjugator φ ψ h₁
-      → isConjugator ψ ρ h₂
-      → isConjugator φ ρ (h₁ · h₂)
-    isConjugator-· φ* ψ* ρ* h₁ h₂ (h-conj₁ , h-act₁) (h-conj₂ , h-act₂)
-      using (φ , f) ← cellData φ*
-      using (ψ , e) ← cellData ψ*
-      using (ρ , d) ← cellData ρ*
-      = goal where
-      goal : isConjugator φ* ρ* (h₁ · h₂)
-      goal .fst g =
-        φ g · (h₁ · h₂) ≡⟨ H.·Assoc _ _ _ ⟩
-        (φ g · h₁) · h₂ ≡⟨ cong (_· h₂) (h-conj₁ g) ⟩
-        (h₁ · ψ g) · h₂ ≡⟨ sym $ H.·Assoc _ _ _ ⟩
-        h₁ · (ψ g · h₂) ≡⟨ cong (h₁ ·_) (h-conj₂ g) ⟩
-        h₁ · (h₂ · ρ g) ≡⟨ H.·Assoc _ _ _ ⟩
-        (h₁ · h₂) · ρ g ∎
-      goal .snd =
-        f ≡⟨ h-act₁ ⟩
-        e ∘ (τ ⁺ h₁) ≡⟨ cong (_∘ τ ⁺ h₁) h-act₂ ⟩
-        d ∘ τ ⁺ h₂ ∘ τ ⁺ h₁ ≡⟨ cong (d ∘_) $ sym (τ.action-comp h₁ h₂) ⟩
-        d ∘ τ ⁺ (h₁ · h₂) ∎
-
-  -- The conjugation structure, displayed over H.
-  -- A displayed object is an equivariant map, and displayed morphisms over some
-  -- "conjugator" (h : H) are proofs that two equivariant maps are conjugate by `h`.
-  ConjugatorStructure : StructureOver SymmCat _ _
-  ConjugatorStructure .StructureOver.ob[_] = const GroupAction.Hom[ σ* , τ* ]
-  ConjugatorStructure .StructureOver.Hom[_][_,_] h φ ψ = isConjugator φ ψ h
-  ConjugatorStructure .StructureOver.idᴰ {p = φ} = isConjugator-1g {φ}
-  ConjugatorStructure .StructureOver._⋆ᴰ_ {xᴰ = φ} {yᴰ = ψ} {zᴰ = ρ} = isConjugator-· φ ψ ρ _ _
-  ConjugatorStructure .StructureOver.isPropHomᴰ {xᴰ = φ} {yᴰ = ψ} = isPropIsConjugator φ ψ _
-
-  ConjugatorCat : Category ℓ ℓ
-  ConjugatorCat = ∫C {C = SymmCat} (StructureOver→Catᴰ ConjugatorStructure)
-
-  module ConjugatorCat = Category ConjugatorCat
-
   EquivariantConjugatorStr : StructureOver SymmCat _ _
   EquivariantConjugatorStr .StructureOver.ob[_] = const (⟨ Y ⟩ → ⟨ X ⟩)
   EquivariantConjugatorStr .StructureOver.Hom[_][_,_] h f₁ f₂ = f₁ ≡ f₂ ∘ (τ ⁺ h)
@@ -173,18 +120,28 @@ module LocalCategory {ℓ} (σ*@((G , X) , σ) τ*@((H , Y), τ): GroupAction.ob
     f₃ ∘ τ ⁺ (h · h′) ∎
   EquivariantConjugatorStr .StructureOver.isPropHomᴰ = isSet→ (str X) _ _
 
-  EquivariantConjugatorᴰ : Categoryᴰ SymmCat _ _
-  EquivariantConjugatorᴰ = StructureOver→Catᴰ EquivariantConjugatorStr
+  EquivariantConjugatorsᴰ : Categoryᴰ SymmCat _ _
+  EquivariantConjugatorsᴰ = StructureOver→Catᴰ EquivariantConjugatorStr
 
-  ConjugatorCat' : Category ℓ ℓ
-  ConjugatorCat' = ∫C {C = SymmCat} (Conjugatorsᴰ {G = G} {H} ×ᴰ EquivariantConjugatorᴰ)
+  ConjugatorCatᴰ : Categoryᴰ SymmCat _ _
+  ConjugatorCatᴰ = Conjugatorsᴰ {G = G} {H} ×ᴰ EquivariantConjugatorsᴰ
+
+  hasPropHomsConjugatorCatᴰ : hasPropHoms ConjugatorCatᴰ
+  hasPropHomsConjugatorCatᴰ h (φ , f) (ψ , g) = isProp×
+    (hasPropHomsStructureOver ConjugatorStr h φ ψ)
+    (hasPropHomsStructureOver EquivariantConjugatorStr h f g)
+
+  ConjugatorCat : Category ℓ ℓ
+  ConjugatorCat = ∫DeloopingCategory H ConjugatorCatᴰ
+
+  module ConjugatorCat = Category ConjugatorCat
 
   conjugator :  ∀ φ ψ → (h : ConjugatorCat.Hom[ φ , ψ ]) → ⟨ H ⟩
   conjugator _ _ = fst
 
   Conjugator≡ : ∀ {φ ψ} → (h₁ h₂ : ConjugatorCat.Hom[ φ , ψ ]) → conjugator φ ψ h₁ ≡ conjugator φ ψ h₂ → h₁ ≡ h₂
   Conjugator≡ {φ} {ψ} (h₁ , h₁-conj) (h₂ , h₂-conj) p = Sigma.ΣPathP
-    (p , isProp→PathP (λ i → isPropIsConjugator (φ .snd) (ψ .snd) (p i)) h₁-conj h₂-conj)
+    (p , isProp→PathP (λ i → hasPropHomsConjugatorCatᴰ (p i) φ ψ) h₁-conj h₂-conj)
 
 {-
   Actᴰ : Categoryᴰ (GroupCategory {ℓ = ℓ}) (ℓ-suc ℓ) ℓ

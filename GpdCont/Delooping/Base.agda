@@ -1,5 +1,6 @@
 open import GpdCont.Prelude hiding (_⋆_)
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Equiv using (_∙ₑ_)
 open import Cubical.Foundations.GroupoidLaws
 open import Cubical.Algebra.Group.Base
 
@@ -178,6 +179,25 @@ module GpdCont.Delooping.Base {ℓ} (G : Type ℓ) (γ : GroupStr G) where
     opaque
       b-comp : (g h : G) → compSquareFiller (b-loop g) (b-loop h) (b-loop (g · h))
       b-comp g h = isSet→SquareP (λ i j → is-set-B) (b-loop g) (b-loop (g · h)) refl (b-loop h)
+
+  rec→hSet : ∀ {ℓB}
+    → (X⋆ : hSet ℓB)
+    → (X-loop : (g : G) → ⟨ X⋆ ⟩ ≃ ⟨ X⋆ ⟩)
+    → (X-comp : (g h : G) → X-loop (g · h) ≡ X-loop g ∙ₑ X-loop h)
+    → 𝔹 → hSet ℓB
+  rec→hSet X⋆ X-loop X-comp = rec isGroupoidHSet X⋆ X-loop′ X-comp′ where
+    open import GpdCont.Univalence using (ua ; uaCompEquiv)
+    open import GpdCont.HomotopySet using (hSet≡)
+
+    X-loop′ : G → X⋆ ≡ X⋆
+    X-loop′ = hSet≡ ∘ ua ∘ X-loop
+
+    opaque
+      X-comp′ : ∀ g h → compSquareFiller (X-loop′ g) (X-loop′ h) (X-loop′ (g · h))
+      X-comp′ g h = ΣSquareSet (λ X → isProp→isSet isPropIsSet) $ coerceCompSquareFiller $
+          (ua $ X-loop g) ∙ (ua $ X-loop h) ≡⟨ sym $ uaCompEquiv (X-loop g) (X-loop h) ⟩
+          (ua $ X-loop g ∙ₑ X-loop h) ≡⟨ sym $ cong ua (X-comp g h) ⟩
+          (ua $ X-loop (g · h)) ∎
 
   {-# INLINE elimDep #-}
   {-# INLINE elimSetDep #-}

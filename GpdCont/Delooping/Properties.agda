@@ -2,7 +2,8 @@
 
 open import GpdCont.Prelude
 open import Cubical.Algebra.Group.Base as AbsGroup renaming (GroupStr to AbsGroupStr ; Group to AbsGroup)
-open import Cubical.Algebra.Group.Morphisms using (GroupHom ; IsGroupHom)
+open import Cubical.Algebra.Group.Morphisms using (GroupHom ; IsGroupHom ; GroupEquiv)
+open import Cubical.Algebra.Group.MorphismProperties using (isPropIsGroupHom ; makeIsGroupHom ; invGroupEquiv)
 open import Cubical.Algebra.Group.GroupPath using (uaGroup)
 open import Cubical.Algebra.SymmetricGroup using (Symmetric-Group)
 
@@ -12,17 +13,21 @@ private
 
 open import GpdCont.Groups.Base
 open import GpdCont.Delooping.Base G γ as Delooping using (𝔹)
-open import GpdCont.Connectivity using (isPathConnected)
+open import GpdCont.Connectivity using (isPathConnected ; isPathConnected→merePath)
 open import GpdCont.Univalence using (ua→)
 
+import GpdCont.Group.FundamentalGroup as FundamentalGroup
+
 open import Cubical.Foundations.Equiv
-open import Cubical.Foundations.Equiv.Properties
+open import Cubical.Foundations.Equiv.Properties hiding (conjugatePathEquiv)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.GroupoidLaws
 open import Cubical.Foundations.Path using (compPath→Square)
 open import Cubical.Foundations.Univalence hiding (elimIso ; ua→)
+open import Cubical.Data.Sigma
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
+open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Functions.Embedding
 
@@ -35,6 +40,9 @@ isPropSetTruncDelooping = ST.elim2 (λ s t → ST.isSetPathImplicit) conn-lemma 
 
 isConnectedDelooping : isContr ∥ 𝔹 ∥₂
 isConnectedDelooping = inhProp→isContr ST.∣ 𝔹.⋆ ∣₂ isPropSetTruncDelooping
+
+merePath : (x y : 𝔹) → ∥ x ≡ y ∥₁
+merePath = isPathConnected→merePath isConnectedDelooping
 
 deloopingGroupStr : GroupStr 𝔹
 deloopingGroupStr .GroupStr.is-connected = isConnectedDelooping
@@ -58,7 +66,7 @@ isPropDeloopingSquare :
   {x₁₀ x₁₁ : 𝔹} {x₁₋ : x₁₀ ≡ x₁₁}
   {x₋₀ : x₀₀ ≡ x₁₀} {x₋₁ : x₀₁ ≡ x₁₁}
   → isProp (Square x₀₋ x₁₋ x₋₀ x₋₁)
-isPropDeloopingSquare sq₁ sq₂ = isGroupoid→isGroupoid' Delooping.isGroupoid𝔹 sq₁ sq₂ refl refl refl refl
+isPropDeloopingSquare = isGroupoid→isPropSquare Delooping.isGroupoid𝔹
 
 private
   conjugate : (g : G) → G → G
@@ -160,22 +168,40 @@ encodeDecode = isoToEquiv encodeDecodeIso
 ΩDelooping≃ : (𝔹.⋆ ≡ 𝔹.⋆) ≃ G
 ΩDelooping≃ = encodeDecode {y = 𝔹.⋆}
 
-π₁ : ∀ {ℓX} (X : hGroupoid ℓX) (x₀ : ⟨ X ⟩) → AbsGroup _
-π₁ X x₀ .fst = x₀ ≡ x₀
-π₁ X x₀ .snd .AbsGroupStr.1g = refl
-π₁ X x₀ .snd .AbsGroupStr._·_ = _∙_
-π₁ X x₀ .snd .AbsGroupStr.inv = sym
-π₁ X x₀ .snd .AbsGroupStr.isGroup = makeIsGroup (str X x₀ x₀) assoc (sym ∘ rUnit) (sym ∘ lUnit) rCancel lCancel
+unloop : 𝔹.⋆ ≡ 𝔹.⋆ → G
+unloop = equivFun ΩDelooping≃
+
+loopEquiv : G ≃ (𝔹.⋆ ≡ 𝔹.⋆)
+loopEquiv = invEquiv ΩDelooping≃
+
+isEquivLoop : isEquiv 𝔹.loop
+isEquivLoop = equivIsEquiv loopEquiv
+
+π₁ : (x₀ : 𝔹) → AbsGroup _
+π₁ = FundamentalGroup.π₁ (𝔹 , 𝔹.isGroupoid𝔹)
 
 private
   π₁𝔹 : AbsGroup _
-  π₁𝔹 = π₁ (𝔹 , 𝔹.isGroupoid𝔹) 𝔹.⋆
+  π₁𝔹 = π₁ 𝔹.⋆
+
+conjugatePathEquiv : {x₀ x₁ : 𝔹} → x₀ ≡ x₁ → GroupEquiv (π₁ x₀) (π₁ x₁)
+conjugatePathEquiv = FundamentalGroup.conjugateGroupEquiv (𝔹 , 𝔹.isGroupoid𝔹)
 
 loopHom : GroupHom (G , γ) π₁𝔹
 loopHom .fst = 𝔹.loop
 loopHom .snd .IsGroupHom.pres· g h = sym $ Delooping.loop-∙ g h
 loopHom .snd .IsGroupHom.pres1 = Delooping.loop-1
 loopHom .snd .IsGroupHom.presinv = Delooping.loop-inv
+
+loopGroupEquiv : GroupEquiv (G , γ) π₁𝔹
+loopGroupEquiv .fst = loopEquiv
+loopGroupEquiv .snd = loopHom .snd
+
+unloopGroupEquiv : GroupEquiv π₁𝔹 (G , γ)
+unloopGroupEquiv = invGroupEquiv loopGroupEquiv
+
+_ : equivFun (unloopGroupEquiv .fst) ≡ unloop
+_ = refl
 
 elimSetIso : ∀ {ℓB} {B : 𝔹 → Type ℓB}
   → (∀ x → isSet (B x))
@@ -194,7 +220,6 @@ recEquiv : ∀ {ℓX} {X : hGroupoid ℓX}
   → (Σ[ x₀ ∈ ⟨ X ⟩ ] Σ[ φ ∈ (G → x₀ ≡ x₀) ] ∀ g h → compSquareFiller (φ g) (φ h) (φ $ g · h)) ≃ (𝔹 → ⟨ X ⟩)
 recEquiv {X = (X , is-gpd-X)} = rec-equiv , is-equiv where
   open IsGroupHom using (pres·)
-  open import Cubical.Data.Sigma
   rec-equiv : _ → _
   rec-equiv (x₀ , φ , φ-hom) = Delooping.rec is-gpd-X x₀ φ φ-hom
 
@@ -211,6 +236,14 @@ recEquiv {X = (X , is-gpd-X)} = rec-equiv , is-equiv where
 
   is-equiv : isEquiv rec-equiv
   is-equiv = isoToIsEquiv recIso
+
+recEquivHom : ∀ {ℓX} {X : hGroupoid ℓX}
+  → (Σ[ x₀ ∈ ⟨ X ⟩ ] GroupHom (G , γ) (FundamentalGroup.π₁ X x₀)) ≃ (𝔹 → ⟨ X ⟩)
+recEquivHom {X} = Σ-cong-equiv-snd (λ x₀ → Σ-cong-equiv-snd $ lemma x₀) ∙ₑ recEquiv where
+  lemma : ∀ x₀ (φ : G → x₀ ≡ x₀) → IsGroupHom γ φ (FundamentalGroup.π₁ X x₀ .snd) ≃ ((g h : G) → compSquareFiller (φ g) (φ h) (φ $ g · h))
+  lemma x₀ φ = propBiimpl→Equiv (isPropIsGroupHom _ _) (isPropΠ2 (λ g h → isGroupoid→isPropSquare (str X)))
+    (λ is-hom g h → coerceCompSquareFiller (sym $ is-hom .IsGroupHom.pres· g h))
+    (λ mk-comp-sq → makeIsGroupHom λ g h → sym (compSquareFillerUnique (mk-comp-sq g h)))
 
 module _ {ℓ'} {B : 𝔹 → Type ℓ'} where
   cong⋆ : {f g : ∀ x → B x} (p : f ≡ g) → PathP (λ i → B 𝔹.⋆) (f 𝔹.⋆) (g 𝔹.⋆)

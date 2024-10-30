@@ -8,7 +8,8 @@ open import GpdCont.Group.TwoCategory using (TwoGroup)
 
 open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.LaxFunctor
-open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
+open import GpdCont.TwoCategory.Pseudofunctor
+open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat ; isLocallyGroupoidalHGpdCat)
 open import GpdCont.TwoCategory.LocalCategory using (LocalCategory)
 open import GpdCont.TwoCategory.LocalFunctor using (LocalFunctor)
 
@@ -297,6 +298,9 @@ module TwoFunc (ℓ : Level) where
   TwoDelooping .LaxFunctor.F-assoc = 𝔹-assoc
   TwoDelooping .LaxFunctor.F-unit-left = 𝔹-unit-left
   TwoDelooping .LaxFunctor.F-unit-right = 𝔹-unit-right
+
+  isPseudoFunctorTwoDelooping : isPseudoFunctor TwoDelooping
+  isPseudoFunctorTwoDelooping = isLocallyGroupoidal→isPseudofunctor TwoDelooping (isLocallyGroupoidalHGpdCat ℓ)
 
   module _ (G H : TwoGroup.ob) where
     private

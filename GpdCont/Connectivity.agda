@@ -6,6 +6,7 @@ open import GpdCont.SetTruncation as ST
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Path as Path
 open import Cubical.Functions.Surjection using (isSurjection ; isPropIsSurjection)
 open import Cubical.Data.Nat.Base
 open import Cubical.Data.Nat.Properties as Nat using ()
@@ -190,6 +191,18 @@ conType→indMapEquiv {A} n conn-A (B , lvl-B) .equiv-proof = goal where
     -- goal = isContrRetract {B = ∥ A ∥ n} ev un-ev ev-retr conn-A
     goal .fst = ∣f∣ (conn-A .fst) , funExt λ a → Tr.elim {B = λ ∣a∣ → ∣f∣ ∣a∣ ≡ f a} {! !} (λ a′ → Tr.recUniq lvl-B f a′ ∙ cong f {! !}) (conn-A .fst)
     goal .snd = {! !}
+
+-- In a path connected space, all loop spaces are merely equivalent
+isConnected→mereLoopSpaceEquiv : isPathConnected A → (a b : A) → ∥ (a ≡ a) ≃ (b ≡ b) ∥₁
+isConnected→mereLoopSpaceEquiv conn-A a b = do
+  -- Since A is connected, there merely is a path a ≡ b
+  a≡b ← isPathConnected→merePath conn-A a b
+  -- Conjugation by a path induces an equivance of loop spaces
+  return $ conjEquiv a≡b
+  where
+    open import Cubical.HITs.PropositionalTruncation.Monad
+    conjEquiv : (p : a ≡ b) → (a ≡ a) ≃ (b ≡ b)
+    conjEquiv p = doubleCompPathEquiv p p
 
 -- isConnected→overCenter : ∀ {ℓ'} {B : A → Type ℓ'} {k}
 --   → isConnected k A

@@ -9,10 +9,12 @@ open import Cubical.Foundations.Function
   public
 open import Cubical.Foundations.Structure public using (⟨_⟩ ; str)
 open import Cubical.Foundations.Equiv using (_≃_ ; _≃⟨_⟩_) renaming (_■ to _≃∎) public
-open import Cubical.Foundations.Equiv using (equivFun ; invEq ; isEquiv)
+open import Cubical.Foundations.Equiv using (equivFun ; invEq ; isEquiv ; _∙ₑ_)
 open import Cubical.Foundations.Equiv.Properties using (equivAdjointEquiv ; preCompEquiv ; congEquiv)
+open import Cubical.Foundations.HLevels as HLevels using ()
 open import Cubical.Foundations.Isomorphism as Isomorphism using (Iso ; _Iso⟨_⟩_) renaming (_∎Iso to _Iso∎) public
 open import Cubical.Foundations.Transport as Transport using ()
+open import Cubical.Foundations.GroupoidLaws
 
 open import Cubical.Data.Nat.Base using (zero ; suc) public
 open import Cubical.Data.Nat.Literals public
@@ -72,7 +74,14 @@ module _ where
     variable
       ℓ : Level
       A : Type ℓ
-      x y z w : A
+      x y z w v : A
+
+  assoc-brace : (p : x ≡ y) (q : y ≡ z) (r : z ≡ w) (s : w ≡ v)
+    → p ∙ ((q ∙ r) ∙ s) ≡ (p ∙ q) ∙ (r ∙ s)
+  assoc-brace p q r s =
+    p ∙ ((q ∙ r) ∙ s) ≡⟨ sym $ cong (p ∙_) (assoc q r s) ⟩
+    p ∙ (q ∙ (r ∙ s)) ≡⟨ assoc p q (r ∙ s) ⟩
+    (p ∙ q) ∙ (r ∙ s) ∎
 
   compSquareFiller : (p : x ≡ y) (q : y ≡ z) (p∙q : x ≡ z) → Type _
   compSquareFiller {x} p q p∙q = Square p p∙q refl q
@@ -162,7 +171,6 @@ module _ where
     compPath≡Square {A} {a} {d} {p} {q} {r} {s} = goal where
       open import Cubical.Foundations.Path
       open import Cubical.Foundations.Univalence
-      open import Cubical.Foundations.GroupoidLaws
 
       goal : (p ∙ s ≡ r ∙ q) ≡ (Square r s p q)
       goal =
@@ -202,6 +210,40 @@ module _ where
     → (g ≡ f ∘ invEq e) ≃ (g ∘ equivFun e ≡ f)
   preCompAdjointEquiv e f g = equivAdjointEquiv (preCompEquiv e) {a = g} {b = f}
 
+  doubleCompPath-cancel : {x y z w : A} (p : x ≡ y) (q : z ≡ w) (r : y ≡ w) → sym p ∙∙ (p ∙∙ r ∙∙ sym q) ∙∙ q ≡ r
+  doubleCompPath-cancel {A} {x} {y} {z} {w} p q r = λ i j → hcomp {φ = ∂² i j} (sides i j) (base i j) where
+
+    r′ : x ≡ z
+    r′ = p ∙∙ r ∙∙ sym q
+
+    r″ : y ≡ w
+    r″ = sym p ∙∙ r′ ∙∙ q
+
+    base : PathP (λ i → p i ≡ q i) r′ r
+    base i j = doubleCompPath-filler p r (sym q) (~ i) j
+
+    left : PathP (λ j → r′ j ≡ r″ j) p q
+    left j k = doubleCompPath-filler (sym p) r′ q k j
+
+    right : PathP (λ j → r j ≡ r j) (refl′ y) (refl′ w)
+    right j k = r j
+
+    sides : (i j k : I) → Partial (∂² i j) A
+    sides i j k (i = i0) = left j k
+    sides i j k (i = i1) = right j k
+    sides i j k (j = i0) = p (i ∨ k)
+    sides i j k (j = i1) = q (i ∨ k)
+
+  module _ {x y z w : A} (p : x ≡ y) (q : z ≡ w) where
+    doubleCompPathIso : Iso (x ≡ z) (y ≡ w)
+    doubleCompPathIso .Iso.fun = sym p ∙∙_∙∙ q
+    doubleCompPathIso .Iso.inv = p ∙∙_∙∙ sym q
+    doubleCompPathIso .Iso.rightInv = doubleCompPath-cancel p q
+    doubleCompPathIso .Iso.leftInv = doubleCompPath-cancel (sym p) (sym q)
+
+    doubleCompPathEquiv : (x ≡ z) ≃ (y ≡ w)
+    doubleCompPathEquiv .fst = sym p ∙∙_∙∙ q
+    doubleCompPathEquiv .snd = Isomorphism.isoToIsEquiv doubleCompPathIso
 
 module _ {ℓA ℓB ℓC} {A : Type ℓA} {B : Type ℓB} {C : Type ℓC}
   (_□_ : A → B → C)

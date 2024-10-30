@@ -2,6 +2,7 @@
 module GpdCont.Delooping.Map where
 
 open import GpdCont.Prelude
+open import GpdCont.Group.MapConjugator using (Conjugator ; idConjugator ; compConjugator)
 
 import GpdCont.Delooping as Delooping
 
@@ -100,24 +101,10 @@ module _
   map≡-ext : (x : 𝔹 G) → map φ* x ≡ map ψ* x
   map≡-ext = BG.elimSet (λ x → BH.isGroupoid𝔹 (map φ* x) (map ψ* x)) map-ext-⋆ map-ext-loop
 
-Conjugator : (φ ψ : GroupHom G H) → Type _
-Conjugator {H} (φ , _) (ψ , _) = Σ[ h ∈ ⟨ H ⟩ ] ∀ g → φ g · h ≡ h · ψ g where
-  open GroupStr (str H) using (_·_)
-
 map≡ : (φ ψ : GroupHom G H) → Conjugator φ ψ → map φ ≡ map ψ
 map≡ φ ψ (h , h-conj) = funExt $ map≡-ext {φ* = φ} {ψ* = ψ} h h-conj
 
--- Computation rule for map≡ on loops
-module _ {G H : Group ℓ} where
-  open GroupStr (str H) using (_·_)
-
-  map≡-loopᵝ : (φ ψ : GroupHom G H) (h : Conjugator φ ψ) (g : ⟨ G ⟩)
-    → cong₂ _$_ (map≡ φ ψ h) (Delooping.loop g) ≡ Delooping.loop (h .fst · ψ .fst g)
-  map≡-loopᵝ φ ψ h*@(h , h-conj) g =
-    cong₂ _$_ (map≡ φ ψ h*) (Delooping.loop g)    ≡⟨ SquareDiag≡pathComp $ map-ext-loop {φ* = φ} {ψ* = ψ} h h-conj g ⟩
-    Delooping.loop h ∙ Delooping.loop (ψ .fst g)  ≡⟨ Delooping.loop-∙ _ _ h (ψ .fst g) ⟩
-    Delooping.loop (h · ψ .fst g) ∎
-
+-- Lemmas for constructing squares in deloopings
 module _ {f g : 𝔹 G → 𝔹 H}
   {p₀ : (x : 𝔹 G) → f x ≡ g x}
   {p₁ : (x : 𝔹 G) → f x ≡ g x}
@@ -134,6 +121,33 @@ module _ {f g : 𝔹 G → 𝔹 H}
 
   mapDepSquare : p₀ ≡ p₁
   mapDepSquare = funExt mapDepSquareExt
+
+
+-- Computation rule for map≡ on loops
+module _ {G H : Group ℓ} where
+  open GroupStr (str H) using (_·_)
+
+  map≡-loopᵝ : (φ ψ : GroupHom G H) (h : Conjugator φ ψ) (g : ⟨ G ⟩)
+    → cong₂ _$_ (map≡ φ ψ h) (Delooping.loop g) ≡ Delooping.loop (h .fst · ψ .fst g)
+  map≡-loopᵝ φ ψ h*@(h , h-conj) g =
+    cong₂ _$_ (map≡ φ ψ h*) (Delooping.loop g)    ≡⟨ SquareDiag≡pathComp $ map-ext-loop {φ* = φ} {ψ* = ψ} h h-conj g ⟩
+    Delooping.loop h ∙ Delooping.loop (ψ .fst g)  ≡⟨ Delooping.loop-∙ _ _ h (ψ .fst g) ⟩
+    Delooping.loop (h · ψ .fst g) ∎
+
+-- Functoriality of `map≡`.
+-- Identity and composition of conjugators is mapped to the reflexivity and composition of paths.
+module _ {G H : Group ℓ} where
+  private
+    module 𝔹H = Delooping ⟨ H ⟩ (str H)
+
+  map≡-id-refl : (φ : GroupHom G H) → map≡ φ φ (idConjugator φ) ≡ refl′ (map φ)
+  map≡-id-refl φ = cong funExt (mapDepSquare 𝔹H.loop-1)
+
+  map≡-comp-∙ : (φ ψ ρ : GroupHom G H)
+    (h₁ : Conjugator φ ψ)
+    (h₂ : Conjugator ψ ρ)
+    → map≡ φ ρ (compConjugator h₁ h₂) ≡ map≡ φ ψ h₁ ∙ map≡ ψ ρ h₂
+  map≡-comp-∙ _ _ _ (h₁ , _) (h₂ , _) = cong funExt $ mapDepSquare $ sym $ 𝔹H.loop-∙ h₁ h₂
 
 module MapPathEquiv {G H : Group ℓ} where
   private

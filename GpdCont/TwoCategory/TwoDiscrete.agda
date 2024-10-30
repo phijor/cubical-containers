@@ -2,6 +2,8 @@ module GpdCont.TwoCategory.TwoDiscrete where
 
 open import GpdCont.Prelude
 open import GpdCont.TwoCategory.Base
+open import GpdCont.TwoCategory.Univalent
+open import GpdCont.TwoCategory.LocalCategory
 
 import Cubical.Foundations.GroupoidLaws as GL
 open import Cubical.WildCat.Base using (WildCat ; _[_,_])
@@ -72,3 +74,25 @@ module _ {ℓo ℓh} (C : WildCat ℓo ℓh) (isGroupoidHom : (x y : WildCat.ob 
   TwoDiscrete .TwoCategory.rel = _≡_
   TwoDiscrete .TwoCategory.two-category-structure = twoDiscreteStr
   TwoDiscrete .TwoCategory.is-two-category = isTwoCategoryTwoDiscreteStr
+
+  isLocallyUnivalentTwoDiscrete : isLocallyUnivalent TwoDiscrete
+  isLocallyUnivalentTwoDiscrete x y = is-univ where
+    open import Cubical.Foundations.Isomorphism
+    open import Cubical.Foundations.Equiv
+    open import Cubical.Data.Sigma
+    open import Cubical.Categories.Category.Base
+
+    x≡y : Category _ _
+    x≡y = LocalCategory TwoDiscrete x y
+
+    pathToIso′ : ∀ {f₁ f₂} (p : f₁ ≡ f₂) → CatIso x≡y f₁ f₂
+    pathToIso′ p = p , isiso (sym p) (GL.lCancel p) (GL.rCancel p)
+
+    coh : ∀ f₁ f₂ → pathToIso′ {f₁} {f₂} ≡ pathToIso
+    coh f₁ f₂ = funExt (J (λ f₂ (p : f₁ ≡ f₂) → pathToIso′ p ≡ pathToIso p) (sym pathToIso-refl))
+
+    isEquivPathToIso′ : ∀ f₁ f₂ → isEquiv (pathToIso′ {f₁} {f₂})
+    isEquivPathToIso′ f₁ f₂ = isoToIsEquiv (iso pathToIso′ fst (λ { (p , is-iso) → Σ≡Prop (λ _ → isPropIsIso _) refl }) λ _ → refl)
+
+    is-univ : isUnivalent _
+    is-univ .isUnivalent.univ f₁ f₂ = subst isEquiv (coh f₁ f₂) (isEquivPathToIso′ f₁ f₂)

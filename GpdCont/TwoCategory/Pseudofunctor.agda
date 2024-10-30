@@ -5,6 +5,7 @@ open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.LaxFunctor
 open import GpdCont.TwoCategory.LocalCategory
 open import GpdCont.TwoCategory.LocalFunctor
+open import GpdCont.TwoCategory.Isomorphism using (module LocalIso)
 
 open import Cubical.Categories.Category.Base using (isIso)
 open import Cubical.Categories.Functor.Base using (_∘F_)
@@ -41,3 +42,11 @@ module _ {ℓo ℓo′ ℓh ℓh′ ℓr ℓr′}
         LocalFunctor F x x ∘F identityFunctor C x
       LaxUnitalityIso x .NatIso.trans = LaxUnitality F x
       LaxUnitalityIso x .NatIso.nIso _ = is-nat-iso-id-lax x
+
+
+    open LocalIso
+    open isPseudoFunctor
+
+    isLocallyGroupoidal→isPseudofunctor : isLocallyGroupoidal D → isPseudoFunctor
+    isLocallyGroupoidal→isPseudofunctor inverses .is-nat-iso-trans-lax f g = isLocallyGroupoidal→isLocalCategoryIso D inverses (F.F-trans-lax f g)
+    isLocallyGroupoidal→isPseudofunctor inverses .is-nat-iso-id-lax x = isLocallyGroupoidal→isLocalCategoryIso D inverses (F.F-id-lax x)

@@ -2,9 +2,11 @@ module GpdCont.TwoCategory.Isomorphism where
 
 open import GpdCont.Prelude
 open import GpdCont.TwoCategory.Base
+open import GpdCont.TwoCategory.LocalCategory
 
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Sigma.Properties
+open import Cubical.Categories.Category.Base using (isIso)
 
 private
   variable
@@ -79,6 +81,11 @@ module LocalIso (C : TwoCategory ℓo ℓh ℓr) where
 
   isLocallyGroupoidal : Type (ℓ-max ℓo (ℓ-max ℓh ℓr))
   isLocallyGroupoidal = ∀ {x y : C.ob} {f g : C.hom x y} (r : C.rel f g) → hasLocalInverse r
+
+  isLocallyGroupoidal→isLocalCategoryIso : isLocallyGroupoidal → ∀ {x y} {f g : C.hom x y} (r : C.rel f g) → isIso (LocalCategory C x y) r
+  isLocallyGroupoidal→isLocalCategoryIso inverses r .isIso.inv = inverses r .fst
+  isLocallyGroupoidal→isLocalCategoryIso inverses r .isIso.sec = inverses r .snd .isLocalInverse.codom-id
+  isLocallyGroupoidal→isLocalCategoryIso inverses r .isIso.ret = inverses r .snd .isLocalInverse.dom-id
 
   isPropIsLocallyGroupoidal : isProp isLocallyGroupoidal
   isPropIsLocallyGroupoidal = isPropImplicitΠ4 λ _ _ _ _ → isPropΠ λ _ → isPropHasLocalInverse

@@ -18,6 +18,10 @@ module _ {ℓo ℓo′ ℓh ℓh′ ℓr ℓr′}
         F-hom : {x y : C.ob} → C.hom x y → D.hom (F-ob x) (F-ob y)
         F-rel : {x y : C.ob} {f g : C.hom x y} → C.rel f g → D.rel (F-hom f) (F-hom g)
 
+      ₀ = F-ob
+      ₁ = F-hom
+      ₂ = F-rel
+
       -- F-hom is (locally) a functor
       field
         F-rel-id : {x y : C.ob} {f : C.hom x y}

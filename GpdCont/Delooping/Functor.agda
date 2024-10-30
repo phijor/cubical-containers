@@ -2,35 +2,40 @@
 module GpdCont.Delooping.Functor where
 
 open import GpdCont.Prelude
-import GpdCont.Group.MapConjugator as MapConjugator
-open import GpdCont.Group.SymmetricGroup using (𝔖)
 
-import GpdCont.Delooping as Delooping
-open import GpdCont.Delooping.Map as Map
-  using (map ; map≡ ; module MapPathEquiv)
+open import GpdCont.Group.MapConjugator using (Conjugator ; idConjugator ; compConjugator)
+open import GpdCont.Group.TwoCategory using (TwoGroup)
+
+open import GpdCont.TwoCategory.Base
+open import GpdCont.TwoCategory.Pseudofunctor
+open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
+open import GpdCont.TwoCategory.LocalCategory using (LocalCategory)
+open import GpdCont.TwoCategory.LocalFunctor using (LocalFunctor)
+
+import      GpdCont.Delooping as Delooping
+open import GpdCont.Delooping.Map as Map using (map ; map≡ ; module MapPathEquiv)
 
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Equiv
-open import Cubical.Foundations.Equiv.Properties
-open import Cubical.Foundations.Path as Path
-open import Cubical.Foundations.Univalence using (pathToEquiv)
 open import Cubical.Foundations.GroupoidLaws as GL using (compPathRefl)
-open import Cubical.Functions.FunExtEquiv
 
-open import Cubical.Data.Sigma
 open import Cubical.Algebra.Group
-open import Cubical.Algebra.Group.Morphisms
+open import Cubical.Algebra.Group.Morphisms using (GroupHom ; GroupEquiv)
+open import Cubical.Algebra.Group.MorphismProperties renaming (compGroupHom to _∙Grp_ ; compGroupEquiv to _∙GrpE_)
 
-open import Cubical.Categories.Category.Base
-open import Cubical.Categories.Functor.Base
-open import Cubical.Categories.Constructions.TotalCategory
-open import Cubical.Categories.Instances.Discrete
-open import Cubical.Categories.Displayed.Base
-open import Cubical.Categories.Displayed.Constructions.StructureOver
+open import Cubical.Categories.Category.Base using (CatIso ; pathToIso)
+open import Cubical.Categories.Functor.Base using (Functor)
+open import Cubical.Categories.Equivalence.WeakEquivalence
 
-module Local {ℓ} {G H : Group ℓ} where
+-- Delooping is a locally essentially surjective functor:
+-- The functorial action on 1-cells has a mere section.
+module LocalInverse {ℓ} {G H : Group ℓ} where
+  open import Cubical.HITs.PropositionalTruncation hiding (map)
+  open import Cubical.HITs.PropositionalTruncation.Monad
+
   private
     open module H = GroupStr (str H) using (_·_)
+    module G = GroupStr (str G)
 
     𝔹G = Delooping.𝔹 ⟨ G ⟩ (str G)
     𝔹H = Delooping.𝔹 ⟨ H ⟩ (str H)
@@ -38,115 +43,112 @@ module Local {ℓ} {G H : Group ℓ} where
     module 𝔹G = Delooping ⟨ G ⟩ (str G)
     module 𝔹H = Delooping ⟨ H ⟩ (str H)
 
-    variable
-      φ ψ : GroupHom G H
+  -- Any map (f : 𝔹G → 𝔹H) is uniquely determined by the choice of
+  -- a point (y : 𝔹H) and a group homomorphism (φ : G → π₁(𝔹H, y)).
+  unrec-fun : (f : 𝔹G → 𝔹H) → Σ[ y ∈ 𝔹H ] GroupHom G (𝔹H.π₁ y)
+  unrec-fun = invEq (𝔹G.recEquivHom {X = 𝔹H , 𝔹H.isGroupoid𝔹})
 
-  open MapPathEquiv {ℓ} {G} {H} using (map≡' ; map≡'Equiv ; map≡Equiv)
-  open MapConjugator {ℓ} {G} {H} using (Conjugators)
+  -- We would like to define a group homomorphism G → H from (f : 𝔹G → 𝔹H)
+  -- by inspecting which group elements in H correspond to paths
+  --
+  --    (𝔹G.loop ⋆ f) : G → π₁(𝔹H, f ⋆)
+  --
+  -- But (f ⋆ : 𝔹H) is *not* definitionally equal to (⋆ : 𝔹H), therefore we
+  -- cannot apply the equivalence (loop : H ≃ π₁(𝔹H, ⋆)) to extract elements of H.
+  --
+  -- If we have access to a path (p : f ⋆ ≡ ⋆), then we can conjugate by `p`:
+  -- multiplication (λ q → p⁻¹ ∙ q ∙ p) induces an equivalence of groups
+  --
+  --    π₁(𝔹H, f ⋆) ≃ π₁(𝔹H, ⋆),
+  --
+  -- and postcomposing with this equivalence, we obtain a group homomorphism
+  --
+  --                  φ                conj(p)             loop⁻¹
+  --    unmap f : G ----> π₁(𝔹H, f ⋆) --------> π₁(𝔹H, ⋆) -------> H
+  unmap : (f : 𝔹G → 𝔹H) (p : f 𝔹G.⋆ ≡ 𝔹H.⋆) → GroupHom G H
+  unmap f p using (y , φ) ← unrec-fun f = φ ∙Grp (GroupEquiv→GroupHom fixit) where
+    conjEquiv : GroupEquiv (𝔹H.π₁ y) (𝔹H.π₁ 𝔹H.⋆)
+    conjEquiv = 𝔹H.conjugatePathEquiv p
 
-  module Conjugators = Category Conjugators
-  
-  DeloopingPathCategory : Category _ _
-  DeloopingPathCategory = DiscreteCategory ((𝔹G → 𝔹H) , isGroupoidΠ λ _ → 𝔹H.isGroupoid𝔹)
+    fixit : GroupEquiv (𝔹H.π₁ y) H
+    fixit = conjEquiv ∙GrpE 𝔹H.unloopGroupEquiv
 
-  opaque
-    map≡'-id-refl : (φ : Conjugators.ob) → map≡' φ φ (Conjugators.id {φ}) ≡ refl′ (map φ)
-    map≡'-id-refl _ = cong funExt $ Map.mapDepSquare 𝔹H.loop-1
+  -- For any choice of path (p : f ⋆ ≡ ⋆), we can show that this is a section of `map`.
+  -- We construct the homotopy with `f` pointwise by induction on the domain.
+  unmap-section : (f : 𝔹G → 𝔹H) (p : f 𝔹G.⋆ ≡ 𝔹H.⋆) → map (unmap f p) ≡ f
+  unmap-section f p using (y , (φ , _)) ← unrec-fun f = funExt ext where
+    -- On the point, both `map` and `unmap` compute to the point in the codomain.
+    -- Thus, p⁻¹ connects `⋆` to `f ⋆`.
+    ext⋆ : 𝔹H.⋆ ≡ f 𝔹G.⋆
+    ext⋆ = sym p
 
-    map≡'-comp-∙ : (φ ψ ρ : Conjugators.ob)
-      (h₁ : Conjugators [ φ , ψ ])
-      (h₂ : Conjugators [ ψ , ρ ])
-      → (let _⋆̂_ = Conjugators._⋆_ {x = φ} {y = ψ} {z = ρ})
-      → map≡' φ ρ (h₁ ⋆̂ h₂) ≡ map≡' φ ψ h₁ ∙ map≡' ψ ρ h₂
-    map≡'-comp-∙ _ _ _ (h₁ , _) (h₂ , _) = cong funExt $ Map.mapDepSquare $ sym (𝔹H.loop-∙ h₁ h₂)
+    -- For a loop in 𝔹G defined by (g : G), we need to show that there
+    -- is a filler for the square
+    --
+    --               cong (map (unmap f p)) (loop g)
+    --        (f ⋆) --------------------------------- (f ⋆)
+    --          |                                       |
+    --          |                                       |
+    --      p⁻¹ |                                       | p⁻¹
+    --          |                                       |
+    --          |                                       |
+    --         (⋆) ----------------------------------- (⋆)
+    --                      cong f (loop g)
+    ext-loop : ∀ g → Square (sym p) (sym p) (cong (map (unmap f p)) (𝔹G.loop g)) (φ g)
+    ext-loop g =
+      -- We observe that both the top and bottom side of this square simplify.
+      subst (λ top → Square (sym p) (sym p) top (φ g)) (top-path g) (ext-loop' g) where
 
-  map≡'Functor : Functor Conjugators DeloopingPathCategory
-  map≡'Functor .Functor.F-ob φ = map φ
-  map≡'Functor .Functor.F-hom {x = φ} {y = ψ} = map≡' φ ψ
-  map≡'Functor .Functor.F-id {x = φ} = map≡'-id-refl φ
-  map≡'Functor .Functor.F-seq {x = φ} {y = ψ} {z = ρ} = map≡'-comp-∙ φ ψ ρ
+      -- First, φ is defined by induction from f.
+      -- The bottom of the square is (definitionally) equal to (φ g).
+      _ : ∀ g → cong f (𝔹G.loop g) ≡ φ g
+      _ = λ g → refl
 
-  isFullyFaithful-map≡'Functor : Functor.isFullyFaithful map≡'Functor
-  isFullyFaithful-map≡'Functor φ ψ = equivIsEquiv (map≡'Equiv φ ψ)
+      -- Secondly, on loops, unmap is defined as a conjugation, followed
+      -- by the inverse to `loop : H → π₁(𝔹H, ⋆)`:
+      conjₚ : f 𝔹G.⋆ ≡ f 𝔹G.⋆ → 𝔹H.⋆ ≡ 𝔹H.⋆
+      conjₚ = sym p ∙∙_∙∙ p
 
-  map≡-id-refl : (φ : Conjugators.ob) → map≡ φ φ (Conjugators.id {φ}) ≡ refl′ (map φ)
-  map≡-id-refl φ = cong funExt (Map.mapDepSquare 𝔹H.loop-1)
+      _ : ∀ g → cong (map $ unmap f p) (𝔹G.loop g) ≡ 𝔹H.loop (𝔹H.unloop (conjₚ (φ g)))
+      _ = λ g → refl
 
-  map≡-comp-∙ : (φ ψ ρ : Conjugators.ob)
-    (h₁ : Conjugators [ φ , ψ ])
-    (h₂ : Conjugators [ ψ , ρ ])
-    → (let _⋆̂_ = Conjugators._⋆_ {x = φ} {y = ψ} {z = ρ})
-    → map≡ φ ρ (h₁ ⋆̂ h₂) ≡ map≡ φ ψ h₁ ∙ map≡ ψ ρ h₂
-  map≡-comp-∙ _ _ _ (h₁ , _) (h₂ , _) = cong funExt (Map.mapDepSquare (sym (𝔹H.loop-∙ h₁ h₂)))
+      -- We thus substitute (conjₚ (φ g)) for the top path by cancelling loop and unloop, ...
+      top-path : ∀ g → conjₚ (φ g) ≡ cong (map $ unmap f p) (𝔹G.loop g)
+      top-path g = loop-retract $ conjₚ (φ g) where
+        loop-retract : ∀ h → h ≡ 𝔹H.loop (𝔹H.unloop h)
+        loop-retract h = sym (retEq 𝔹H.ΩDelooping≃ h)
 
-  map≡Functor : Functor Conjugators DeloopingPathCategory
-  map≡Functor .Functor.F-ob φ = map φ
-  map≡Functor .Functor.F-hom {x = φ} {y = ψ} = map≡ φ ψ
-  map≡Functor .Functor.F-id {x = φ} = map≡-id-refl φ
-  map≡Functor .Functor.F-seq {x = φ} {y = ψ} {z = ρ} = map≡-comp-∙ φ ψ ρ
+      -- ...and are left to show that there's a filler for the square
+      --
+      --            p⁻¹ ∙∙ (φ g) ∙∙ p
+      --     (f ⋆) ------------------- (f ⋆)
+      --       |                         |
+      --       |                         |
+      --   p⁻¹ |                         | p⁻¹
+      --       |                         |
+      --       |                         |
+      --      (⋆) --------------------- (⋆)
+      --                   φ g
+      --
+      -- which follows from uniqueness of path composites.
+      ext-loop' : ∀ g → Square (sym p) (sym p) ((sym p) ∙∙ (φ g) ∙∙ p) (φ g)
+      ext-loop' g i j = doubleCompPath-filler (sym p) (φ g) p (~ j) i
 
-  isFullyFaithful-map≡Functor : Functor.isFullyFaithful map≡Functor
-  isFullyFaithful-map≡Functor φ ψ = equivIsEquiv (map≡Equiv φ ψ)
+    ext : ∀ x → map (unmap f p) x ≡ f x
+    ext = 𝔹G.elimSet (λ x → 𝔹H.isGroupoid𝔹 _ (f x)) ext⋆ ext-loop
 
-module Global {ℓ : Level} where
-  open import GpdCont.WildCat.HomotopyCategory as HomotopyCategory using (ho)
-
-  open import GpdCont.Groups.Base renaming (Group to ConcreteGroup ; GroupStr to ConcreteGroupStr)
-  open import GpdCont.Groups.Homomorphism using () renaming (GroupHom to ConcreteGroupHom ; GroupHom≡ to ConcreteGroupHom≡)
-  open import GpdCont.Groups.Category using () renaming (GroupCategory to ConcreteGroupCategory)
-
-  open import Cubical.Algebra.Group.MorphismProperties using (idGroupHom ; compGroupHom)
-
-  open import Cubical.Categories.Category.Base using (Category ; _^op ; _[_,_] ; seq')
-  open import Cubical.Categories.Functor.Base using (Functor)
-  open import Cubical.Categories.Instances.Groups using (GroupCategory)
-  open import Cubical.Categories.Instances.Sets using (SET)
-  open import Cubical.WildCat.Base renaming (_[_,_] to _[_,_]ʷ) hiding (concatMor)
-
-  private
-    hoGrp = ho (ConcreteGroupCategory ℓ)
-
-  module DeloopingFunctor where
-    open HomotopyCategory.Notation (ConcreteGroupCategory ℓ)
-      using (hoHom ; trunc-hom)
-
-    ob : Group ℓ → ConcreteGroup ℓ
-    ob G = 𝔹G , 𝔹G-str where
-      open module 𝔹G = Delooping ⟨ G ⟩ (str G) renaming (𝔹 to 𝔹G)
-
-      𝔹G-str : ConcreteGroupStr 𝔹G
-      𝔹G-str .ConcreteGroupStr.is-connected = isConnectedDelooping
-      𝔹G-str .ConcreteGroupStr.is-groupoid = Delooping.isGroupoid𝔹
-      𝔹G-str .ConcreteGroupStr.pt = Delooping.⋆
-
-    hom : {G H : Group ℓ} (φ : GroupHom G H) → hoHom (ob G) (ob H)
-    hom {G} {H} φ = trunc-hom 𝔹φ where
-      open ConcreteGroupHom
-      𝔹φ : ConcreteGroupHom (ob G) (ob H)
-      𝔹φ .pt-map = Map.map∙ φ
-
-    hom-id : {G : Group ℓ} → hom (idGroupHom {G = G}) ≡ trunc-hom (WildCat.id (ConcreteGroupCategory ℓ))
-    hom-id {G} = cong trunc-hom $ ConcreteGroupHom≡ (Map.map-id G) refl
-
-    hom-seq : {G H K : Group ℓ} (φ : GroupHom G H) (ψ : GroupHom H K)
-      → hom (compGroupHom φ ψ) ≡ (hom φ ⋆⟨ hoGrp ⟩ hom ψ)
-    hom-seq φ ψ = cong trunc-hom (ConcreteGroupHom≡ (Map.map-comp φ ψ) compPathRefl)
-
-  DeloopingFunctor : Functor (GroupCategory {ℓ}) hoGrp
-  DeloopingFunctor .Functor.F-ob = DeloopingFunctor.ob
-  DeloopingFunctor .Functor.F-hom = DeloopingFunctor.hom
-  DeloopingFunctor .Functor.F-id = DeloopingFunctor.hom-id
-  DeloopingFunctor .Functor.F-seq = DeloopingFunctor.hom-seq
+  -- In general, there is a set of paths (f ⋆ ≡ ⋆) from which we would
+  -- habe to pick one in order to apply `unmap f`.  This is not posible
+  -- in general without choice.  But since 𝔹H is path-connected, we merely
+  -- get such a path, thus merely a section to `map`.
+  isSurjection-map : (f : 𝔹G → 𝔹H) → ∃[ φ ∈ GroupHom G H ] map φ ≡ f
+  isSurjection-map f = do
+    -- 𝔹H is path-connected, thus we merely get (p : f 𝔹G.⋆ ≡ 𝔹H.⋆)
+    p ← 𝔹H.merePath (f 𝔹G.⋆) 𝔹H.⋆
+    -- Conjugation by p gives us a group hom with the right endpoints
+    ∃-intro (unmap f p) (unmap-section f p)
 
 module TwoFunc (ℓ : Level) where
-  open import GpdCont.TwoCategory.Base
-  open import GpdCont.TwoCategory.Pseudofunctor
-  open import GpdCont.Group.MapConjugator using (Conjugator ; idConjugator ; compConjugator)
-  open import GpdCont.Group.TwoCategory using (TwoGroup)
-  open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
-
-  open import Cubical.Algebra.Group.MorphismProperties
-
   private
     variable
       G H K L : Group ℓ
@@ -165,17 +167,17 @@ module TwoFunc (ℓ : Level) where
     𝔹-rel {φ} {ψ} = map≡ φ ψ
 
     𝔹-rel-id : 𝔹-rel (idConjugator φ) ≡ refl
-    𝔹-rel-id {φ} = Local.map≡-id-refl φ
+    𝔹-rel-id {φ} = Map.map≡-id-refl φ
 
     𝔹-rel-trans : (h₁ : Conjugator φ ψ) (h₂ : Conjugator ψ ρ) → 𝔹-rel (compConjugator h₁ h₂) ≡ 𝔹-rel h₁ ∙ 𝔹-rel h₂
-    𝔹-rel-trans {φ} {ψ} {ρ} = Local.map≡-comp-∙ φ ψ ρ
+    𝔹-rel-trans {φ} {ψ} {ρ} = Map.map≡-comp-∙ φ ψ ρ
 
-    𝔹-trans-lax : (φ : GroupHom G H) (ψ : GroupHom H K) → (𝔹-hom φ hGpdCat.∙₁ 𝔹-hom ψ) ≡ 𝔹-hom (compGroupHom φ ψ)
-    𝔹-trans-lax {G} {H} {K} φ ψ = funExt (Delooping.elimSet ⟨ G ⟩ (str G) isSetMotive refl λ g i j → 𝔹K.loop (compGroupHom φ ψ .fst g) i) where
+    𝔹-trans-lax : (φ : GroupHom G H) (ψ : GroupHom H K) → (𝔹-hom φ hGpdCat.∙₁ 𝔹-hom ψ) ≡ 𝔹-hom (φ TwoGroup.∙₁ ψ)
+    𝔹-trans-lax {G} {H} {K} φ ψ = funExt (Delooping.elimSet ⟨ G ⟩ (str G) isSetMotive refl λ g i j → 𝔹K.loop ((φ TwoGroup.∙₁ ψ) .fst g) i) where
       module 𝔹G = Delooping.𝔹 ⟨ G ⟩ (str G)
       module 𝔹K = Delooping.𝔹 ⟨ K ⟩ (str K)
 
-      isSetMotive : (x : Delooping.𝔹 ⟨ G ⟩ (str G)) → isSet ((𝔹-hom ψ $ 𝔹-hom φ x) ≡ (𝔹-hom (compGroupHom φ ψ) x))
+      isSetMotive : (x : Delooping.𝔹 ⟨ G ⟩ (str G)) → isSet ((𝔹-hom ψ $ 𝔹-hom φ x) ≡ (𝔹-hom (φ TwoGroup.∙₁ ψ) x))
       isSetMotive x = 𝔹K.isGroupoid𝔹 _ _
 
     𝔹-trans-lax-natural : {φ₁ φ₂ : GroupHom G H} {ψ₁ ψ₂ : GroupHom H K}
@@ -191,22 +193,26 @@ module TwoFunc (ℓ : Level) where
       module 𝔹H = Delooping ⟨ H ⟩ (str H)
       module 𝔹K = Delooping ⟨ K ⟩ (str K)
 
-      ap⋆ : {f g : 𝔹G → 𝔹K} → (p : f ≡ g) → f 𝔹G.⋆ ≡ g 𝔹G.⋆
-      ap⋆ = cong (λ f → f 𝔹G.⋆)
+      open 𝔹G using (cong⋆ ; cong⋆-∙)
 
-      lax⋆ : ap⋆ (((𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ 𝔹-trans-lax φ₂ ψ₂)) ≡ ap⋆ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k))
+      -- The meat of the proof: Horizontal composition computes to the correct loop at the point.
+      -- This is almost definitional, except that the LHS computes to the diagonal of a composite square,
+      -- in particular it is the diagonal that shows that the group element underlying `(h TwoGroup.∙ₕ k)`
+      -- is a conjugator of ψ₁ and ψ₂.
+      lemma : cong⋆ (𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ≡ 𝔹K.loop ((h TwoGroup.∙ₕ k) .fst)
+      lemma = Map.map≡-loopᵝ ψ₁ ψ₂ k (h .fst)
+
+      lax⋆ : cong⋆ (((𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ 𝔹-trans-lax φ₂ ψ₂)) ≡ cong⋆ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k))
       lax⋆ =
-        ap⋆ (((𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ 𝔹-trans-lax φ₂ ψ₂)) ≡⟨ GL.cong-∙ (λ f → f 𝔹G.⋆) (𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) (𝔹-trans-lax φ₂ ψ₂) ⟩
-        ap⋆ (𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ ap⋆ (𝔹-trans-lax φ₂ ψ₂) ≡⟨⟩
-        ap⋆ (𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ refl ≡⟨ sym $ GL.rUnit _ ⟩
-
-        ap⋆ (𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ≡⟨ Map.map≡-loopᵝ ψ₁ ψ₂ k (h .fst) ⟩
-        𝔹K.loop ((h TwoGroup.∙ₕ k) .fst) ≡⟨⟩
-
-        ap⋆ (𝔹-rel (h TwoGroup.∙ₕ k)) ≡⟨ GL.lUnit _ ⟩
-        refl ∙ ap⋆ (𝔹-rel (h TwoGroup.∙ₕ k)) ≡⟨⟩
-        ap⋆ (𝔹-trans-lax φ₁ ψ₁) ∙ ap⋆ (𝔹-rel (h TwoGroup.∙ₕ k)) ≡⟨ sym $ GL.cong-∙ (λ f → f 𝔹G.⋆) (𝔹-trans-lax φ₁ ψ₁) (𝔹-rel (h TwoGroup.∙ₕ k)) ⟩
-        ap⋆ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k)) ∎
+        cong⋆ (((𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ 𝔹-trans-lax φ₂ ψ₂))      ≡⟨ cong⋆-∙ (𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) (𝔹-trans-lax φ₂ ψ₂) ⟩
+        cong⋆ (𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ cong⋆ (𝔹-trans-lax φ₂ ψ₂)  ≡⟨⟩
+        cong⋆ (𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ refl                       ≡⟨ sym $ GL.rUnit _ ⟩
+        cong⋆ (𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k)                              ≡⟨ lemma ⟩
+        𝔹K.loop ((h TwoGroup.∙ₕ k) .fst)                                ≡⟨⟩
+        cong⋆ (𝔹-rel (h TwoGroup.∙ₕ k))                                 ≡⟨ GL.lUnit _ ⟩
+        refl ∙ cong⋆ (𝔹-rel (h TwoGroup.∙ₕ k))                          ≡⟨⟩
+        cong⋆ (𝔹-trans-lax φ₁ ψ₁) ∙ cong⋆ (𝔹-rel (h TwoGroup.∙ₕ k))     ≡⟨ sym $ cong⋆-∙ (𝔹-trans-lax φ₁ ψ₁) (𝔹-rel (h TwoGroup.∙ₕ k)) ⟩
+        cong⋆ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k)) ∎
 
       lax : (x : 𝔹G) → (((𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ 𝔹-trans-lax φ₂ ψ₂) ≡$S x) ≡ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k) ≡$S x)
       lax = 𝔹G.elimProp (λ x → 𝔹K.isGroupoid𝔹 _ _ _ _) lax⋆
@@ -257,7 +263,7 @@ module TwoFunc (ℓ : Level) where
       p : (id ⟨ 𝔹-ob G ⟩) ⋆ (𝔹-hom φ) ≡ (𝔹-hom idGroupHom) ⋆ (𝔹-hom φ)
       p = 𝔹-id-lax G hGpdCat.∙ₕ refl′ (𝔹-hom φ)
 
-      q : (𝔹-hom idGroupHom ⋆ 𝔹-hom φ) ≡ 𝔹-hom (compGroupHom idGroupHom φ)
+      q : (𝔹-hom idGroupHom ⋆ 𝔹-hom φ) ≡ 𝔹-hom (idGroupHom TwoGroup.∙₁ φ)
       q = 𝔹-trans-lax idGroupHom φ
 
       unit-left⋆ : 𝔹G.cong⋆ (p ∙ q) ≡ refl′ 𝔹H.⋆
@@ -291,3 +297,31 @@ module TwoFunc (ℓ : Level) where
   TwoDelooping .LaxFunctor.F-assoc = 𝔹-assoc
   TwoDelooping .LaxFunctor.F-unit-left = 𝔹-unit-left
   TwoDelooping .LaxFunctor.F-unit-right = 𝔹-unit-right
+
+  module _ (G H : TwoGroup.ob) where
+    private
+      Group[_,_] = LocalCategory (TwoGroup ℓ)
+      hGpd[_,_] = LocalCategory (hGpdCat ℓ)
+
+      TwoDelooping[_,_] = LocalFunctor TwoDelooping
+
+    isLocallyFullyFaithfulDelooping : Functor.isFullyFaithful TwoDelooping[ G , H ]
+    isLocallyFullyFaithfulDelooping = goal where module _ (φ ψ : TwoGroup.hom G H) where
+      goal : isEquiv 𝔹-rel
+      goal = equivIsEquiv (MapPathEquiv.map≡Equiv φ ψ)
+
+    isEssentiallySurjLocalDelooping : Functor.isEssentiallySurj TwoDelooping[ G , H ]
+    isEssentiallySurjLocalDelooping = goal where module _ (f : ⟨ 𝔹-ob G ⟩ → ⟨ 𝔹-ob H ⟩) where
+      open import Cubical.HITs.PropositionalTruncation.Monad
+      goal : ∃[ φ ∈ GroupHom G H ] CatIso hGpd[ _ , _ ] (map φ) f
+      goal = do
+        (φ , section-f-mapφ) ← LocalInverse.isSurjection-map f
+        ∃-intro φ $ pathToIso section-f-mapφ
+
+    isLocalWeakEquivalenceDelooping : isWeakEquivalence TwoDelooping[ G , H ]
+    isLocalWeakEquivalenceDelooping .isWeakEquivalence.fullfaith = isLocallyFullyFaithfulDelooping
+    isLocalWeakEquivalenceDelooping .isWeakEquivalence.esssurj = isEssentiallySurjLocalDelooping
+
+    LocalWeakEquivalence : WeakEquivalence Group[ G , H ] hGpd[ 𝔹-ob G , 𝔹-ob H ]
+    LocalWeakEquivalence .WeakEquivalence.func = TwoDelooping[ G , H ]
+    LocalWeakEquivalence .WeakEquivalence.isWeakEquiv = isLocalWeakEquivalenceDelooping

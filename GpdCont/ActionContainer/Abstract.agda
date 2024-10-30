@@ -4,6 +4,7 @@ module GpdCont.ActionContainer.Abstract where
 open import GpdCont.Prelude
 open import GpdCont.Univalence using (uaCompEquivSquare)
 open import GpdCont.HomotopySet using (_→Set_ ; ΠSet)
+open import GpdCont.Group.SymmetricGroup
 open import GpdCont.Group.DirProd using (module DirProd)
 open import GpdCont.GroupAction.Base
 open import GpdCont.GroupAction.Pi using (ΠAction)

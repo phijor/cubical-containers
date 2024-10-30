@@ -5,6 +5,7 @@ open import GpdCont.HomotopySet using (_→Set_)
 open import GpdCont.GroupAction.Base
 open import GpdCont.GroupAction.Category
 open import GpdCont.GroupAction.Product
+open import GpdCont.Group.SymmetricGroup
 open import GpdCont.Group.DirProd as GroupDirProd using (module DirProd ; DirProd)
 
 open import Cubical.Foundations.Equiv

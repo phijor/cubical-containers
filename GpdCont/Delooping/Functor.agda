@@ -3,6 +3,7 @@ module GpdCont.Delooping.Functor where
 
 open import GpdCont.Prelude
 import GpdCont.Group.MapConjugator as MapConjugator
+open import GpdCont.Group.SymmetricGroup using (𝔖)
 
 import GpdCont.Delooping as Delooping
 open import GpdCont.Delooping.Map as Map

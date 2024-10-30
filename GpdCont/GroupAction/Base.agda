@@ -1,6 +1,7 @@
 module GpdCont.GroupAction.Base where
 
 open import GpdCont.Prelude hiding (_▷_)
+open import GpdCont.Group.SymmetricGroup using (𝔖)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
@@ -9,11 +10,6 @@ open import Cubical.Data.Sigma.Properties using (Σ-cong-iso-snd)
 open import Cubical.Algebra.Group.Base
 open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Algebra.Group.MorphismProperties using (makeIsGroupHom ; isPropIsGroupHom ; compGroupHom)
-
-import Cubical.Algebra.SymmetricGroup as SymmetricGroup
-
-𝔖 : ∀ {ℓ} (X : hSet ℓ) → Group ℓ
-𝔖 (X , is-set-X) = SymmetricGroup.Symmetric-Group X is-set-X
 
 record Action {ℓG ℓX} (G : Group ℓG) (X : hSet ℓX) : Type (ℓ-max ℓG ℓX) where
   private

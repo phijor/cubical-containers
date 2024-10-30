@@ -293,6 +293,13 @@ funExtSquare : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → (i j : I) → Type ℓ
   → SquareP (λ i j → (a : A) → B a i j) f₀₋ f₁₋ f₋₀ f₋₁
 funExtSquare _ _ _ _ f i j a = f a i j
 
+isGroupoid→isPropSquare : ∀ {ℓA} {A : Type ℓA} (_ : isGroupoid A)
+  {a₀₀ a₀₁ : A} {a₀₋ : a₀₀ ≡ a₀₁}
+  {a₁₀ a₁₁ : A} {a₁₋ : a₁₀ ≡ a₁₁}
+  {a₋₀ : a₀₀ ≡ a₁₀} {a₋₁ : a₀₁ ≡ a₁₁}
+  → isProp (Square a₀₋ a₁₋ a₋₀ a₋₁)
+isGroupoid→isPropSquare gpd-A sq₁ sq₂ = HLevels.isGroupoid→isGroupoid' gpd-A sq₁ sq₂ refl refl refl refl
+
 isProp∃ : ∀ {ℓ ℓ'} (A : Type ℓ) (B : A → Type ℓ') → isProp (∃[ a ∈ A ] B a)
 isProp∃ A B = PT.isPropPropTrunc {A = Σ A B}
 

@@ -62,6 +62,33 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓr
                 (fᴰ ∙₁ᴰ id-homᴰ yᴰ)
                 fᴰ
 
+        relᴰPathP : {x y : C.ob} {f g : C.hom x y} {r s : C.rel f g}
+          → {xᴰ : ob[ x ]} {yᴰ : ob[ y ]}
+          → {fᴰ : hom[ f ] xᴰ yᴰ}
+          → {gᴰ : hom[ g ] xᴰ yᴰ}
+          → {rᴰ : rel[ r ] fᴰ gᴰ}
+          → {sᴰ : rel[ s ] fᴰ gᴰ}
+          → (p : r ≡ s)
+          → PathP (λ i → rel[ p i ] fᴰ gᴰ) rᴰ sᴰ
+        relᴰPathP p = isProp→PathP (λ i → is-prop-relᴰ {s = p i} _ _) _ _
+
+        toIsTwoCategoryᴰ : IsTwoCategoryᴰ C _ _ _ ob[_] hom[_] rel[_] sᴰ
+        toIsTwoCategoryᴰ .IsTwoCategoryᴰ.is-set-relᴰ fᴰ gᴰ = isProp→isSet $ is-prop-relᴰ fᴰ gᴰ
+        toIsTwoCategoryᴰ .IsTwoCategoryᴰ.trans-assocᴰ _ _ _ = relᴰPathP _
+        toIsTwoCategoryᴰ .IsTwoCategoryᴰ.trans-unit-leftᴰ _ = relᴰPathP _
+        toIsTwoCategoryᴰ .IsTwoCategoryᴰ.trans-unit-rightᴰ _ = relᴰPathP _
+        toIsTwoCategoryᴰ .IsTwoCategoryᴰ.comp-rel-idᴰ _ _ = relᴰPathP _
+        toIsTwoCategoryᴰ .IsTwoCategoryᴰ.comp-rel-transᴰ _ _ _ _ = relᴰPathP _
+        toIsTwoCategoryᴰ .IsTwoCategoryᴰ.comp-hom-assocᴰ = comp-hom-assocᴰ
+        toIsTwoCategoryᴰ .IsTwoCategoryᴰ.comp-hom-unit-leftᴰ = comp-hom-unit-leftᴰ
+        toIsTwoCategoryᴰ .IsTwoCategoryᴰ.comp-hom-unit-rightᴰ = comp-hom-unit-rightᴰ
+        toIsTwoCategoryᴰ .IsTwoCategoryᴰ.comp-rel-assocᴰ {s} {t} {u} _ _ _ =
+          isProp→PathP (λ i → is-prop-relᴰ {s = comp-rel-assoc s t u i} (comp-hom-assocᴰ _ _ _ i) (comp-hom-assocᴰ _ _ _ i)) _ _
+        toIsTwoCategoryᴰ .IsTwoCategoryᴰ.comp-rel-unit-leftᴰ {s} {fᴰ} {gᴰ} _ =
+          isProp→PathP (λ i → is-prop-relᴰ {s = comp-rel-unit-left s i} (comp-hom-unit-leftᴰ fᴰ i) (comp-hom-unit-leftᴰ gᴰ i)) _ _
+        toIsTwoCategoryᴰ .IsTwoCategoryᴰ.comp-rel-unit-rightᴰ {r} {fᴰ} {gᴰ} _ =
+          isProp→PathP (λ i → is-prop-relᴰ {s = comp-rel-unit-right r i} (comp-hom-unit-rightᴰ fᴰ i) (comp-hom-unit-rightᴰ gᴰ i)) _ _
+
   record LocallyThinOver : Type (ℓ-max ℓC (ℓ-suc ℓCᴰ)) where
     field
       ob[_] : C.ob → Type ℓoᴰ
@@ -80,6 +107,13 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓr
     open TwoCategoryStrᴰ two-category-structureᴰ public
     open IsLocallyThinOver is-locally-thinᴰ public
 
+    toTwoCategoryᴰ : Disp.TwoCategoryᴰ C _ _ _
+    toTwoCategoryᴰ .TwoCategoryᴰ.ob[_] = ob[_]
+    toTwoCategoryᴰ .TwoCategoryᴰ.hom[_] = hom[_]
+    toTwoCategoryᴰ .TwoCategoryᴰ.rel[_] = rel[_]
+    toTwoCategoryᴰ .TwoCategoryᴰ.two-category-structureᴰ = two-category-structureᴰ
+    toTwoCategoryᴰ .TwoCategoryᴰ.is-two-categoryᴰ = toIsTwoCategoryᴰ
+
 module TotalTwoCategory
   {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr)
   {ℓoᴰ ℓhᴰ ℓrᴰ : Level} (Cᴰ : LocallyThinOver C ℓoᴰ ℓhᴰ ℓrᴰ)
@@ -89,70 +123,5 @@ module TotalTwoCategory
     open module C = TwoCategory C
     open module Cᴰ = LocallyThinOver Cᴰ
 
-    ∫₀ : Type _
-    ∫₀ = Σ ob ob[_]
-
-    ∫₁ : (x y : ∫₀) → Type _
-    ∫₁ (x , xᴰ) (y , yᴰ) = Σ[ f ∈ hom x y ] hom[ f ] xᴰ yᴰ
-
-    ∫₂ : {x y : ∫₀} (f g : ∫₁ x y) → Type _
-    ∫₂ (f , fᴰ) (g , gᴰ) = Σ[ r ∈ rel f g ] rel[ r ] fᴰ gᴰ
-
-    ∫₁≡ : {x y : ∫₀} {f g : ∫₁ x y}
-      → (base-path : f .fst ≡ g .fst)
-      → (dep-path : PathP (λ i → hom[ base-path i ] (x .snd) (y .snd)) (f .snd) (g .snd))
-      → f ≡ g
-    ∫₁≡ base-path dep-path i .fst = base-path i
-    ∫₁≡ base-path dep-path i .snd = dep-path i
-
-  ∫₂≡ : {x y : ∫₀} {f g : ∫₁ x y} {r s : ∫₂ f g} → (r .fst ≡ s .fst) → r ≡ s
-  ∫₂≡ = Σ≡Prop (λ r → is-prop-relᴰ _ _)
-
-  ∫₂PathP : {x y : ∫₀}
-    → {f₁ f₂ : ∫₁ x y} {g₁ g₂ : ∫₁ x y}
-    → (pᶠ : f₁ ≡ f₂) (pᵍ : g₁ ≡ g₂)
-    → {r : ∫₂ f₁ g₁} {s : ∫₂ f₂ g₂}
-    → PathP (λ i → rel (pᶠ i .fst) (pᵍ i .fst)) (r .fst) (s .fst)
-    → PathP (λ i → ∫₂ (pᶠ i) (pᵍ i)) r s
-  ∫₂PathP pᶠ pᵍ base-path i .fst = base-path i
-  ∫₂PathP pᶠ pᵍ {r} {s} base-path i .snd = isProp→PathP (λ i → is-prop-relᴰ {s = base-path i} (pᶠ i .snd) (pᵍ i .snd)) (r .snd) (s .snd) i
-
-  ∫-two-category-structure : TwoCategoryStr ∫₀ ∫₁ ∫₂
-  ∫-two-category-structure .TwoCategoryStr.id-hom (x , xᴰ) = id-hom x , id-homᴰ xᴰ
-  ∫-two-category-structure .TwoCategoryStr.comp-hom (f , fᴰ) (g , gᴰ) = (f ∙₁ g) , fᴰ ∙₁ᴰ gᴰ
-  ∫-two-category-structure .TwoCategoryStr.id-rel (f , fᴰ) = id-rel f , id-relᴰ fᴰ
-  ∫-two-category-structure .TwoCategoryStr.trans (r , rᴰ) (s , sᴰ) = r ∙ᵥ s , rᴰ ∙ᵥᴰ sᴰ
-  ∫-two-category-structure .TwoCategoryStr.comp-rel (r , rᴰ) (s , sᴰ) = r ∙ₕ s , rᴰ ∙ₕᴰ sᴰ
-
-  ∫-is-two-cat : IsTwoCategory ∫₀ ∫₁ ∫₂ ∫-two-category-structure
-  ∫-is-two-cat .IsTwoCategory.is-set-rel (f , fᴰ) (g , gᴰ) = isSetΣ (is-set-rel f g) λ r → isProp→isSet (is-prop-relᴰ fᴰ gᴰ)
-  ∫-is-two-cat .IsTwoCategory.trans-assoc (r , _) (s , _) (t , _) = ∫₂≡ (trans-assoc r s t)
-  ∫-is-two-cat .IsTwoCategory.trans-unit-left (r , _) = ∫₂≡ (trans-unit-left r)
-  ∫-is-two-cat .IsTwoCategory.trans-unit-right (r , _) = ∫₂≡ (trans-unit-right r)
-  ∫-is-two-cat .IsTwoCategory.comp-rel-id (f , _) (g , _) = ∫₂≡ (comp-rel-id f g)
-  ∫-is-two-cat .IsTwoCategory.comp-rel-trans (s , _) (t , _) (u , _) (v , _) = ∫₂≡ (comp-rel-trans s t u v)
-  ∫-is-two-cat .IsTwoCategory.comp-hom-assoc (f , fᴰ) (g , gᴰ) (h , hᴰ) = ∫₁≡ (comp-hom-assoc f g h) (comp-hom-assocᴰ fᴰ gᴰ hᴰ)
-  ∫-is-two-cat .IsTwoCategory.comp-hom-unit-left (g , gᴰ) = ∫₁≡ (comp-hom-unit-left g) (comp-hom-unit-leftᴰ gᴰ)
-  ∫-is-two-cat .IsTwoCategory.comp-hom-unit-right (f , fᴰ) = ∫₁≡ (comp-hom-unit-right f) (comp-hom-unit-rightᴰ fᴰ)
-  ∫-is-two-cat .IsTwoCategory.comp-rel-assoc {f₁} {f₂} {g₁} {g₂} {k₁} {k₂} (s , _) (t , _) (u , _) =
-    ∫₂PathP
-      (∫-is-two-cat .IsTwoCategory.comp-hom-assoc f₁ g₁ k₁)
-      (∫-is-two-cat .IsTwoCategory.comp-hom-assoc f₂ g₂ k₂)
-      (comp-rel-assoc s t u)
-  ∫-is-two-cat .IsTwoCategory.comp-rel-unit-left {f} {g} (s , _) =
-    ∫₂PathP
-      (∫-is-two-cat .IsTwoCategory.comp-hom-unit-left f)
-      (∫-is-two-cat .IsTwoCategory.comp-hom-unit-left g)
-      (comp-rel-unit-left s)
-  ∫-is-two-cat .IsTwoCategory.comp-rel-unit-right {f} {g} (r , _) =
-    ∫₂PathP
-      (∫-is-two-cat .IsTwoCategory.comp-hom-unit-right f)
-      (∫-is-two-cat .IsTwoCategory.comp-hom-unit-right g)
-      (comp-rel-unit-right r)
-
   ∫ : TwoCategory (ℓ-max ℓo ℓoᴰ) (ℓ-max ℓh ℓhᴰ) (ℓ-max ℓr ℓrᴰ)
-  ∫ .TwoCategory.ob = ∫₀
-  ∫ .TwoCategory.hom = ∫₁
-  ∫ .TwoCategory.rel = ∫₂
-  ∫ .TwoCategory.two-category-structure = ∫-two-category-structure
-  ∫ .TwoCategory.is-two-category = ∫-is-two-cat
+  ∫ = Disp.TotalTwoCategory.∫ C toTwoCategoryᴰ

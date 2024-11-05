@@ -18,7 +18,7 @@ open import GpdCont.TwoCategory.Base using (TwoCategory)
 open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
 open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
-open import GpdCont.TwoCategory.Displayed.LocallyThin using (LocallyThinOver ; IntoLocallyThin)
+open import GpdCont.TwoCategory.Displayed.LocallyThin using (IntoLocallyThin)
 open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
 
 open import Cubical.Foundations.HLevels using (isOfHLevelPathP' ; isSet→)
@@ -37,8 +37,8 @@ open import Cubical.Foundations.Path using (compPath→Square)
 -- give the following data:
 --
 --  ∙ 𝔹₀, assigning to a group action its associated bundle,
---  ∙ 𝔹₁, assigning to an equivariant map its associated map of bundle
---  ∙ 𝔹₂, assigning to a conjugator of actions a homotopy of bundle maps.
+--  ∙ 𝔹₁, assigning to an equivariant map its associated map of bundles
+--  ∙ 𝔹₂, assigning to a conjugator of actions a homotopy of bundle maps
 --
 -- ...and proofs that 𝔹 (laxly) preserves identity 2-cells and vertical composites.
 module _ (ℓ : Level) where
@@ -48,13 +48,11 @@ module _ (ℓ : Level) where
     module hGpdCat = TwoCategory (hGpdCat ℓ)
     module SetBundleᴰ = TwoCategoryᴰ (SetBundleᴰ ℓ)
 
-    open LocallyThinOver (SetBundleᵀ ℓ) using () renaming (relᴰPathP to SetBundle₂PathP)
-
     open Delooping.𝔹 using (⋆)
     𝔹 = TwoFunc.TwoDelooping ℓ
     module 𝔹 = LaxFunctor 𝔹
 
-    -- To each group action, assign its associated bundle
+    -- To each group action, assign its associated bundle:
     𝔹₀ : ∀ {G} → GroupActionᴰ.ob[ G ] → SetBundleᴰ.ob[ 𝔹.₀ G ]
     𝔹₀ (X , σ) = associatedBundle {X = X} σ
 
@@ -65,8 +63,8 @@ module _ (ℓ : Level) where
     𝔹₁ (f , f-eqva) = associatedBundleMap _ _ _ f f-eqva
 
     -- Path lemma for producing displayed homotopies of set bundle maps
-    -- with a delooping in their domain.  Such bundle maps are defined
-    -- by induction on the delooping; and since the target is a proposition
+    -- with a delooping in their codomain.  Such homotopies are defined
+    -- pointwise in the delooping; and since the target is a proposition
     -- (SetBundleᴰ is locally thin), it suffices to give the homotopy on
     -- the point.
     𝔹₁PathP : ∀ {G} {Y} {f g : hGpdCat.hom (𝔹.₀ G) Y} {r : hGpdCat.rel f g}
@@ -86,10 +84,10 @@ module _ (ℓ : Level) where
 
       𝔹₁PathP-ext : (x : ⟨ 𝔹.₀ G ⟩) → PathP (λ i → ⟨ yᴰ (r i x) ⟩ → ⟨ 𝔹₀ Xᴳ x ⟩) (fᴰ x) (gᴰ x)
       𝔹₁PathP-ext = elimProp isPropMotive p⋆
-      
+
 
     -- A conjugator relating two equivariant maps induces a homotopy of associated bundle maps.
-    -- It suffice to give the homotopy at the point, since 2-cells are propositional.  There,
+    -- It suffices to give the homotopy at the point, since 2-cells are propositional.  There,
     -- the goal becomes to show that maps are identified over a permutation of their domain.
     -- But a conjugator of equivariant maps supplies exactly this evidence.
     𝔹₂ : ∀ {G H} {φ ψ : Group.hom G H} {r : Group.rel φ ψ}
@@ -98,11 +96,11 @@ module _ (ℓ : Level) where
       → {gᴰ : GroupActionᴰ.hom[ ψ ] Xᴳ Yᴴ}
       → GroupActionᴰ.rel[ r ] fᴰ gᴰ
       → SetBundleᴰ.rel[_] {yᴰ = 𝔹₀ Yᴴ} (𝔹.₂ r) (𝔹₁ fᴰ) (𝔹₁ gᴰ)
-    𝔹₂ {G} {r} {Xᴳ} {Yᴴ = Yᴴ @ (_ , τ) } {fᴰ = fᴰ @ (f , _)} {gᴰ = gᴰ @ (g , _)} rᴰ = 𝔹₁PathP (𝔹₀ Yᴴ) 𝔹₂-⋆ where
+    𝔹₂ {G} {r = r , _} {Xᴳ = X , _} {Yᴴ = Yᴴ @ (_ , τ) } {fᴰ = fᴰ @ (f , _)} {gᴰ = gᴰ @ (g , _)} rᴰ = 𝔹₁PathP (𝔹₀ Yᴴ) 𝔹₂-⋆ where
       module τ = Action τ
       -- `rᴰ` is evidence that `r` is a conjugator of `f` and `g`.
       -- This gives an identification of the associated bundle maps at the point.
-      𝔹₂-⋆ : PathP (λ i → ua (τ.action (r .fst)) i → ⟨ Xᴳ .fst ⟩) f g
+      𝔹₂-⋆ : PathP (λ i → ua (τ.action r) i → ⟨ X ⟩) f g
       𝔹₂-⋆ = ua→ (funExt⁻ rᴰ)
 
       -- XXX: All three of 𝔹₁PathP, ua→, and funExt⁻ are equivalences of types.
@@ -116,16 +114,13 @@ module _ (ℓ : Level) where
       → (fᴰ : GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ)
       → (gᴰ : GroupActionᴰ.hom[ ψ ] Yᴴ Zᴷ)
       → SetBundleᴰ.rel[_] {yᴰ = 𝔹₀ Zᴷ} (𝔹.F-trans-lax φ ψ) (SetBundleᴰ.comp-homᴰ {zᴰ = 𝔹₀ Zᴷ} (𝔹₁ fᴰ) (𝔹₁ gᴰ)) (𝔹₁ (fᴰ GroupActionᴰ.∙₁ᴰ gᴰ))
-    𝔹-trans-lax {G} {Zᴷ} fᴰ@(f , _) gᴰ@(g , _) = 𝔹₁PathP (𝔹₀ Zᴷ) goal where
-      open Delooping ⟨ G ⟩ (str G) using (elimProp)
-      goal : (SetBundleᴰ.comp-homᴰ {zᴰ = 𝔹₀ Zᴷ} (𝔹₁ fᴰ) (𝔹₁ gᴰ)) ⋆ ≡ f ∘ g
-      goal = refl
+    𝔹-trans-lax {Zᴷ} (f , _) (g , _) = 𝔹₁PathP (𝔹₀ Zᴷ) $ refl′ (f ∘ g)
 
     -- ...and similarly for identity 2-cells:
     𝔹-id-lax : ∀ {G}
       → (Xᴳ : GroupActionᴰ.ob[ G ])
       → SetBundleᴰ.rel[_] (𝔹.F-id-lax G) (SetBundleᴰ.id-homᴰ (𝔹₀ Xᴳ)) (𝔹₁ (GroupActionᴰ.id-homᴰ Xᴳ))
-    𝔹-id-lax Xᴳ @ (X , σ) = 𝔹₁PathP (𝔹₀ Xᴳ) refl
+    𝔹-id-lax Xᴳ @ (X , σ) = 𝔹₁PathP (𝔹₀ Xᴳ) $ refl′ (id ⟨ X ⟩)
 
   -- The above data assembles into a lax functor (𝔹 : GroupAction → SetBundle).
   𝔹ᵀ : IntoLocallyThin 𝔹 (GroupActionᴰ ℓ) (SetBundleᵀ ℓ)

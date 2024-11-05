@@ -9,7 +9,8 @@ open import Cubical.Data.Sigma using (Σ≡Prop)
 module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓrᴰ : Level) where
   private
     ℓC = ℓ-of C
-    ℓCᴰ = ℓMax (ℓoᴰ , ℓhᴰ , ℓrᴰ)
+    ℓCᴰ : Level
+    ℓCᴰ = ℓMax ℓoᴰ ℓhᴰ ℓrᴰ
     module C = TwoCategory C
 
     variable
@@ -209,7 +210,7 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓr
               (rᴰ ∙ₕᴰ id-relᴰ (id-homᴰ yᴰ))
               rᴰ
 
-  record TwoCategoryᴰ : Type (ℓ-max ℓC (ℓ-suc (ℓMax (ℓoᴰ , ℓhᴰ , ℓrᴰ)))) where
+  record TwoCategoryᴰ : Type (ℓ-max ℓC (ℓ-suc ℓCᴰ)) where
     field
       ob[_] : C.ob → Type ℓoᴰ
       hom[_] : {x y : C.ob} (f : C.hom x y) (xᴰ : ob[ x ]) (yᴰ : ob[ y ]) → Type ℓhᴰ

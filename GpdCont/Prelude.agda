@@ -61,11 +61,12 @@ module LevelNumber where
 
   LevelTele : (n : Nat) → LevelUniv
   LevelTele zero = Level
-  LevelTele (suc n) = Level × LevelTele n
+  LevelTele (suc n) = Level → LevelTele n
 
-  ℓMax : {n : Nat} → LevelTele n → Level
-  ℓMax {n = zero} = λ ℓ → ℓ
-  ℓMax {n = (suc n)} (ℓ , ℓs) = ℓ-max ℓ (ℓMax {n} ℓs)
+  ℓMax : {n : Nat} → LevelTele n
+  ℓMax {n = 0} = ℓ-zero
+  ℓMax {n = 1} = λ ℓ → ℓ
+  ℓMax {n = suc (suc n)} ℓ₀ ℓ₁ = ℓMax {n = suc n} (ℓ-max ℓ₀ ℓ₁)
 
 ℓ-of : ∀ {ℓ} {A : Type ℓ} (a : A) → Level
 ℓ-of {ℓ} _ = ℓ

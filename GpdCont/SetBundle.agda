@@ -105,15 +105,18 @@ module _ (ℓ : Level) where
     isLocallyThinBundleOver .IsLocallyThinOver.comp-hom-unit-leftᴰ gᴰ = refl
     isLocallyThinBundleOver .IsLocallyThinOver.comp-hom-unit-rightᴰ fᴰ = refl
 
-  SetBundleᴰ : LocallyThinOver (hGpdCat ℓ) (ℓ-suc ℓ) ℓ ℓ
-  SetBundleᴰ .LocallyThinOver.ob[_] = S₀
-  SetBundleᴰ .LocallyThinOver.hom[_] = S₁
-  SetBundleᴰ .LocallyThinOver.rel[_] {yᴰ = Y} = S₂ {Y = Y}
-  SetBundleᴰ .LocallyThinOver.two-category-structureᴰ = SetBundleStrᴰ
-  SetBundleᴰ .LocallyThinOver.is-locally-thinᴰ = isLocallyThinBundleOver
+  SetBundleᵀ : LocallyThinOver (hGpdCat ℓ) (ℓ-suc ℓ) ℓ ℓ
+  SetBundleᵀ .LocallyThinOver.ob[_] = S₀
+  SetBundleᵀ .LocallyThinOver.hom[_] = S₁
+  SetBundleᵀ .LocallyThinOver.rel[_] {yᴰ = Y} = S₂ {Y = Y}
+  SetBundleᵀ .LocallyThinOver.two-category-structureᴰ = SetBundleStrᴰ
+  SetBundleᵀ .LocallyThinOver.is-locally-thinᴰ = isLocallyThinBundleOver
+
+  SetBundleᴰ : TwoCategoryᴰ (hGpdCat ℓ) (ℓ-suc ℓ) ℓ ℓ
+  SetBundleᴰ = LocallyThinOver.toTwoCategoryᴰ SetBundleᵀ
 
   SetBundle : TwoCategory (ℓ-suc ℓ) ℓ ℓ
-  SetBundle = LT.TotalTwoCategory.∫ (hGpdCat ℓ) SetBundleᴰ
+  SetBundle = LT.TotalTwoCategory.∫ (hGpdCat ℓ) SetBundleᵀ
 
   private module Sanity where
     module SetBundle = TwoCategory SetBundle

@@ -3,6 +3,7 @@ module GpdCont.HomotopySet where
 open import GpdCont.Prelude
 
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.HLevels using (hSet) public
 open import Cubical.Data.Sigma.Base as Sigma using (_×_)
 open import Cubical.Data.Sum as Sum using (_⊎_)
 open import Cubical.Data.Empty as Empty using (⊥*)

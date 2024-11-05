@@ -3,162 +3,121 @@ module GpdCont.GroupAction.TwoCategory where
 
 open import GpdCont.Prelude
 
-open import GpdCont.GroupAction.Base
-open import GpdCont.GroupAction.Category
-open import GpdCont.TwoCategory.Base
-open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ ; module TotalTwoCategory)
+open import GpdCont.GroupAction.Base using (Action ; _⁺_ ; module ActionProperties)
+open import GpdCont.GroupAction.Equivariant renaming (isEquivariantMap[_][_,_] to isEquivariantMap)
+open import GpdCont.Group.TwoCategory using (TwoGroup)
+open import GpdCont.TwoCategory.Base using (TwoCategory)
+open import GpdCont.TwoCategory.HomotopySet using (hSetCat)
+open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ ; TwoCategoryStrᴰ)
+open import GpdCont.TwoCategory.Displayed.LocallyThin using (LocallyThinOver ; IsLocallyThinOver ; module TotalTwoCategory)
 
-open import Cubical.Categories.Category.Base
-open import Cubical.Algebra.Group.Base
-open import Cubical.Algebra.Group.Morphisms
+open import Cubical.Foundations.HLevels using (hSet ; isSet→)
+open import Cubical.Algebra.Group.Base using (GroupStr)
 
 module _ (ℓ : Level) where
   private
-    module GroupAction = Category (GroupAction ℓ)
+    module hSetCat = TwoCategory (hSetCat ℓ)
+    module TwoGroup = TwoCategory (TwoGroup ℓ)
 
-    module GroupActionLocal σ τ = LocalCategory {ℓ} σ τ
-    -- module Conjugator {σ} {τ} = Category (GroupActionLocal.ConjugatorCat σ τ)
+    GroupActionᴰ₀ : TwoGroup.ob → Type (ℓ-suc ℓ)
+    GroupActionᴰ₀ G = Σ[ X ∈ hSet ℓ ] Action G X
 
-    module ConjugatorAt (σ τ : GroupAction.ob) where
-      open module Conjugator = Category (GroupActionLocal.ConjugatorCat σ τ)
-        using (Hom[_,_])
-        public
+    GroupActionᴰ₁ : ∀ {G H} (φ : TwoGroup.hom G H) → GroupActionᴰ₀ G → GroupActionᴰ₀ H → Type ℓ
+    GroupActionᴰ₁ φ (X , σ) (Y , τ) = Σ[ f ∈ (⟨ Y ⟩ → ⟨ X ⟩) ] isEquivariantMap (φ , f) σ τ
 
-      -- Turn an equivariant map into an object of the conjugator category,
-      -- by dropping the proof that the map is equivariant
-      _′ : GroupAction.Hom[ σ , τ ] → Conjugator.ob
-      _′ = fst
+    GroupActionᴰ₂ : ∀ {G H} {φ ψ : TwoGroup.hom G H} {Xᴳ : GroupActionᴰ₀ G} {Yᴴ : GroupActionᴰ₀ H} → (r : TwoGroup.rel φ ψ) → GroupActionᴰ₁ φ Xᴳ Yᴴ → GroupActionᴰ₁ ψ Xᴳ Yᴴ → Type _
+    GroupActionᴰ₂ {Yᴴ = Y , τ} (r , _) (f₁ , _) (f₂ , _) = f₁ ≡ f₂ ∘ (τ ⁺ r)
 
-      conj : (f g : GroupAction.Hom[ σ , τ ]) → Type _
-      conj f g = Conjugator.Hom[ f ′ , g ′ ]
+    isPropGroupActionᴰ₂ : ∀ {G H} {φ ψ : TwoGroup.hom G H} {Xᴳ : GroupActionᴰ₀ G} {Yᴴ : GroupActionᴰ₀ H} {r : TwoGroup.rel φ ψ}
+      → (fᴰ : GroupActionᴰ₁ φ Xᴳ Yᴴ) → (gᴰ : GroupActionᴰ₁ ψ Xᴳ Yᴴ)
+      → isProp (GroupActionᴰ₂ r fᴰ gᴰ)
+    isPropGroupActionᴰ₂ {Xᴳ = X , _} fᴰ gᴰ = isSet→ (str X) _ _
 
-      id-conj : (f : GroupAction.Hom[ σ , τ ]) → conj f f
-      id-conj f = Conjugator.id {x = f ′}
+    GroupActionᴰ₁PathP : ∀ {G H} {φ ψ : TwoGroup.hom G H}
+      → {Xᴳ : GroupActionᴰ₀ G} {Yᴴ : GroupActionᴰ₀ H}
+      → {p : φ ≡ ψ}
+      → {fᴰ : GroupActionᴰ₁ φ Xᴳ Yᴴ}
+      → {gᴰ : GroupActionᴰ₁ ψ Xᴳ Yᴴ}
+      → PathP (λ i → ⟨ Yᴴ .fst ⟩ → ⟨ Xᴳ .fst ⟩) (fᴰ .fst) (gᴰ .fst)
+      → PathP (λ i → GroupActionᴰ₁ (p i) Xᴳ Yᴴ) fᴰ gᴰ
+    GroupActionᴰ₁PathP {p} q i .fst = q i
+    GroupActionᴰ₁PathP {p} {fᴰ = f , f-eqva} {gᴰ = g , g-eqva} q i .snd = isProp→PathP {B = λ i → isEquivariantMap (p i , q i) _ _} (λ i → isPropIsEquivariantMap (p i , q i) _ _) f-eqva g-eqva i
 
-      comp-conj : {f g h : GroupAction.Hom[ σ , τ ]} → conj f g → conj g h → conj f h
-      comp-conj {f} {g} {h} = Conjugator._⋆_ {x = f ′} {y = g ′} {z = h ′}
+    id₁ : ∀ {G} (Xᴳ : GroupActionᴰ₀ G) → GroupActionᴰ₁ (TwoGroup.id-hom G) Xᴳ Xᴳ
+    id₁ (X , σ) .fst = id ⟨ X ⟩
+    id₁ (X , σ) .snd = isEquivariantMap-id σ
 
-      isSetConjugator : (f g : GroupAction.Hom[ σ , τ ]) → isSet (conj f g)
-      isSetConjugator f g = Conjugator.isSetHom {x = f ′} {y = g ′}
+    _∙₁_ : ∀ {G H K} {φ : TwoGroup.hom G H} {ψ : TwoGroup.hom H K}
+      → {Xᴳ : GroupActionᴰ₀ G} {Yᴴ : GroupActionᴰ₀ H} {Zᴷ : GroupActionᴰ₀ K}
+      → (f : GroupActionᴰ₁ φ Xᴳ Yᴴ)
+      → (g : GroupActionᴰ₁ ψ Yᴴ Zᴷ)
+      → GroupActionᴰ₁ (φ TwoGroup.∙₁ ψ) Xᴳ Zᴷ
+    _∙₁_ (f , f-eqva) (g , g-eqva) .fst = g ⋆ f
+    _∙₁_ {φ} {ψ} (f , f-eqva) (g , g-eqva) .snd = isEquivariantMap-comp (φ , f) (ψ , g) _ _ _ f-eqva g-eqva
 
-    -- id-conj : (σ τ : GroupAction.ob) (f : GroupAction.Hom[ σ , τ ]) → Conjugator.Hom[ σ , τ ] [ f ] [ f ]
-    -- id-conj σ τ f = Conjugator.id σ τ {x = [ f ]}
-    
-    module _
-      {σ* @ ((G , X) , σ) : GroupAction.ob}
-      {τ* @ ((H , Y) , τ) : GroupAction.ob}
-      {ρ* @ ((K , Z), ρ) : GroupAction.ob}
-      {f₁* @ (((φ₁ , φ₁-hom) , f₁) , f₁-eqva) : GroupAction.Hom[ σ* , τ* ]}
-      {f₂* @ (((φ₂ , φ₂-hom) , f₂) , f₂-eqva) : GroupAction.Hom[ σ* , τ* ]}
-      {g₁* @ (((ψ₁ , ψ₁-hom) , g₁) , g₁-eqva) : GroupAction.Hom[ τ* , ρ* ]}
-      {g₂* @ (((ψ₂ , ψ₂-hom) , g₂) , g₂-eqva) : GroupAction.Hom[ τ* , ρ* ]}
-      (h* @ (h , (h-conj-φ₁-φ₂ , h-conj-f₁-f₂)) : ConjugatorAt.conj σ* τ* f₁* f₂*)
-      (k* @ (k , (k-conj-ψ₁-ψ₂ , k-conj-g₁-g₂)) : ConjugatorAt.conj τ* ρ* g₁* g₂*)
-      where
-        private
-          open module K = GroupStr (str K) renaming (_·_ to _·ᴷ_)
-          open module H = GroupStr (str H) renaming (_·_ to _·ᴴ_)
-          _∙ₕ_ = GroupAction._⋆_ {x = σ*} {y = τ*} {z = ρ*}
+    id₂ : ∀ {G H} {φ : TwoGroup.hom G H} {Xᴳ : GroupActionᴰ₀ G} {Yᴴ : GroupActionᴰ₀ H} (f : GroupActionᴰ₁ φ Xᴳ Yᴴ) → GroupActionᴰ₂ (TwoGroup.id-rel φ) f f
+    id₂ (f , f-eqva) = cong (f ∘_) $ sym (ActionProperties.action-1-id _)
 
-        h∙ₕk : ⟨ K ⟩
-        h∙ₕk = k K.· (ψ₂ h)
+    _∙ᵥ_ : ∀ {G H} {φ ψ ρ : TwoGroup.hom G H} {r : TwoGroup.rel φ ψ} {s : TwoGroup.rel ψ ρ}
+      → {Xᴳ : GroupActionᴰ₀ G} {Yᴴ : GroupActionᴰ₀ H} {f : GroupActionᴰ₁ φ Xᴳ Yᴴ} {g : GroupActionᴰ₁ ψ Xᴳ Yᴴ} {h : GroupActionᴰ₁ ρ Xᴳ Yᴴ}
+      → (rᴰ : GroupActionᴰ₂ r f g)
+      → (sᴰ : GroupActionᴰ₂ s g h)
+      → GroupActionᴰ₂ (TwoGroup.trans r s) f h
+    _∙ᵥ_ {H} {r = r , _} {s = s , _} {Yᴴ = Y , τ} {f = f , _} {g = g , _} {h = h , _} rᴰ sᴰ = goal where
+      open GroupStr (str H) using (_·_)
+      goal : f ≡ h ∘ (τ ⁺ (r · s))
+      goal =
+        f ≡⟨ rᴰ ⟩
+        g ∘ (τ ⁺ r) ≡⟨ cong (_∘ τ ⁺ r) sᴰ ⟩
+        h ∘ (τ ⁺ s) ∘ (τ ⁺ r) ≡⟨ sym $ cong (h ∘_) (ActionProperties.action-comp τ r s) ⟩
+        h ∘ (τ ⁺ (r · s)) ∎
 
-        private opaque
-          isGroupHomConjugator-k∙ₕk : ∀ g → ψ₁ (φ₁ g) ·ᴷ (k ·ᴷ ψ₂ h) ≡ (k ·ᴷ ψ₂ h) ·ᴷ ψ₂ (φ₂ g)
-          isGroupHomConjugator-k∙ₕk g =
-            ψ₁ (φ₁ g) ·ᴷ (k ·ᴷ ψ₂ h) ≡⟨ K.·Assoc _ _ _ ⟩
-            (ψ₁ (φ₁ g) ·ᴷ k) ·ᴷ ψ₂ h ≡⟨ cong (K._· ψ₂ h) (k-conj-ψ₁-ψ₂ (φ₁ g)) ⟩
-            (k ·ᴷ ψ₂ (φ₁ g)) ·ᴷ ψ₂ h ≡⟨ sym $ K.·Assoc _ _ _ ⟩
-            k ·ᴷ (ψ₂ (φ₁ g) ·ᴷ ψ₂ h) ≡⟨ cong (k ·ᴷ_) $ sym $ ψ₂-hom .IsGroupHom.pres· (φ₁ g) h ⟩
-            k ·ᴷ (ψ₂ (φ₁ g ·ᴴ h))    ≡[ i ]⟨ k ·ᴷ (ψ₂ (h-conj-φ₁-φ₂ g i)) ⟩
-            k ·ᴷ (ψ₂ (h ·ᴴ φ₂ g))    ≡⟨ cong (k ·ᴷ_) (ψ₂-hom .IsGroupHom.pres· h (φ₂ g)) ⟩
-            k ·ᴷ (ψ₂ h ·ᴷ ψ₂ (φ₂ g)) ≡⟨ K.·Assoc _ _ _ ⟩
-            (k ·ᴷ ψ₂ h) ·ᴷ ψ₂ (φ₂ g) ∎
+    GroupActionStr : TwoCategoryStrᴰ (TwoGroup ℓ) _ _ _ GroupActionᴰ₀ GroupActionᴰ₁ GroupActionᴰ₂
+    GroupActionStr .TwoCategoryStrᴰ.id-homᴰ = id₁
+    GroupActionStr .TwoCategoryStrᴰ.comp-homᴰ = _∙₁_
+    GroupActionStr .TwoCategoryStrᴰ.id-relᴰ = id₂
+    GroupActionStr .TwoCategoryStrᴰ.transᴰ = _∙ᵥ_
+    GroupActionStr .TwoCategoryStrᴰ.comp-relᴰ {y = H} {z = K}
+      {f₁ = φ₁ , _} {f₂ = φ₂ , _}
+      {g₁ = ψ₁ , _} {g₂ = ψ₂ , _}
+      {r = r , _} {s = s , s-grp-conj}
+      {yᴰ = Y , τ} {zᴰ = Z , ρ}
+      {f₁ᴰ = f₁ᴰ , _} {f₂ᴰ = f₂ᴰ , _} {g₁ᴰ = g₁ᴰ , g₁ᴰ-eqva} {g₂ᴰ = g₂ᴰ , _} f₁ᴰ≡f₂ᴰ∘τr g₁ᴰ≡g₂ᴰ∘ρs = goal where
+      open GroupStr (str H) renaming (_·_ to _·ᴴ_)
+      open GroupStr (str K) renaming (_·_ to _·ᴷ_)
 
-          isMapFiller : (f₁ ∘ g₁) ≡ (f₂ ∘ g₂) ∘ ρ ⁺ (k ·ᴷ ψ₂ h)
-          isMapFiller =
-            f₁ ∘ g₁                         ≡[ i ]⟨ h-conj-f₁-f₂ i ∘ g₁ ⟩
-                -- h is a conjugator of f₁ and f₂
-                ----------
-            f₂ ∘ τ ⁺ h ∘ g₁                 ≡[ i ]⟨ f₂ ∘ g₁-eqva h i ⟩
-                ---------- (g₁ , ψ₁) is equivariant
-                ---------------
-            f₂ ∘ g₁ ∘ ρ ⁺ (ψ₁ h)            ≡[ i ]⟨ f₂ ∘ (k-conj-g₁-g₂ i) ∘ ρ ⁺ (ψ₁ h) ⟩
-                -- h is a conjugator of g₁ and g₂
-                ------------
-            f₂ ∘ g₂ ∘ (ρ ⁺ k) ∘ ρ ⁺ (ψ₁ h)  ≡[ i ]⟨ f₂ ∘ g₂ ∘ ActionProperties.action-comp ρ (ψ₁ h) k (~ i) ⟩
-                      -------------------- ρ preserves composition
-                      ---------------
-            f₂ ∘ g₂ ∘ ρ ⁺ (ψ₁ h ·ᴷ k)       ≡[ i ]⟨ f₂ ∘ g₂ ∘ ρ ⁺ k-conj-ψ₁-ψ₂ h i ⟩
-                          ----------- k is a conjugator of f₁ and f₂
-            f₂ ∘ g₂ ∘ ρ ⁺ (k ·ᴷ ψ₂ h) ∎
+      goal : f₁ᴰ ∘ g₁ᴰ ≡ f₂ᴰ ∘ g₂ᴰ ∘ (ρ ⁺ (s ·ᴷ ψ₂ r))
+      goal =
+        f₁ᴰ ∘ g₁ᴰ                         ≡[ i ]⟨ f₁ᴰ≡f₂ᴰ∘τr i ∘ g₁ᴰ ⟩
+        --    --- r is a conjugator of f₁ and f₂
+        --    -----------
+        f₂ᴰ ∘ (τ ⁺ r) ∘ g₁ᴰ               ≡[ i ]⟨ f₂ᴰ ∘ g₁ᴰ-eqva r i ⟩
+        --    '-----------' g₁ᴰ is equivariant wrt. τ and ρ
+        --    .--------------.
+        f₂ᴰ ∘ g₁ᴰ ∘ ρ ⁺ (ψ₁ r)            ≡[ i ]⟨ f₂ᴰ ∘ g₁ᴰ≡g₂ᴰ∘ρs i ∘ ρ ⁺ (ψ₁ r) ⟩
+        --    '-' s is a conjugator of g₁ and g₂
+        --    .-----------.
+        f₂ᴰ ∘ g₂ᴰ ∘ (ρ ⁺ s) ∘ ρ ⁺ (ψ₁ r)  ≡[ i ]⟨ f₂ᴰ ∘ g₂ᴰ ∘ ActionProperties.action-comp ρ (ψ₁ r) s (~ i) ⟩
+        --          '------------------' ρ preserves composition
+        --          .-------------.
+        f₂ᴰ ∘ g₂ᴰ ∘ ρ ⁺ (ψ₁ r ·ᴷ s)       ≡[ i ]⟨ f₂ᴰ ∘ g₂ᴰ ∘ ρ ⁺ s-grp-conj r i ⟩
+        --              |---------| s is a conjugator of ψ₁ and ψ₂
+        f₂ᴰ ∘ g₂ᴰ ∘ ρ ⁺ (s ·ᴷ ψ₂ r) ∎
 
-        compHorizontal : ConjugatorAt.conj σ* ρ* (f₁* ∙ₕ g₁*) (f₂* ∙ₕ g₂*)
-        compHorizontal .fst = h∙ₕk
-        compHorizontal .snd .fst = isGroupHomConjugator-k∙ₕk
-        compHorizontal .snd .snd = isMapFiller
+  GroupActionᵀ : LocallyThinOver (TwoGroup ℓ) (ℓ-suc ℓ) ℓ ℓ
+  GroupActionᵀ .LocallyThinOver.ob[_] = GroupActionᴰ₀
+  GroupActionᵀ .LocallyThinOver.hom[_] = GroupActionᴰ₁
+  GroupActionᵀ .LocallyThinOver.rel[_] = GroupActionᴰ₂
+  GroupActionᵀ .LocallyThinOver.two-category-structureᴰ = GroupActionStr
+  GroupActionᵀ .LocallyThinOver.is-locally-thinᴰ = is-locally-thin where
+    is-locally-thin : IsLocallyThinOver (TwoGroup ℓ) _ _ _ GroupActionᴰ₀ GroupActionᴰ₁ GroupActionᴰ₂ GroupActionStr
+    is-locally-thin .IsLocallyThinOver.is-prop-relᴰ {s} = isPropGroupActionᴰ₂ {r = s}
+    is-locally-thin .IsLocallyThinOver.comp-hom-assocᴰ _ _ _ = GroupActionᴰ₁PathP refl
+    is-locally-thin .IsLocallyThinOver.comp-hom-unit-leftᴰ _ = GroupActionᴰ₁PathP refl
+    is-locally-thin .IsLocallyThinOver.comp-hom-unit-rightᴰ _ = GroupActionᴰ₁PathP refl
 
-  idCompHorizontal : (σ τ ρ : GroupAction.ob) (f : GroupAction.Hom[ σ , τ ]) (g : GroupAction.Hom[ τ , ρ ])
-    → ConjugatorAt.id-conj σ ρ (f GroupAction.⋆ g) ≡
-      compHorizontal
-        (ConjugatorAt.id-conj σ τ f)
-        (ConjugatorAt.id-conj τ ρ g)
-  idCompHorizontal ((G , X) , σ) ((H , Y) , τ) ((K , Z) , ρ) f* g*
-    using (φ , f) ← GroupActionLocal.homData _ _ f*
-    using (ψ , g) ← GroupActionLocal.homData _ _ g*
-    = GroupActionLocal.Conjugator≡ _ _ _ _ goal
-    where
-      open module H = GroupStr (str H) using () renaming (1g to 1ᴴ)
-      open module K = GroupStr (str K) using () renaming (1g to 1ᴷ)
+  GroupActionᴰ : TwoCategoryᴰ (TwoGroup ℓ) (ℓ-suc ℓ) ℓ ℓ
+  GroupActionᴰ = LocallyThinOver.toTwoCategoryᴰ GroupActionᵀ
 
-      isGroupHom-ψ = g* .fst .fst .snd
-
-      goal : 1ᴷ ≡ 1ᴷ K.· ψ 1ᴴ
-      goal = sym $ (K.·IdL (ψ 1ᴴ)) ∙ isGroupHom-ψ .IsGroupHom.pres1
-
-  GroupAction₂ : TwoCategory (ℓ-suc ℓ) ℓ ℓ
-  GroupAction₂ .TwoCategory.ob = GroupAction.ob
-  GroupAction₂ .TwoCategory.hom = GroupAction.Hom[_,_]
-  GroupAction₂ .TwoCategory.rel {x = σ} {y = τ} = ConjugatorAt.conj σ τ
-  GroupAction₂ .TwoCategory.two-category-structure = two-cat-str where
-    two-cat-str : TwoCategoryStr _ _ _
-    two-cat-str .TwoCategoryStr.id-hom σ = GroupAction.id {x = σ}
-    -- Horizontal composition of equivariant maps
-    two-cat-str .TwoCategoryStr.comp-hom = GroupAction._⋆_
-    -- Identity 2-cells: every equivariant map is conjugate to itself
-    two-cat-str .TwoCategoryStr.id-rel {x = σ} {y = τ} = ConjugatorAt.id-conj σ τ
-    -- Vertical composition of 2-cells: conjugators compose by multiplication
-    two-cat-str .TwoCategoryStr.trans {x = σ} {y = τ} = ConjugatorAt.comp-conj σ τ
-    -- Horizontal composition of conjugators
-    two-cat-str .TwoCategoryStr.comp-rel = compHorizontal
-  GroupAction₂ .TwoCategory.is-two-category = is-two-cat where
-    is-two-cat : IsTwoCategory _ _ _ _
-    is-two-cat .IsTwoCategory.is-set-rel {x = σ} {y = τ} = ConjugatorAt.isSetConjugator σ τ
-    is-two-cat .IsTwoCategory.trans-assoc = ConjugatorAt.Conjugator.⋆Assoc _ _
-    is-two-cat .IsTwoCategory.trans-unit-left = ConjugatorAt.Conjugator.⋆IdL _ _
-    is-two-cat .IsTwoCategory.trans-unit-right = ConjugatorAt.Conjugator.⋆IdR _ _
-    is-two-cat .IsTwoCategory.comp-rel-id = idCompHorizontal _ _ _
-    is-two-cat .IsTwoCategory.comp-rel-trans {y = ((H , Y) , τ)} {z = ((K , Z) , ρ)} {g₂ = g₂*} {g₃ = g₃*}
-      (h₁ , _)
-      (h₂ , _)
-      (k₁ , _)
-      (k₂ , (k₂-cong-hom , _))
-      using (ψ₂ , g₂) ← GroupActionLocal.homData _ _ g₂*
-      using (ψ₃ , g₃) ← GroupActionLocal.homData _ _ g₃*
-      using is-hom-ψ₃ ← GroupActionLocal.hom→isGroupHom _ _ g₃*
-      = GroupActionLocal.Conjugator≡ _ _ _ _ goal where
-        module H = GroupStr (str H)
-        module K = GroupStr (str K)
-        goal : (k₁ K.· k₂) K.· ψ₃ (h₁ H.· h₂) ≡ (k₁ K.· ψ₂ h₁) K.· (k₂ K.· (ψ₃ h₂))
-        goal =
-          (k₁ K.· k₂) K.· ψ₃ (h₁ H.· h₂)    ≡[ i ]⟨ (k₁ K.· k₂) K.· is-hom-ψ₃ .IsGroupHom.pres· h₁ h₂ i ⟩
-          (k₁ K.· k₂) K.· (ψ₃ h₁ K.· ψ₃ h₂) ≡⟨ {! !} ⟩
-          k₁ K.· (k₂ K.· ψ₃ h₁) K.· ψ₃ h₂   ≡[ i ]⟨ k₁ K.· k₂-cong-hom h₁ (~ i) K.· ψ₃ h₂ ⟩
-          k₁ K.· (ψ₂ h₁ K.· k₂) K.· ψ₃ h₂   ≡[ i ]⟨ {! !} ⟩
-          (k₁ K.· ψ₂ h₁) K.· (k₂ K.· (ψ₃ h₂)) ∎
-    is-two-cat .IsTwoCategory.comp-hom-assoc = GroupAction.⋆Assoc
-    is-two-cat .IsTwoCategory.comp-hom-unit-left = GroupAction.⋆IdL
-    is-two-cat .IsTwoCategory.comp-hom-unit-right = GroupAction.⋆IdR
-    is-two-cat .IsTwoCategory.comp-rel-assoc = {! !}
-    is-two-cat .IsTwoCategory.comp-rel-unit-left = {! !}
-    is-two-cat .IsTwoCategory.comp-rel-unit-right = {! !}
+  GroupAction : TwoCategory (ℓ-suc ℓ) ℓ ℓ
+  GroupAction = TotalTwoCategory.∫ (TwoGroup ℓ) GroupActionᵀ

@@ -14,11 +14,6 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓr
     ℓCᴰ = ℓMax ℓoᴰ ℓhᴰ ℓrᴰ
     module C = TwoCategory C
 
-    variable
-      x y z : C.ob
-      f : C.hom x y
-      g : C.hom y z
-
   module _
     (ob[_] : C.ob → Type ℓoᴰ)
     (hom[_] : {x y : C.ob} (f : C.hom x y) (xᴰ : ob[ x ]) (yᴰ : ob[ y ]) → Type ℓhᴰ)

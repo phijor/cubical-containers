@@ -13,11 +13,6 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓr
     ℓCᴰ = ℓMax ℓoᴰ ℓhᴰ ℓrᴰ
     module C = TwoCategory C
 
-    variable
-      x y z : C.ob
-      f : C.hom x y
-      g : C.hom y z
-
   module _
     (ob[_] : C.ob → Type ℓoᴰ)
     (hom[_] : {x y : C.ob} (f : C.hom x y) (xᴰ : ob[ x ]) (yᴰ : ob[ y ]) → Type ℓhᴰ)
@@ -31,21 +26,24 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓr
       open C
       record TwoCategoryStrᴰ : Type (ℓ-max ℓC ℓCᴰ) where
         field
-          id-homᴰ : (xᴰ : ob[ x ]) → hom[ id-hom x ] xᴰ xᴰ
-          comp-homᴰ : {xᴰ : ob[ x ]} {yᴰ : ob[ y ]} {zᴰ : ob[ z ]}
+          id-homᴰ : ∀ {x} (xᴰ : ob[ x ]) → hom[ id-hom x ] xᴰ xᴰ
+          comp-homᴰ : ∀ {x y z} {f : hom x y} {g : hom y z}
+            → {xᴰ : ob[ x ]} {yᴰ : ob[ y ]} {zᴰ : ob[ z ]}
             → (fᴰ : hom[ f ] xᴰ yᴰ)
             → (gᴰ : hom[ g ] yᴰ zᴰ)
             → hom[ comp-hom f g ] xᴰ zᴰ
 
         field
-          id-relᴰ : {xᴰ : ob[ x ]} {yᴰ : ob[ y ]}
+          id-relᴰ : ∀ {x y} {f : hom x y}
+            → {xᴰ : ob[ x ]} {yᴰ : ob[ y ]}
             → (fᴰ : hom[ f ] xᴰ yᴰ)
             → rel[ id-rel f ] fᴰ fᴰ
 
-          transᴰ : {xᴰ : ob[ x ]} {yᴰ : ob[ y ]}
+          transᴰ : ∀ {x y}
             → {f g h : hom x y}
             → {r : rel f g}
             → {s : rel g h}
+            → {xᴰ : ob[ x ]} {yᴰ : ob[ y ]}
             → {fᴰ : hom[ f ] xᴰ yᴰ}
             → {gᴰ : hom[ g ] xᴰ yᴰ}
             → {hᴰ : hom[ h ] xᴰ yᴰ}
@@ -53,11 +51,12 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓr
             → (sᴰ : rel[ s ] gᴰ hᴰ)
             → rel[ trans r s ] fᴰ hᴰ
 
-          comp-relᴰ : {xᴰ : ob[ x ]} {yᴰ : ob[ y ]} {zᴰ : ob[ z ]}
+          comp-relᴰ : ∀ {x y z}
             → {f₁ f₂ : hom x y}
             → {g₁ g₂ : hom y z}
             → {r : rel f₁ f₂}
             → {s : rel g₁ g₂}
+            → {xᴰ : ob[ x ]} {yᴰ : ob[ y ]} {zᴰ : ob[ z ]}
             → {f₁ᴰ : hom[ f₁ ] xᴰ yᴰ}
             → {f₂ᴰ : hom[ f₂ ] xᴰ yᴰ}
             → {g₁ᴰ : hom[ g₁ ] yᴰ zᴰ}

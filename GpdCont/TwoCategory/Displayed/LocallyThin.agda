@@ -2,10 +2,9 @@ module GpdCont.TwoCategory.Displayed.LocallyThin where
 
 open import GpdCont.Prelude
 open import GpdCont.TwoCategory.Base
+open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
 open import GpdCont.TwoCategory.Displayed.Base as Disp hiding (module TotalTwoCategory)
-
-open import Cubical.Foundations.HLevels
-open import Cubical.Data.Sigma using (Σ≡Prop)
+open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
 
 module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓrᴰ : Level) where
   private
@@ -142,3 +141,78 @@ module TotalTwoCategory
 
   ∫ : TwoCategory (ℓ-max ℓo ℓoᴰ) (ℓ-max ℓh ℓhᴰ) (ℓ-max ℓr ℓrᴰ)
   ∫ = Disp.TotalTwoCategory.∫ C toTwoCategoryᴰ
+
+
+-- For defining lax functors into locally thin displayed 2-categories,
+-- one can get away with verifying a lot less properties: one needs to
+-- provide the usual stuff (actions on {0,1,2}-cells) and data of the
+-- laxity constraints.
+--
+-- All other properties are (dependendent) paths between 2-cells, and
+-- those always exists, since the target 2-cells are propositons>
+--
+-- `IntoLocallyThin` contains the data of a functor into some locally thin `Dᴰ`.
+module _
+  {ℓoC ℓoCᴰ ℓoD ℓoDᴰ}
+  {ℓhC ℓhCᴰ ℓhD ℓhDᴰ}
+  {ℓrC ℓrCᴰ ℓrD ℓrDᴰ}
+  {C : TwoCategory ℓoC ℓhC ℓrC}
+  {D : TwoCategory ℓoD ℓhD ℓrD}
+  (F : LaxFunctor C D)
+  (Cᴰ : TwoCategoryᴰ C ℓoCᴰ ℓhCᴰ ℓrCᴰ)
+  (Dᴰ : LocallyThinOver D ℓoDᴰ ℓhDᴰ ℓrDᴰ)
+  where
+    private
+      ℓ : Level
+      ℓ = ℓMax ℓoC ℓoCᴰ ℓoD ℓoDᴰ ℓhC ℓhCᴰ ℓhD ℓhDᴰ ℓrC ℓrCᴰ ℓrD ℓrDᴰ
+      module C = TwoCategory C
+      module D = TwoCategory D
+      open module F = LaxFunctor F hiding (₀ ; ₁ ; ₂)
+      module Cᴰ = TwoCategoryᴰ Cᴰ
+      module Dᴰ = LocallyThinOver Dᴰ
+
+    record IntoLocallyThin : Type ℓ where
+      field
+        F-obᴰ : {x : C.ob}
+          → Cᴰ.ob[ x ] → Dᴰ.ob[ F.₀ x ]
+        F-homᴰ : {x y : C.ob} {f : C.hom x y}
+          → {xᴰ : Cᴰ.ob[ x ]} {yᴰ : Cᴰ.ob[ y ]}
+          → Cᴰ.hom[ f ] xᴰ yᴰ → Dᴰ.hom[ F.₁ f ] (F-obᴰ xᴰ) (F-obᴰ yᴰ)
+        F-relᴰ : {x y : C.ob} {f g : C.hom x y} {r : C.rel f g}
+          → {xᴰ : Cᴰ.ob[ x ]} {yᴰ : Cᴰ.ob[ y ]}
+          → {fᴰ : Cᴰ.hom[ f ] xᴰ yᴰ}
+          → {gᴰ : Cᴰ.hom[ g ] xᴰ yᴰ}
+          → Cᴰ.rel[ r ] fᴰ gᴰ → Dᴰ.rel[ F.₂ r ] (F-homᴰ fᴰ) (F-homᴰ gᴰ)
+
+      ₀ = F-obᴰ
+      ₁ = F-homᴰ
+      ₂ = F-relᴰ
+
+      -- Displayed laxity constraints
+      field
+        -- Lax functoriality
+        F-trans-laxᴰ : {x y z : C.ob} {f : C.hom x y} {g : C.hom y z}
+          → {xᴰ : Cᴰ.ob[ x ]} {yᴰ : Cᴰ.ob[ y ]} {zᴰ : Cᴰ.ob[ z ]}
+          → (fᴰ : Cᴰ.hom[ f ] xᴰ yᴰ)
+          → (gᴰ : Cᴰ.hom[ g ] yᴰ zᴰ)
+          → Dᴰ.rel[ F-trans-lax f g ]
+            ((F-homᴰ fᴰ) Dᴰ.∙₁ᴰ (F-homᴰ gᴰ))
+            (F-homᴰ (fᴰ Cᴰ.∙₁ᴰ gᴰ))
+
+        F-id-laxᴰ : {x : C.ob} (xᴰ : Cᴰ.ob[ x ])
+          → Dᴰ.rel[ F-id-lax x ] (Dᴰ.id-homᴰ (F-obᴰ xᴰ)) (F-homᴰ (Cᴰ.id-homᴰ xᴰ))
+
+      -- The induced displayed functor has all of its coherence conditions on 2-cells
+      -- satisfied by the path lemma in Dᴰ: parallel displayed 2-cells are identical.
+      toLaxFunctorᴰ : LaxFunctorᴰ F Cᴰ (Dᴰ.toTwoCategoryᴰ)
+      toLaxFunctorᴰ .LaxFunctorᴰ.F-obᴰ = F-obᴰ
+      toLaxFunctorᴰ .LaxFunctorᴰ.F-homᴰ = F-homᴰ
+      toLaxFunctorᴰ .LaxFunctorᴰ.F-relᴰ = F-relᴰ
+      toLaxFunctorᴰ .LaxFunctorᴰ.F-rel-idᴰ = Dᴰ.relᴰ≡ F-rel-id
+      toLaxFunctorᴰ .LaxFunctorᴰ.F-rel-transᴰ _ _ = Dᴰ.relᴰ≡ (F-rel-trans _ _)
+      toLaxFunctorᴰ .LaxFunctorᴰ.F-trans-laxᴰ = F-trans-laxᴰ
+      toLaxFunctorᴰ .LaxFunctorᴰ.F-trans-lax-naturalᴰ _ _ = Dᴰ.relᴰ≡ (F-trans-lax-natural _ _)
+      toLaxFunctorᴰ .LaxFunctorᴰ.F-id-laxᴰ = F-id-laxᴰ
+      toLaxFunctorᴰ .LaxFunctorᴰ.F-assocᴰ _ _ _ = Dᴰ.relᴰPathP (F-assoc _ _ _)
+      toLaxFunctorᴰ .LaxFunctorᴰ.F-unit-leftᴰ _ = Dᴰ.relᴰPathP (F-unit-left _)
+      toLaxFunctorᴰ .LaxFunctorᴰ.F-unit-rightᴰ _ = Dᴰ.relᴰPathP (F-unit-right _)

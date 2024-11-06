@@ -14,7 +14,7 @@ import      Cubical.Data.Equality as Eq
 
 module _ (ℓ : Level) where
   hSetCat : TwoCategory (ℓ-suc ℓ) ℓ ℓ
-  hSetCat = LocallyThin (SET ℓ)
+  hSetCat = FromCategory.LocallyThin (SET ℓ)
 
   -- Alternate definition of the thin 2-category of sets
   -- with the inductive indentity type for 2-cells.
@@ -73,5 +73,5 @@ module _ (ℓ : Level) where
   private
     module SetEq = TwoCategory SetEq
 
-  isLocallyThinSetEq : ∀ {x y} {f g : SetEq.hom x y} → isProp (SetEq.rel f g)
-  isLocallyThinSetEq = isPropSetEq₂ _ _
+  isLocallyThinSetEq : isLocallyThin SetEq
+  isLocallyThinSetEq = isPropSetEq₂

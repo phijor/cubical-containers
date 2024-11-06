@@ -3,6 +3,7 @@ module GpdCont.TwoCategory.Family where
 open import GpdCont.Prelude
 open import GpdCont.HomotopySet
 open import GpdCont.TwoCategory.Base
+open import GpdCont.TwoCategory.HomotopySet using (SetEq ; isTwoCategorySetStr)
 open import GpdCont.TwoCategory.Displayed.Base
 
 open import Cubical.Foundations.Equiv
@@ -18,51 +19,7 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓ : Level) where
 
   private
     module C = TwoCategory C
-
-    SetEq₀ : Type (ℓ-suc ℓ)
-    SetEq₀ = hSet ℓ
-
-    SetEq₁ : (x y : SetEq₀) → Type ℓ
-    SetEq₁ x y = ⟨ x ⟩ → ⟨ y ⟩
-    {-# INJECTIVE_FOR_INFERENCE SetEq₁ #-}
-
-    SetEq₂ : {x y : SetEq₀} → (f g : SetEq₁ x y) → Type ℓ
-    SetEq₂ f g = f Eq.≡ g
-    {-# INJECTIVE_FOR_INFERENCE SetEq₂ #-}
-
-    SetStr : TwoCategoryStr SetEq₀ SetEq₁ SetEq₂
-    SetStr .TwoCategoryStr.id-hom x = id ⟨ x ⟩
-    SetStr .TwoCategoryStr.comp-hom = _⋆_
-    SetStr .TwoCategoryStr.id-rel f = Eq.refl
-    SetStr .TwoCategoryStr.trans r s = r Eq.∙ s
-    SetStr .TwoCategoryStr.comp-rel Eq.refl Eq.refl = Eq.refl
-
-    opaque
-      isTwoCategorySetStr : IsTwoCategory _ _ _ SetStr
-      isTwoCategorySetStr .IsTwoCategory.is-set-rel {y} f g = is-set-eq where
-        is-set-eq : isSet (f Eq.≡ g)
-        is-set-eq = isOfHLevelRetractFromIso 2 (invIso $ Eq.PathIsoEq) $ isGroupoidΠ (const $ isSet→isGroupoid (str y)) f g
-      isTwoCategorySetStr .IsTwoCategory.trans-assoc r s t = Eq.eqToPath (Eq.assoc r s t)
-      isTwoCategorySetStr .IsTwoCategory.trans-unit-left s = Eq.eqToPath Eq.refl
-      isTwoCategorySetStr .IsTwoCategory.trans-unit-right s = Eq.eqToPath (Eq.unitR s)
-      isTwoCategorySetStr .IsTwoCategory.comp-rel-id f g = refl
-      isTwoCategorySetStr .IsTwoCategory.comp-rel-trans Eq.refl Eq.refl Eq.refl Eq.refl = refl
-      isTwoCategorySetStr .IsTwoCategory.comp-hom-assoc f g h = refl
-      isTwoCategorySetStr .IsTwoCategory.comp-hom-unit-left g = refl
-      isTwoCategorySetStr .IsTwoCategory.comp-hom-unit-right f = refl
-      isTwoCategorySetStr .IsTwoCategory.comp-rel-assoc Eq.refl Eq.refl Eq.refl = refl
-      isTwoCategorySetStr .IsTwoCategory.comp-rel-unit-left Eq.refl = refl
-      isTwoCategorySetStr .IsTwoCategory.comp-rel-unit-right Eq.refl = refl
-
-  SetEq : TwoCategory (ℓ-suc ℓ) ℓ ℓ
-  SetEq .TwoCategory.ob = SetEq₀
-  SetEq .TwoCategory.hom = SetEq₁
-  SetEq .TwoCategory.rel = SetEq₂
-  SetEq .TwoCategory.two-category-structure = SetStr
-  SetEq .TwoCategory.is-two-category = isTwoCategorySetStr
-
-  private
-    module SetEq = TwoCategory SetEq
+    module SetEq = TwoCategory (SetEq ℓ)
 
     Fam₀ : SetEq.ob → Type (ℓ-max ℓo ℓ)
     Fam₀ x = ⟨ x ⟩ → C.ob
@@ -139,7 +96,7 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓ : Level) where
         → isSet (Fam₂[ yᴰ ] s fᴰ gᴰ)
       isSetFam₂ Eq.refl  fᴰ gᴰ = isSetΠ λ j → C.is-set-rel (fᴰ j) (gᴰ j)
 
-  FamStrᴰ : TwoCategoryStrᴰ SetEq _ _ _ Fam₀ Fam₁ Fam₂
+  FamStrᴰ : TwoCategoryStrᴰ (SetEq ℓ) _ _ _ Fam₀ Fam₁ Fam₂
   FamStrᴰ .TwoCategoryStrᴰ.id-homᴰ xᴰ j = C.id-hom (xᴰ j)
   FamStrᴰ .TwoCategoryStrᴰ.comp-homᴰ {zᴰ} fᴰ gᴰ = Fam₁-comp[ zᴰ ] fᴰ gᴰ
   FamStrᴰ .TwoCategoryStrᴰ.id-relᴰ {yᴰ} fᴰ j = C.id-rel (fᴰ j)
@@ -148,7 +105,7 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓ : Level) where
 
   opaque
     unfolding isTwoCategorySetStr
-    IsTwoCategoryFamᴰ : IsTwoCategoryᴰ SetEq _ _ _ Fam₀ Fam₁ Fam₂ FamStrᴰ
+    IsTwoCategoryFamᴰ : IsTwoCategoryᴰ (SetEq ℓ) _ _ _ Fam₀ Fam₁ Fam₂ FamStrᴰ
     IsTwoCategoryFamᴰ .IsTwoCategoryᴰ.is-set-relᴰ {s} = isSetFam₂ s
     IsTwoCategoryFamᴰ .IsTwoCategoryᴰ.trans-assocᴰ {r = Eq.refl} {s = Eq.refl} {t = Eq.refl} rᴰ sᴰ tᴰ = funExt λ j → C.trans-assoc (rᴰ j) (sᴰ j) (tᴰ j)
     IsTwoCategoryFamᴰ .IsTwoCategoryᴰ.trans-unit-leftᴰ {s = Eq.refl} sᴰ = funExt λ j → C.trans-unit-left (sᴰ j)
@@ -163,7 +120,7 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓ : Level) where
     IsTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-rel-unit-rightᴰ {r = Eq.refl} rᴰ = funExt λ j → C.comp-rel-unit-right (rᴰ j)
 
 
-  Famᴰ : TwoCategoryᴰ SetEq (ℓ-max ℓo ℓ) (ℓ-max ℓh ℓ) (ℓ-max ℓr ℓ)
+  Famᴰ : TwoCategoryᴰ (SetEq ℓ) (ℓ-max ℓo ℓ) (ℓ-max ℓh ℓ) (ℓ-max ℓr ℓ)
   Famᴰ .TwoCategoryᴰ.ob[_] = Fam₀
   Famᴰ .TwoCategoryᴰ.hom[_] = Fam₁
   Famᴰ .TwoCategoryᴰ.rel[_] {yᴰ} = Fam₂[ yᴰ ]
@@ -171,4 +128,4 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓ : Level) where
   Famᴰ .TwoCategoryᴰ.is-two-categoryᴰ = IsTwoCategoryFamᴰ
 
   Fam : TwoCategory (ℓ-max ℓo (ℓ-suc ℓ)) (ℓ-max ℓh ℓ) (ℓ-max ℓr ℓ)
-  Fam = TotalTwoCategory.∫ SetEq Famᴰ
+  Fam = TotalTwoCategory.∫ (SetEq ℓ) Famᴰ

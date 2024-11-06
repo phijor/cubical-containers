@@ -103,21 +103,19 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓ : Level) where
   FamStrᴰ .TwoCategoryStrᴰ.transᴰ {yᴰ} rᴰ sᴰ = _∙ᵥ_ {yᴰ = yᴰ} rᴰ sᴰ
   FamStrᴰ .TwoCategoryStrᴰ.comp-relᴰ = _∙ₕ_
 
-  opaque
-    unfolding isTwoCategorySetStr
-    isTwoCategoryFamᴰ : IsTwoCategoryᴰ (SetEq ℓ) _ _ _ Fam₀ Fam₁ Fam₂ FamStrᴰ
-    isTwoCategoryFamᴰ .IsTwoCategoryᴰ.is-set-relᴰ {s} = isSetFam₂ s
-    isTwoCategoryFamᴰ .IsTwoCategoryᴰ.trans-assocᴰ {r = Eq.refl} {s = Eq.refl} {t = Eq.refl} rᴰ sᴰ tᴰ = funExt λ j → C.trans-assoc (rᴰ j) (sᴰ j) (tᴰ j)
-    isTwoCategoryFamᴰ .IsTwoCategoryᴰ.trans-unit-leftᴰ {s = Eq.refl} sᴰ = funExt λ j → C.trans-unit-left (sᴰ j)
-    isTwoCategoryFamᴰ .IsTwoCategoryᴰ.trans-unit-rightᴰ {r = Eq.refl} rᴰ = funExt λ j → C.trans-unit-right (rᴰ j)
-    isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-rel-idᴰ {f} fᴰ gᴰ = funExt λ j → C.comp-rel-id (fᴰ j) (gᴰ (f j))
-    isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-rel-transᴰ {f₁} {s = Eq.refl} {t = Eq.refl} {u = Eq.refl} {v = Eq.refl} sᴰ tᴰ uᴰ vᴰ = funExt λ j → C.comp-rel-trans (sᴰ j) (tᴰ j) (uᴰ (f₁ j)) (vᴰ (f₁ j))
-    isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-hom-assocᴰ {f} {g} fᴰ gᴰ hᴰ = funExt λ j → C.comp-hom-assoc (fᴰ j) (gᴰ (f j)) (hᴰ (g (f j)))
-    isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-hom-unit-leftᴰ gᴰ = funExt λ j → C.comp-hom-unit-left (gᴰ j)
-    isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-hom-unit-rightᴰ fᴰ = funExt λ j → C.comp-hom-unit-right (fᴰ j)
-    isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-rel-assocᴰ {f₁} {g₁} {s = Eq.refl} {t = Eq.refl} {u = Eq.refl} sᴰ tᴰ uᴰ = funExt λ j → C.comp-rel-assoc (sᴰ j) (tᴰ (f₁ j)) (uᴰ (g₁ (f₁ j)))
-    isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-rel-unit-leftᴰ {s = Eq.refl} sᴰ = funExt λ j → C.comp-rel-unit-left (sᴰ j)
-    isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-rel-unit-rightᴰ {r = Eq.refl} rᴰ = funExt λ j → C.comp-rel-unit-right (rᴰ j)
+  isTwoCategoryFamᴰ : IsTwoCategoryᴰ (SetEq ℓ) _ _ _ Fam₀ Fam₁ Fam₂ FamStrᴰ
+  isTwoCategoryFamᴰ .IsTwoCategoryᴰ.is-set-relᴰ {s} = isSetFam₂ s
+  isTwoCategoryFamᴰ .IsTwoCategoryᴰ.trans-assocᴰ {r = Eq.refl} {s = Eq.refl} {t = Eq.refl} rᴰ sᴰ tᴰ = funExt λ j → C.trans-assoc (rᴰ j) (sᴰ j) (tᴰ j)
+  isTwoCategoryFamᴰ .IsTwoCategoryᴰ.trans-unit-leftᴰ {s = Eq.refl} sᴰ = funExt λ j → C.trans-unit-left (sᴰ j)
+  isTwoCategoryFamᴰ .IsTwoCategoryᴰ.trans-unit-rightᴰ {r = Eq.refl} rᴰ = funExt λ j → C.trans-unit-right (rᴰ j)
+  isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-rel-idᴰ {f} fᴰ gᴰ = funExt λ j → C.comp-rel-id (fᴰ j) (gᴰ (f j))
+  isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-rel-transᴰ {f₁} {s = Eq.refl} {t = Eq.refl} {u = Eq.refl} {v = Eq.refl} sᴰ tᴰ uᴰ vᴰ = funExt λ j → C.comp-rel-trans (sᴰ j) (tᴰ j) (uᴰ (f₁ j)) (vᴰ (f₁ j))
+  isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-hom-assocᴰ {f} {g} fᴰ gᴰ hᴰ = funExt λ j → C.comp-hom-assoc (fᴰ j) (gᴰ (f j)) (hᴰ (g (f j)))
+  isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-hom-unit-leftᴰ gᴰ = funExt λ j → C.comp-hom-unit-left (gᴰ j)
+  isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-hom-unit-rightᴰ fᴰ = funExt λ j → C.comp-hom-unit-right (fᴰ j)
+  isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-rel-assocᴰ {f₁} {g₁} {s = Eq.refl} {t = Eq.refl} {u = Eq.refl} sᴰ tᴰ uᴰ = funExt λ j → C.comp-rel-assoc (sᴰ j) (tᴰ (f₁ j)) (uᴰ (g₁ (f₁ j)))
+  isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-rel-unit-leftᴰ {s = Eq.refl} sᴰ = funExt λ j → C.comp-rel-unit-left (sᴰ j)
+  isTwoCategoryFamᴰ .IsTwoCategoryᴰ.comp-rel-unit-rightᴰ {r = Eq.refl} rᴰ = funExt λ j → C.comp-rel-unit-right (rᴰ j)
 
 
   Famᴰ : TwoCategoryᴰ (SetEq ℓ) (ℓ-max ℓo ℓ) (ℓ-max ℓh ℓ) (ℓ-max ℓr ℓ)

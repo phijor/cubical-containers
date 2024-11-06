@@ -48,20 +48,19 @@ module _ (ℓ : Level) where
   SetStr .TwoCategoryStr.trans r s = r Eq.∙ s
   SetStr .TwoCategoryStr.comp-rel Eq.refl Eq.refl = Eq.refl
 
-  opaque
-    isTwoCategorySetStr : IsTwoCategory _ _ _ SetStr
-    isTwoCategorySetStr .IsTwoCategory.is-set-rel f g = isProp→isSet $ isPropSetEq₂ f g
-    isTwoCategorySetStr .IsTwoCategory.trans-assoc r s t = Eq.eqToPath (Eq.assoc r s t)
-    isTwoCategorySetStr .IsTwoCategory.trans-unit-left s = Eq.eqToPath Eq.refl
-    isTwoCategorySetStr .IsTwoCategory.trans-unit-right s = Eq.eqToPath (Eq.unitR s)
-    isTwoCategorySetStr .IsTwoCategory.comp-rel-id f g = refl
-    isTwoCategorySetStr .IsTwoCategory.comp-rel-trans Eq.refl Eq.refl Eq.refl Eq.refl = refl
-    isTwoCategorySetStr .IsTwoCategory.comp-hom-assoc f g h = refl
-    isTwoCategorySetStr .IsTwoCategory.comp-hom-unit-left g = refl
-    isTwoCategorySetStr .IsTwoCategory.comp-hom-unit-right f = refl
-    isTwoCategorySetStr .IsTwoCategory.comp-rel-assoc Eq.refl Eq.refl Eq.refl = refl
-    isTwoCategorySetStr .IsTwoCategory.comp-rel-unit-left Eq.refl = refl
-    isTwoCategorySetStr .IsTwoCategory.comp-rel-unit-right Eq.refl = refl
+  isTwoCategorySetStr : IsTwoCategory _ _ _ SetStr
+  isTwoCategorySetStr .IsTwoCategory.is-set-rel f g = isProp→isSet $ isPropSetEq₂ f g
+  isTwoCategorySetStr .IsTwoCategory.trans-assoc Eq.refl s t = refl
+  isTwoCategorySetStr .IsTwoCategory.trans-unit-left s = refl
+  isTwoCategorySetStr .IsTwoCategory.trans-unit-right Eq.refl = refl
+  isTwoCategorySetStr .IsTwoCategory.comp-rel-id f g = refl
+  isTwoCategorySetStr .IsTwoCategory.comp-rel-trans Eq.refl Eq.refl Eq.refl Eq.refl = refl
+  isTwoCategorySetStr .IsTwoCategory.comp-hom-assoc f g h = refl
+  isTwoCategorySetStr .IsTwoCategory.comp-hom-unit-left g = refl
+  isTwoCategorySetStr .IsTwoCategory.comp-hom-unit-right f = refl
+  isTwoCategorySetStr .IsTwoCategory.comp-rel-assoc Eq.refl Eq.refl Eq.refl = refl
+  isTwoCategorySetStr .IsTwoCategory.comp-rel-unit-left Eq.refl = refl
+  isTwoCategorySetStr .IsTwoCategory.comp-rel-unit-right Eq.refl = refl
 
   SetEq : TwoCategory (ℓ-suc ℓ) ℓ ℓ
   SetEq .TwoCategory.ob = SetEq₀

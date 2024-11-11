@@ -11,12 +11,15 @@ open import GpdCont.GroupAction.Pi using (ΠAction)
 import GpdCont.GroupAction.Adjoint as AdjointAction
 
 open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Function using (uncurry4 ; uncurry3)
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Path using (Jequiv)
 open import Cubical.Foundations.Univalence
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma
 open import Cubical.Algebra.Group.Base
+open import Cubical.Algebra.Group.Properties using (isPropIsGroup)
 open import Cubical.Algebra.Group.Morphisms using (GroupHom ; IsGroupHom)
 open import Cubical.Algebra.Group.MorphismProperties using (makeIsGroupHom ; compGroupHom ; isPropIsGroupHom)
 open import Cubical.Algebra.Group.Instances.Pi using (ΠGroup)
@@ -141,6 +144,21 @@ unbundleContainer C = let module C = ActionContainer C in
     .snd .snd .snd → C.symmAction
 {-# INLINE unbundleContainer #-}
 
+ActionContainerIsoΣ : ∀ {ℓ} → Iso (ActionContainer ℓ) (Σ[ S ∈ hSet ℓ ] Σ[ P ∈ (⟨ S ⟩ → hSet ℓ) ] Σ[ G ∈ (⟨ S ⟩ → Group ℓ) ] ((s : ⟨ S ⟩) → Action (G s) (P s)))
+ActionContainerIsoΣ .Iso.fun = unbundleContainer
+ActionContainerIsoΣ .Iso.inv = uncurry3 mkActionContainer
+ActionContainerIsoΣ .Iso.rightInv _ = refl
+ActionContainerIsoΣ .Iso.leftInv C = ActionContainer≡ refl refl symm-group-path refl where
+  module Symm s = GroupStr (str (SymmGroup C s))
+  symm-group-path : SymmGroup _ ≡ SymmGroup C
+  symm-group-path i s .fst = Symm C s
+  symm-group-path i s .snd .GroupStr.1g = Symm.1g s
+  symm-group-path i s .snd .GroupStr._·_ = Symm._·_ s
+  symm-group-path i s .snd .GroupStr.inv = Symm.inv s
+  symm-group-path i s .snd .GroupStr.isGroup = Symm.isGroup s
+
+ActionContainer≃Σ : ∀ {ℓ} → (ActionContainer ℓ) ≃ (Σ[ S ∈ hSet ℓ ] Σ[ P ∈ (⟨ S ⟩ → hSet ℓ) ] Σ[ G ∈ (⟨ S ⟩ → Group ℓ) ] ((s : ⟨ S ⟩) → Action (G s) (P s)))
+ActionContainer≃Σ = isoToEquiv ActionContainerIsoΣ
 {-
 [_⇒_] : ∀ {ℓ} (C D : ActionContainer ℓ) → ActionContainer ℓ
 [ C ⇒ D ] = mkActionContainer S→T ΠQ⇒P ΠH×G Πσ⇒τ where

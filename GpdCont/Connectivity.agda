@@ -26,6 +26,9 @@ private
 isPathConnected : (A : Type ℓ) → Type ℓ
 isPathConnected A = isContr ∥ A ∥₂
 
+isPropIsPathConnected : (A : Type ℓ) → isProp (isPathConnected A)
+isPropIsPathConnected A = isPropIsContr
+
 isPathConnectedFun : (f : A → B) → Type _
 isPathConnectedFun {B} f = (b : B) →  isPathConnected (fiber f b)
 

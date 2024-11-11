@@ -61,3 +61,52 @@ module _ {ℓo ℓo′ ℓh ℓh′ ℓr ℓr′}
           → PathP (λ i → D.rel (D.comp-hom-unit-right (F-hom f) i) (F-hom (C.comp-hom-unit-right f i)))
               ((D.id-rel (F-hom f) D.∙ₕ F-id-lax y) D.∙ᵥ F-trans-lax f (C.id-hom y))
               (D.id-rel (F-hom f))
+
+module _ {ℓo ℓh ℓr}
+  (C : TwoCategory ℓo ℓh ℓr)
+  where
+  private
+    module C = TwoCategory C
+
+  idLaxFunctor : LaxFunctor C C
+  idLaxFunctor .LaxFunctor.F-ob = id _
+  idLaxFunctor .LaxFunctor.F-hom = id _
+  idLaxFunctor .LaxFunctor.F-rel = id _
+  idLaxFunctor .LaxFunctor.F-rel-id = refl
+  idLaxFunctor .LaxFunctor.F-rel-trans r s = refl
+  idLaxFunctor .LaxFunctor.F-trans-lax f g = C.id-rel _
+  idLaxFunctor .LaxFunctor.F-trans-lax-natural r s = C.trans-unit-right _ ∙ sym (C.trans-unit-left _)
+  idLaxFunctor .LaxFunctor.F-id-lax x = C.id-rel (C.id-hom x)
+  idLaxFunctor .LaxFunctor.F-assoc f g h = goal where
+    open C
+    Base : (i j : I) → Type _
+    Base _ j = C.rel (C.comp-hom-assoc f g h j) (C.comp-hom-assoc f g h j)
+
+    left :
+      ((id-rel f) ∙ₕ (id-rel g)) ∙ₕ (id-rel h)
+        ≡
+      ((C.id-rel (f ∙₁ g)) ∙ₕ (C.id-rel h)) ∙ᵥ (C.id-rel ((f ∙₁ g) ∙₁ h))
+    left = {! !}
+
+    goal : PathP (λ i → C.rel (C.comp-hom-assoc f g h i) (C.comp-hom-assoc f g h i))
+      (
+        (C.id-rel (f C.∙₁ g) C.∙ₕ C.id-rel h)
+          C.∙ᵥ
+        (C.id-rel ((f C.∙₁ g) C.∙₁ h))
+      )
+      (
+        (C.id-rel f C.∙ₕ C.id-rel (g C.∙₁ h))
+          C.∙ᵥ
+        (C.id-rel (f C.∙₁ (g C.∙₁ h)))
+      )
+    goal = doubleCompPathP Base left (C.comp-rel-assoc (C.id-rel f) (C.id-rel g) (C.id-rel h)) {! !}
+  idLaxFunctor .LaxFunctor.F-unit-left {x} {y} f = goal where
+    goal : PathP (λ i → C.rel (C.comp-hom-unit-left f i) (C.comp-hom-unit-left f i))
+      (
+        (C.id-rel (C.id-hom x) C.∙ₕ C.id-rel f)
+          C.∙ᵥ
+        C.id-rel (C.id-hom x C.∙₁ f)
+      )
+      (C.id-rel f)
+    goal = {! !}
+  idLaxFunctor .LaxFunctor.F-unit-right = {! !}

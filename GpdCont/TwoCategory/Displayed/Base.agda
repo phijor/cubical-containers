@@ -2,6 +2,7 @@ module GpdCont.TwoCategory.Displayed.Base where
 
 open import GpdCont.Prelude
 open import GpdCont.TwoCategory.Base
+open import GpdCont.TwoCategory.LaxFunctor
 
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Sigma using (Σ≡Prop)
@@ -298,3 +299,16 @@ module TotalTwoCategory
   ∫ .TwoCategory.rel = ∫₂
   ∫ .TwoCategory.two-category-structure = ∫-two-category-structure
   ∫ .TwoCategory.is-two-category = ∫-is-two-cat
+
+  Fst : LaxFunctor ∫ C
+  Fst .LaxFunctor.F-ob = fst
+  Fst .LaxFunctor.F-hom = fst
+  Fst .LaxFunctor.F-rel = fst
+  Fst .LaxFunctor.F-rel-id = refl
+  Fst .LaxFunctor.F-rel-trans r s = refl
+  Fst .LaxFunctor.F-trans-lax (f , _) (g , _) = id-rel (f ∙₁ g)
+  Fst .LaxFunctor.F-trans-lax-natural (r , _) (s , _) = trans-unit-right (r ∙ₕ s) ∙ sym (trans-unit-left (r ∙ₕ s))
+  Fst .LaxFunctor.F-id-lax (x , _) = id-rel (id-hom x)
+  Fst .LaxFunctor.F-assoc = {! !}
+  Fst .LaxFunctor.F-unit-left = {! !}
+  Fst .LaxFunctor.F-unit-right = {! !}

@@ -170,3 +170,49 @@ module _ (ℓ : Level) where
 
     goal : isEquiv ∫𝔹₂
     goal = equivIsEquiv ∫𝔹₂-equiv
+
+  private
+    open LocalInverse using (unmap ; unmap-section)
+    module _
+      {G H : Group.ob}
+      {Xᴳ @ (X , σ) : GroupActionᴰ.ob[ G ]}
+      {Yᴴ @ (Y , τ) : GroupActionᴰ.ob[ H ]}
+      {Γ : hGpdCat.hom (𝔹.₀ G) (𝔹.₀ H)}
+      (Γᴰ : SetBundleᴰ.hom[ Γ ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ))
+      (Γ⋆-comp : Γ ⋆ ≡ ⋆)
+      where
+      φ = unmap Γ Γ⋆-comp
+      φ-sec = unmap-section Γ Γ⋆-comp
+
+      Γᴰ⋆ : ⟨ 𝔹₀ Yᴴ (Γ ⋆) ⟩ → ⟨ X ⟩
+      Γᴰ⋆ = Γᴰ ⋆
+
+      fixit : ⟨ 𝔹₀ Yᴴ ⋆ ⟩ ≡ ⟨ 𝔹₀ Yᴴ (Γ ⋆) ⟩
+      fixit = cong (λ x → ⟨ 𝔹₀ Yᴴ x ⟩) (sym Γ⋆-comp)
+
+      φᴰ : Σ[ f ∈ (⟨ Y ⟩ → ⟨ X ⟩) ] isEquivariantMap (φ , f) σ τ
+      φᴰ .fst = Γᴰ⋆ ∘ transport fixit
+      φᴰ .snd g = goal where
+        pᴰ : PathP (λ i → ⟨ 𝔹₀ Yᴴ (Γ (loop g i)) ⟩ → ⟨ 𝔹₀ Xᴳ (loop g i) ⟩) Γᴰ⋆ Γᴰ⋆
+        pᴰ = cong Γᴰ (loop g)
+
+        goal : (σ ⁺ g) ∘ (Γᴰ⋆ ∘ transport fixit) ≡ Γᴰ⋆ ∘ transport fixit ∘ (τ ⁺ (φ .fst g))
+        goal = {! fromPathP pᴰ !}
+
+      𝔹₁-sectionOver : Σ[ φᴰ ∈ GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ ] PathP (λ i → SetBundleᴰ.hom[ φ-sec i ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)) (𝔹₁ φᴰ) Γᴰ
+      𝔹₁-sectionOver .fst = φᴰ
+      𝔹₁-sectionOver .snd = {! !}
+
+  isEssentiallySurjectiveDelooping : isLocallyEssentiallySurjective Delooping
+  isEssentiallySurjectiveDelooping Xᴳ@(G , (X , σ)) Yᴴ@(H , (Y , τ)) = goal
+    where module _ (Γ* @ (Γ , Γᴰ) : SetBundle.hom (𝔹Act.₀ Xᴳ) (𝔹Act.₀ Yᴴ)) where
+    open import Cubical.HITs.PropositionalTruncation.Monad
+    open import Cubical.Categories.Category.Base using (CatIso ; pathToIso)
+    goal : ∃[ φ* ∈ GroupAction.hom Xᴳ Yᴴ ] CatIso (LocalCategory _ (𝔹Act.₀ Xᴳ) (𝔹Act.₀ Yᴴ)) (𝔹Act.₁ φ*) Γ*
+    goal = do
+      Γ⋆-comp ← Delooping.merePath ⟨ H ⟩ (str H) (Γ ⋆) ⋆
+      -- Γ⋆-comp : Γ ⋆ ≡ ⋆
+      let
+        (φ , p) = LocalInverse.conjugateSection-map Γ Γ⋆-comp
+        (φᴰ , pᴰ) = 𝔹₁-sectionOver Γᴰ Γ⋆-comp
+      ∃-intro (φ , φᴰ) $ pathToIso $ Sigma.ΣPathP (p , pᴰ)

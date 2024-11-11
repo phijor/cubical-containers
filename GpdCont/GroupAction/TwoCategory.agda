@@ -33,16 +33,17 @@ module _ (ℓ : Level) where
       → isProp (GroupActionᴰ₂ r fᴰ gᴰ)
     isPropGroupActionᴰ₂ {Xᴳ = X , _} fᴰ gᴰ = isSet→ (str X) _ _
 
-    GroupActionᴰ₁PathP : ∀ {G H} {φ ψ : TwoGroup.hom G H}
-      → {Xᴳ : GroupActionᴰ₀ G} {Yᴴ : GroupActionᴰ₀ H}
-      → {p : φ ≡ ψ}
-      → {fᴰ : GroupActionᴰ₁ φ Xᴳ Yᴴ}
-      → {gᴰ : GroupActionᴰ₁ ψ Xᴳ Yᴴ}
-      → PathP (λ i → ⟨ Yᴴ .fst ⟩ → ⟨ Xᴳ .fst ⟩) (fᴰ .fst) (gᴰ .fst)
-      → PathP (λ i → GroupActionᴰ₁ (p i) Xᴳ Yᴴ) fᴰ gᴰ
-    GroupActionᴰ₁PathP {p} q i .fst = q i
-    GroupActionᴰ₁PathP {p} {fᴰ = f , f-eqva} {gᴰ = g , g-eqva} q i .snd = isProp→PathP {B = λ i → isEquivariantMap (p i , q i) _ _} (λ i → isPropIsEquivariantMap (p i , q i) _ _) f-eqva g-eqva i
+  GroupActionᴰ₁PathP : ∀ {G H} {φ ψ : TwoGroup.hom G H}
+    → {Xᴳ : GroupActionᴰ₀ G} {Yᴴ : GroupActionᴰ₀ H}
+    → {p : φ ≡ ψ}
+    → {fᴰ : GroupActionᴰ₁ φ Xᴳ Yᴴ}
+    → {gᴰ : GroupActionᴰ₁ ψ Xᴳ Yᴴ}
+    → PathP (λ i → ⟨ Yᴴ .fst ⟩ → ⟨ Xᴳ .fst ⟩) (fᴰ .fst) (gᴰ .fst)
+    → PathP (λ i → GroupActionᴰ₁ (p i) Xᴳ Yᴴ) fᴰ gᴰ
+  GroupActionᴰ₁PathP {p} q i .fst = q i
+  GroupActionᴰ₁PathP {p} {fᴰ = f , f-eqva} {gᴰ = g , g-eqva} q i .snd = isProp→PathP {B = λ i → isEquivariantMap (p i , q i) _ _} (λ i → isPropIsEquivariantMap (p i , q i) _ _) f-eqva g-eqva i
 
+  private
     id₁ : ∀ {G} (Xᴳ : GroupActionᴰ₀ G) → GroupActionᴰ₁ (TwoGroup.id-hom G) Xᴳ Xᴳ
     id₁ (X , σ) .fst = id ⟨ X ⟩
     id₁ (X , σ) .snd = isEquivariantMap-id σ

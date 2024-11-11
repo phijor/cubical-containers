@@ -4,25 +4,31 @@ module GpdCont.GroupAction.Delooping where
 open import GpdCont.Prelude
 open import GpdCont.Univalence using (ua ; ua→)
 
-open import GpdCont.GroupAction.Base using (Action)
+open import GpdCont.GroupAction.Base using (Action ; _⁺_ ; module ActionProperties)
+open import GpdCont.GroupAction.Equivariant renaming (isEquivariantMap[_][_,_] to isEquivariantMap)
 open import GpdCont.GroupAction.TwoCategory using (GroupActionᴰ ; GroupAction)
 open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleMap)
 open import GpdCont.Group.TwoCategory using (TwoGroup)
 
 open import GpdCont.SetBundle using (SetBundle ; SetBundleᴰ ; SetBundleᵀ)
 
-import      GpdCont.Delooping.Base as Delooping
-open import GpdCont.Delooping.Functor using (module TwoFunc)
+import      GpdCont.Delooping as Delooping
+open import GpdCont.Delooping.Functor using (module TwoFunc ; module LocalInverse)
 
 open import GpdCont.TwoCategory.Base using (TwoCategory)
 open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
+open import GpdCont.TwoCategory.LocalCategory using (LocalCategory)
+open import GpdCont.TwoCategory.LocalFunctor using (isLocallyFullyFaithful ; isLocallyEssentiallySurjective)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
 open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
 open import GpdCont.TwoCategory.Displayed.LocallyThin using (IntoLocallyThin)
 open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
 
+open import Cubical.Foundations.Equiv using (isEquiv ; equivFun ; equivIsEquiv ; _∙ₑ_)
 open import Cubical.Foundations.HLevels using (isOfHLevelPathP' ; isSet→)
 open import Cubical.Foundations.Path using (compPath→Square)
+open import Cubical.Functions.FunExtEquiv using (funExtEquiv)
+import      Cubical.Data.Sigma as Sigma
 
 -- Delooping of group actions into set bundles as a functor of 2-categories.
 -- =========================================================================
@@ -44,11 +50,13 @@ open import Cubical.Foundations.Path using (compPath→Square)
 module _ (ℓ : Level) where
   private
     module Group = TwoCategory (TwoGroup ℓ)
+    module GroupAction = TwoCategory (GroupAction ℓ)
     module GroupActionᴰ = TwoCategoryᴰ (GroupActionᴰ ℓ)
     module hGpdCat = TwoCategory (hGpdCat ℓ)
+    module SetBundle = TwoCategory (SetBundle ℓ)
     module SetBundleᴰ = TwoCategoryᴰ (SetBundleᴰ ℓ)
 
-    open Delooping.𝔹 using (⋆)
+    open Delooping.𝔹 using (⋆ ; loop)
     𝔹 = TwoFunc.TwoDelooping ℓ
     module 𝔹 = LaxFunctor 𝔹
 
@@ -62,49 +70,58 @@ module _ (ℓ : Level) where
       → SetBundleᴰ.hom[ 𝔹.₁ φ ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)
     𝔹₁ (f , f-eqva) = associatedBundleMap _ _ _ f f-eqva
 
-    -- Path lemma for producing displayed homotopies of set bundle maps
+    -- Path lemma characterizing displayed homotopies of set bundle maps
     -- with a delooping in their codomain.  Such homotopies are defined
     -- pointwise in the delooping; and since the target is a proposition
     -- (SetBundleᴰ is locally thin), it suffices to give the homotopy on
     -- the point.
-    𝔹₁PathP : ∀ {G} {Y} {f g : hGpdCat.hom (𝔹.₀ G) Y} {r : hGpdCat.rel f g}
-      → {Xᴳ : GroupActionᴰ.ob[ G ]}
-      → (yᴰ : SetBundleᴰ.ob[ Y ])
-      → {fᴰ : SetBundleᴰ.hom[ f ] (𝔹₀ Xᴳ) yᴰ}
-      → {gᴰ : SetBundleᴰ.hom[ g ] (𝔹₀ Xᴳ) yᴰ}
-      → (p⋆ : PathP (λ i → ⟨ yᴰ (r i ⋆) ⟩ → ⟨ 𝔹₀ Xᴳ ⋆ ⟩) (fᴰ ⋆) (gᴰ ⋆))
-      → SetBundleᴰ.rel[_] {yᴰ = yᴰ} r fᴰ gᴰ
-    𝔹₁PathP {G} {r} {Xᴳ} yᴰ {fᴰ} {gᴰ} p⋆ = funExt 𝔹₁PathP-ext where
-      open Delooping ⟨ G ⟩ (str G) using (elimProp)
-
-      isPropMotive : ∀ x → isProp (PathP (λ i → ⟨ yᴰ (r i x) ⟩ → ⟨ 𝔹₀ Xᴳ x ⟩) (fᴰ x) (gᴰ x))
-      isPropMotive x = isOfHLevelPathP' 1 (isSet→ is-set-𝔹₀) _ _ where
+    module _
+      {G} {Y} {f g : hGpdCat.hom (𝔹.₀ G) Y} {r : hGpdCat.rel f g}
+      {Xᴳ : GroupActionᴰ.ob[ G ]}
+      (yᴰ : SetBundleᴰ.ob[ Y ])
+      {fᴰ : SetBundleᴰ.hom[ f ] (𝔹₀ Xᴳ) yᴰ}
+      {gᴰ : SetBundleᴰ.hom[ g ] (𝔹₀ Xᴳ) yᴰ}
+      where
+      open Delooping ⟨ G ⟩ (str G) using (elimPropEquiv)
+      isProp𝔹₁PathP : ∀ x → isProp (PathP (λ i → ⟨ yᴰ (r i x) ⟩ → ⟨ 𝔹₀ Xᴳ x ⟩) (fᴰ x) (gᴰ x))
+      isProp𝔹₁PathP x = isOfHLevelPathP' 1 (isSet→ is-set-𝔹₀) _ _ where
         is-set-𝔹₀ : isSet ⟨ 𝔹₀ Xᴳ x ⟩
         is-set-𝔹₀ = str $ 𝔹₀ Xᴳ x
 
-      𝔹₁PathP-ext : (x : ⟨ 𝔹.₀ G ⟩) → PathP (λ i → ⟨ yᴰ (r i x) ⟩ → ⟨ 𝔹₀ Xᴳ x ⟩) (fᴰ x) (gᴰ x)
-      𝔹₁PathP-ext = elimProp isPropMotive p⋆
+      𝔹₁-PathPEquiv :
+        (PathP (λ i → ⟨ yᴰ (r i ⋆) ⟩ → ⟨ 𝔹₀ Xᴳ ⋆ ⟩) (fᴰ ⋆) (gᴰ ⋆))
+          ≃
+        (∀ x → PathP (λ i → ⟨ yᴰ (r i x) ⟩ → ⟨ 𝔹₀ Xᴳ x ⟩) (fᴰ x) (gᴰ x))
+      𝔹₁-PathPEquiv = elimPropEquiv isProp𝔹₁PathP
 
+      𝔹₁-PathP≃SetBundleRel : (PathP (λ i → ⟨ yᴰ (r i ⋆) ⟩ → ⟨ 𝔹₀ Xᴳ ⋆ ⟩) (fᴰ ⋆) (gᴰ ⋆)) ≃ (SetBundleᴰ.rel[_] {yᴰ = yᴰ} r fᴰ gᴰ)
+      𝔹₁-PathP≃SetBundleRel = 𝔹₁-PathPEquiv ∙ₑ funExtEquiv
 
-    -- A conjugator relating two equivariant maps induces a homotopy of associated bundle maps.
-    -- It suffices to give the homotopy at the point, since 2-cells are propositional.  There,
-    -- the goal becomes to show that maps are identified over a permutation of their domain.
-    -- But a conjugator of equivariant maps supplies exactly this evidence.
-    𝔹₂ : ∀ {G H} {φ ψ : Group.hom G H} {r : Group.rel φ ψ}
-      → {Xᴳ : GroupActionᴰ.ob[ G ]} {Yᴴ : GroupActionᴰ.ob[ H ]}
-      → {fᴰ : GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ}
-      → {gᴰ : GroupActionᴰ.hom[ ψ ] Xᴳ Yᴴ}
-      → GroupActionᴰ.rel[ r ] fᴰ gᴰ
-      → SetBundleᴰ.rel[_] {yᴰ = 𝔹₀ Yᴴ} (𝔹.₂ r) (𝔹₁ fᴰ) (𝔹₁ gᴰ)
-    𝔹₂ {G} {r = r , _} {Xᴳ = X , _} {Yᴴ = Yᴴ @ (_ , τ) } {fᴰ = fᴰ @ (f , _)} {gᴰ = gᴰ @ (g , _)} rᴰ = 𝔹₁PathP (𝔹₀ Yᴴ) 𝔹₂-⋆ where
-      module τ = Action τ
-      -- `rᴰ` is evidence that `r` is a conjugator of `f` and `g`.
-      -- This gives an identification of the associated bundle maps at the point.
-      𝔹₂-⋆ : PathP (λ i → ua (τ.action r) i → ⟨ X ⟩) f g
-      𝔹₂-⋆ = ua→ (funExt⁻ rᴰ)
+      𝔹₁PathP : (p⋆ : PathP (λ i → ⟨ yᴰ (r i ⋆) ⟩ → ⟨ 𝔹₀ Xᴳ ⋆ ⟩) (fᴰ ⋆) (gᴰ ⋆))
+        → SetBundleᴰ.rel[_] {yᴰ = yᴰ} r fᴰ gᴰ
+      𝔹₁PathP = equivFun 𝔹₁-PathP≃SetBundleRel
 
-      -- XXX: All three of 𝔹₁PathP, ua→, and funExt⁻ are equivalences of types.
-      -- This means that 𝔹₂ is locally fully faithful.
+    -- A conjugator relating two equivariant maps is exactly a homotopy of associated bundle maps.
+    -- We define the map underlying this equivalence to be the action of 𝔹 on 2-cells.
+    module _
+      {G H} {φ ψ : Group.hom G H}
+      {r : Group.rel φ ψ}
+      {Xᴳ : GroupActionᴰ.ob[ G ]}
+      {Yᴴ @ (Y , τ) : GroupActionᴰ.ob[ H ]}
+      {fᴰ @ (f , _) : GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ}
+      {gᴰ @ (g , _) : GroupActionᴰ.hom[ ψ ] Xᴳ Yᴴ}
+      where
+
+      -- Some `r` is a conjugator of `f` and `g` iff and only if it identifies it identifies
+      -- them as a permutation of their domain.
+      𝔹₂-equiv : (GroupActionᴰ.rel[ r ] fᴰ gᴰ) ≃ (SetBundleᴰ.rel[_] {yᴰ = 𝔹₀ Yᴴ} (𝔹.₂ r) (𝔹₁ fᴰ) (𝔹₁ gᴰ))
+      𝔹₂-equiv =
+        (GroupActionᴰ.rel[ r ] fᴰ gᴰ) ≃⟨ ActionProperties.uaExtEquiv τ (r .fst) ⟩
+        (PathP (λ i → ⟨ 𝔹₀ Yᴴ (𝔹.₂ r i ⋆) ⟩ → ⟨ 𝔹₀ Xᴳ ⋆ ⟩) f g) ≃⟨ 𝔹₁-PathP≃SetBundleRel (𝔹₀ Yᴴ) ⟩
+        (SetBundleᴰ.rel[_] {yᴰ = 𝔹₀ Yᴴ} (𝔹.₂ r) (𝔹₁ fᴰ) (𝔹₁ gᴰ)) ≃∎
+
+      𝔹₂ : GroupActionᴰ.rel[ r ] fᴰ gᴰ → SetBundleᴰ.rel[_] {yᴰ = 𝔹₀ Yᴴ} (𝔹.₂ r) (𝔹₁ fᴰ) (𝔹₁ gᴰ)
+      𝔹₂ = equivFun 𝔹₂-equiv
 
     -- On the point, 𝔹 stricly preserves vertical composition of 2-cells...
     𝔹-trans-lax : ∀ {G H K} {φ : Group.hom G H} {ψ : Group.hom H K}
@@ -135,3 +152,21 @@ module _ (ℓ : Level) where
 
   Delooping : LaxFunctor (GroupAction ℓ) (SetBundle ℓ)
   Delooping = LaxFunctorᴰ.toTotalFunctor 𝔹ᴰ
+
+  private
+    module 𝔹Act = LaxFunctor Delooping
+
+  isLocallyFullyFaithfulDelooping : isLocallyFullyFaithful Delooping
+  isLocallyFullyFaithfulDelooping σ τ f@(φ , _) g@(ψ , _) = goal where
+    ∫𝔹₁ = LaxFunctor.F-hom Delooping
+
+    ∫𝔹₂ : GroupAction.rel f g → SetBundle.rel (∫𝔹₁ f) (∫𝔹₁ g)
+    ∫𝔹₂ = LaxFunctor.F-rel Delooping {f = f} {g = g}
+
+    ∫𝔹₂-equiv : GroupAction.rel f g ≃ SetBundle.rel (∫𝔹₁ f) (∫𝔹₁ g)
+    ∫𝔹₂-equiv = Sigma.Σ-cong-equiv
+      (TwoFunc.localDeloopingEmbedding ℓ φ ψ)
+       λ (r : Group.rel φ ψ) → 𝔹₂-equiv {r = r}
+
+    goal : isEquiv ∫𝔹₂
+    goal = equivIsEquiv ∫𝔹₂-equiv

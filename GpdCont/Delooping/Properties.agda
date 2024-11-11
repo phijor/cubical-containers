@@ -216,6 +216,19 @@ elimSetEquiv : ∀ {ℓB} {B : 𝔹 → Type ℓB}
   → (Σ[ b₀ ∈ B 𝔹.⋆ ] (∀ g → PathP (λ i → B (𝔹.loop g i)) b₀ b₀)) ≃ (∀ x → B x)
 elimSetEquiv = isoToEquiv ∘ elimSetIso
 
+elimPropIso : ∀ {ℓB} {B : 𝔹 → Type ℓB}
+  → (∀ x → isProp (B x))
+  → Iso (B 𝔹.⋆) (∀ x → B x)
+elimPropIso is-prop-B .Iso.fun = Delooping.elimProp is-prop-B
+elimPropIso is-prop-B .Iso.inv f = f 𝔹.⋆
+elimPropIso is-prop-B .Iso.rightInv f = funExt λ x → is-prop-B _ _ (f x)
+elimPropIso is-prop-B .Iso.leftInv _ = refl
+
+elimPropEquiv : ∀ {ℓB} {B : 𝔹 → Type ℓB}
+  → (∀ x → isProp (B x))
+  → (B 𝔹.⋆) ≃ (∀ x → B x)
+elimPropEquiv = isoToEquiv ∘ elimPropIso
+
 recEquiv : ∀ {ℓX} {X : hGroupoid ℓX}
   → (Σ[ x₀ ∈ ⟨ X ⟩ ] Σ[ φ ∈ (G → x₀ ≡ x₀) ] ∀ g h → compSquareFiller (φ g) (φ h) (φ $ g · h)) ≃ (𝔹 → ⟨ X ⟩)
 recEquiv {X = (X , is-gpd-X)} = rec-equiv , is-equiv where

@@ -33,6 +33,18 @@ module _ {ℓo ℓo′ ℓh ℓh′ ℓr ℓr′}
     Locally : ∀ {ℓ} (P : ∀ {C : Category ℓh ℓr} {D : Category ℓh′ ℓr′} → Functor C D → Type ℓ) → Type _
     Locally P = ∀ (x y : C.ob) → P (LocalFunctor x y)
 
+    isLocallyFullyFaithful : Type _
+    isLocallyFullyFaithful = Locally Functor.isFullyFaithful
+
+    isLocallyEssentiallySurjective : Type _
+    isLocallyEssentiallySurjective = Locally Functor.isEssentiallySurj
+
+    localEmbedding : isLocallyFullyFaithful
+      → ∀ {x y : C.ob} (f g : C.hom x y)
+      → C.rel f g ≃ D.rel (F.₁ f) (F.₁ g)
+    localEmbedding is-ff f g .fst = F.₂
+    localEmbedding is-ff f g .snd = is-ff _ _ f g
+
     LaxFunctoriality : (x y z : C.ob) →
       compositionFunctor D (F.₀ x) (F.₀ y) (F.₀ z) ∘F (LocalFunctor x y ×F LocalFunctor y z)
         ⇒

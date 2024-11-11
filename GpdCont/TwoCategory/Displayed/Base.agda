@@ -25,6 +25,7 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓr
     where
       open C
       record TwoCategoryStrᴰ : Type (ℓ-max ℓC ℓCᴰ) where
+        no-eta-equality
         field
           id-homᴰ : ∀ {x} (xᴰ : ob[ x ]) → hom[ id-hom x ] xᴰ xᴰ
           comp-homᴰ : ∀ {x y z} {f : hom x y} {g : hom y z}
@@ -70,6 +71,7 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓr
         _∙ₕᴰ_ = comp-relᴰ
 
       record IsTwoCategoryᴰ (sᴰ : TwoCategoryStrᴰ) : Type (ℓ-max ℓC ℓCᴰ) where
+        no-eta-equality
         private
           open module sᴰ = TwoCategoryStrᴰ sᴰ
 
@@ -210,6 +212,7 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓr
               rᴰ
 
   record TwoCategoryᴰ : Type (ℓ-max ℓC (ℓ-suc ℓCᴰ)) where
+    no-eta-equality
     field
       ob[_] : C.ob → Type ℓoᴰ
       hom[_] : {x y : C.ob} (f : C.hom x y) (xᴰ : ob[ x ]) (yᴰ : ob[ y ]) → Type ℓhᴰ

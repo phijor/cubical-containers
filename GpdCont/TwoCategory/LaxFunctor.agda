@@ -13,6 +13,7 @@ module _ {ℓo ℓo′ ℓh ℓh′ ℓr ℓr′}
       module D = TwoCategory D
 
     record LaxFunctor : Type ℓ where
+      no-eta-equality
       field
         F-ob : C.ob → D.ob
         F-hom : {x y : C.ob} → C.hom x y → D.hom (F-ob x) (F-ob y)

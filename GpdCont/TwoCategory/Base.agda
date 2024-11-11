@@ -16,6 +16,7 @@ module _ {ℓo ℓh ℓr : Level}
     ℓ = ℓ-max ℓo (ℓ-max ℓh ℓr)
 
   record TwoCategoryStr : Type ℓ where
+    no-eta-equality
     field
       -- Identity 1-cell
       id-hom : (x : ob) → hom x x
@@ -52,6 +53,7 @@ module _ {ℓo ℓh ℓr : Level}
     _∙ₕ_ = comp-rel
 
   record IsTwoCategory (s : TwoCategoryStr) : Type ℓ where
+    no-eta-equality
     private
       open module s = TwoCategoryStr s
 
@@ -137,6 +139,7 @@ module _ {ℓo ℓh ℓr : Level}
           r
 
   record LocalGroupoidStr (s : TwoCategoryStr) : Type ℓ where
+    no-eta-equality
     private
       open module s = TwoCategoryStr s
 
@@ -162,6 +165,7 @@ module _ {ℓo ℓh ℓr : Level}
 
 
 record TwoCategory (ℓo ℓh ℓr : Level) : Type (ℓ-suc (ℓ-max ℓo (ℓ-max ℓh ℓr))) where
+  no-eta-equality
   field
     ob : Type ℓo
     hom : (x y : ob) → Type ℓh

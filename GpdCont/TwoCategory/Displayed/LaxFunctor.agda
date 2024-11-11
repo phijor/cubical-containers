@@ -27,6 +27,7 @@ module _
       module Dᴰ = TwoCategoryᴰ Dᴰ
 
     record LaxFunctorᴰ : Type ℓ where
+      no-eta-equality
       field
         F-obᴰ : {x : C.ob}
           → Cᴰ.ob[ x ] → Dᴰ.ob[ F.₀ x ]

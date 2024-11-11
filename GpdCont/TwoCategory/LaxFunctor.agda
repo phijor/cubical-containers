@@ -110,3 +110,45 @@ module _ {ℓo ℓh ℓr}
       (C.id-rel f)
     goal = {! !}
   idLaxFunctor .LaxFunctor.F-unit-right = {! !}
+
+private
+  variable
+    ℓo ℓh ℓr : Level
+    C D E : TwoCategory ℓo ℓh ℓr
+
+module _
+  (F : LaxFunctor C D)
+  (G : LaxFunctor D E)
+  where
+  private
+    module C = TwoCategory C
+    module D = TwoCategory D
+    module E = TwoCategory E
+    module F = LaxFunctor F
+    module G = LaxFunctor G
+
+  compLaxFunctor : LaxFunctor C E
+  compLaxFunctor .LaxFunctor.F-ob = F.F-ob ⋆ G.F-ob
+  compLaxFunctor .LaxFunctor.F-hom = F.F-hom ⋆ G.F-hom
+  compLaxFunctor .LaxFunctor.F-rel = F.F-rel ⋆ G.F-rel
+  compLaxFunctor .LaxFunctor.F-rel-id = cong G.F-rel F.F-rel-id ∙ G.F-rel-id
+  compLaxFunctor .LaxFunctor.F-rel-trans r s = cong G.F-rel (F.F-rel-trans r s) ∙ G.F-rel-trans (F.F-rel r) (F.F-rel s)
+  compLaxFunctor .LaxFunctor.F-trans-lax f g = trans-lax where
+    F-trans-f-g : D.rel (F.F-hom f D.∙₁ F.F-hom g) (F.F-hom (f C.∙₁ g))
+    F-trans-f-g = F.F-trans-lax f g
+
+    G-trans' : E.rel (G.F-hom (F.F-hom f D.∙₁ F.F-hom g)) (G.F-hom (F.F-hom (f C.∙₁ g)))
+    G-trans' = G.₂ F-trans-f-g
+
+    trans-lax : E.rel (G.F-hom (F.F-hom f) E.∙₁ G.F-hom (F.F-hom g)) (G.F-hom (F.F-hom (f C.∙₁ g)))
+    trans-lax = subst (E.rel _) {! !} (G.F-trans-lax (F.₁ f) (F.₁ g))
+  compLaxFunctor .LaxFunctor.F-trans-lax-natural = {! !}
+  compLaxFunctor .LaxFunctor.F-id-lax x = {! !} where
+    idꟳ : D.rel (D.id-hom (F.F-ob x)) (F.F-hom (C.id-hom x))
+    idꟳ = F.F-id-lax x
+
+    idᴳ : E.rel (E.id-hom (G.F-ob (F.₀ x))) (G.F-hom (D.id-hom (F.₀ x)))
+    idᴳ = G.F-id-lax (F.₀ x)
+  compLaxFunctor .LaxFunctor.F-assoc = {! !}
+  compLaxFunctor .LaxFunctor.F-unit-left = {! !}
+  compLaxFunctor .LaxFunctor.F-unit-right = {! !}

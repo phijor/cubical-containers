@@ -11,7 +11,7 @@ open import GpdCont.TwoCategory.LaxFunctor
 open import GpdCont.TwoCategory.Pseudofunctor
 open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat ; isLocallyGroupoidalHGpdCat)
 open import GpdCont.TwoCategory.LocalCategory using (LocalCategory)
-open import GpdCont.TwoCategory.LocalFunctor using (LocalFunctor)
+open import GpdCont.TwoCategory.LocalFunctor as LocalFunctor using (LocalFunctor ; isLocallyFullyFaithful)
 
 import      GpdCont.Delooping as Delooping
 open import GpdCont.Delooping.Map as Map using (map ; map≡ ; module MapPathEquiv)
@@ -138,6 +138,10 @@ module LocalInverse {ℓ} {G H : Group ℓ} where
     ext : ∀ x → map (unmap f p) x ≡ f x
     ext = 𝔹G.elimSet (λ x → 𝔹H.isGroupoid𝔹 _ (f x)) ext⋆ ext-loop
 
+  conjugateSection-map : (f : 𝔹G → 𝔹H) → f 𝔹G.⋆ ≡ 𝔹H.⋆ → Σ[ φ ∈ GroupHom G H ] map φ ≡ f
+  conjugateSection-map f p .fst = unmap f p
+  conjugateSection-map f p .snd = unmap-section f p
+
   -- In general, there is a set of paths (f ⋆ ≡ ⋆) from which we would
   -- habe to pick one in order to apply `unmap f`.  This is not posible
   -- in general without choice.  But since 𝔹H is path-connected, we merely
@@ -147,7 +151,7 @@ module LocalInverse {ℓ} {G H : Group ℓ} where
     -- 𝔹H is path-connected, thus we merely get (p : f 𝔹G.⋆ ≡ 𝔹H.⋆)
     p ← 𝔹H.merePath (f 𝔹G.⋆) 𝔹H.⋆
     -- Conjugation by p gives us a group hom with the right endpoints
-    ∃-intro (unmap f p) (unmap-section f p)
+    return $ conjugateSection-map f p
 
 module TwoFunc (ℓ : Level) where
   private
@@ -299,8 +303,28 @@ module TwoFunc (ℓ : Level) where
   TwoDelooping .LaxFunctor.F-unit-left = 𝔹-unit-left
   TwoDelooping .LaxFunctor.F-unit-right = 𝔹-unit-right
 
+  private
+    module TwoDelooping = LaxFunctor TwoDelooping
+
   isPseudoFunctorTwoDelooping : isPseudoFunctor TwoDelooping
   isPseudoFunctorTwoDelooping = isLocallyGroupoidal→isPseudofunctor TwoDelooping (isLocallyGroupoidalHGpdCat ℓ)
+
+  isLocallyFullyFaithfulDelooping : isLocallyFullyFaithful TwoDelooping
+  isLocallyFullyFaithfulDelooping G H = goal where module _ (φ ψ : TwoGroup.hom G H) where
+    goal : isEquiv 𝔹-rel
+    goal = equivIsEquiv (MapPathEquiv.map≡Equiv φ ψ)
+
+  localDeloopingEmbedding : {G H : TwoGroup.ob} (φ ψ : TwoGroup.hom G H)
+    → TwoGroup.rel φ ψ ≃ hGpdCat.rel (TwoDelooping.₁ φ) (TwoDelooping.₁ ψ)
+  localDeloopingEmbedding = LocalFunctor.localEmbedding TwoDelooping isLocallyFullyFaithfulDelooping
+
+  isLocallyEssentiallySurjectiveDelooping : LocalFunctor.isLocallyEssentiallySurjective TwoDelooping
+  isLocallyEssentiallySurjectiveDelooping G H = goal where module _ (f : ⟨ 𝔹-ob G ⟩ → ⟨ 𝔹-ob H ⟩) where
+    open import Cubical.HITs.PropositionalTruncation.Monad
+    goal : ∃[ φ ∈ GroupHom G H ] CatIso (LocalCategory _ (𝔹-ob G) (𝔹-ob H)) (map φ) f
+    goal = do
+      (φ , section-f-mapφ) ← LocalInverse.isSurjection-map f
+      ∃-intro φ $ pathToIso section-f-mapφ
 
   module _ (G H : TwoGroup.ob) where
     private
@@ -309,22 +333,9 @@ module TwoFunc (ℓ : Level) where
 
       TwoDelooping[_,_] = LocalFunctor TwoDelooping
 
-    isLocallyFullyFaithfulDelooping : Functor.isFullyFaithful TwoDelooping[ G , H ]
-    isLocallyFullyFaithfulDelooping = goal where module _ (φ ψ : TwoGroup.hom G H) where
-      goal : isEquiv 𝔹-rel
-      goal = equivIsEquiv (MapPathEquiv.map≡Equiv φ ψ)
-
-    isEssentiallySurjLocalDelooping : Functor.isEssentiallySurj TwoDelooping[ G , H ]
-    isEssentiallySurjLocalDelooping = goal where module _ (f : ⟨ 𝔹-ob G ⟩ → ⟨ 𝔹-ob H ⟩) where
-      open import Cubical.HITs.PropositionalTruncation.Monad
-      goal : ∃[ φ ∈ GroupHom G H ] CatIso hGpd[ _ , _ ] (map φ) f
-      goal = do
-        (φ , section-f-mapφ) ← LocalInverse.isSurjection-map f
-        ∃-intro φ $ pathToIso section-f-mapφ
-
     isLocalWeakEquivalenceDelooping : isWeakEquivalence TwoDelooping[ G , H ]
-    isLocalWeakEquivalenceDelooping .isWeakEquivalence.fullfaith = isLocallyFullyFaithfulDelooping
-    isLocalWeakEquivalenceDelooping .isWeakEquivalence.esssurj = isEssentiallySurjLocalDelooping
+    isLocalWeakEquivalenceDelooping .isWeakEquivalence.fullfaith = isLocallyFullyFaithfulDelooping G H
+    isLocalWeakEquivalenceDelooping .isWeakEquivalence.esssurj = isLocallyEssentiallySurjectiveDelooping G H
 
     LocalWeakEquivalence : WeakEquivalence Group[ G , H ] hGpd[ 𝔹-ob G , 𝔹-ob H ]
     LocalWeakEquivalence .WeakEquivalence.func = TwoDelooping[ G , H ]

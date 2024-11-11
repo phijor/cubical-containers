@@ -1,11 +1,13 @@
 module GpdCont.GroupAction.Base where
 
 open import GpdCont.Prelude hiding (_▷_)
+open import GpdCont.Univalence
 open import GpdCont.Group.SymmetricGroup using (𝔖)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Functions.FunExtEquiv using (funExtEquiv)
 open import Cubical.Data.Sigma.Properties using (Σ-cong-iso-snd)
 open import Cubical.Algebra.Group.Base
 open import Cubical.Algebra.Group.Morphisms
@@ -80,3 +82,7 @@ module ActionProperties {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
       (σ ⁺ g) ⋆ (σ ⁺ G.inv g) ≡⟨ cong (σ ⁺ g ⋆_) (action-inv g) ⟩
       (σ ⁺ g) ⋆ invEq (σ.action g) ≡⟨ funExt (λ x → retEq (σ.action g) x) ⟩
       id ⟨ X ⟩ ∎
+
+  uaExtEquiv : ∀ {Y : hSet ℓ} {f₀ f₁ : ⟨ X ⟩ → ⟨ Y ⟩} (g : ⟨ G ⟩)
+    → (f₀ ≡ f₁ ∘ (σ ⁺ g)) ≃ PathP (λ i → ua (σ.action g) i → ⟨ Y ⟩) f₀ f₁
+  uaExtEquiv g = invEquiv funExtEquiv ∙ₑ ua→Equiv

@@ -129,6 +129,17 @@ ua→ {A₀} {A₁} {e} {B} {f₀} {f₁} h i a = goal i a where module _ (i : I
   goal : Box i1
   goal = comp Box side base
 
+isEquiv-ua→ : ∀ {ℓ ℓ'} {A₀ A₁ : Type ℓ} {e : A₀ ≃ A₁} {B : (i : I) → Type ℓ'}
+  → {f₀ : A₀ → B i0} {f₁ : A₁ → B i1}
+  → isEquiv (ua→ {e = e} {B} {f₀} {f₁})
+isEquiv-ua→ {e} {B} {f₀} {f₁} = {! !}
+
+ua→Equiv : ∀ {ℓ ℓ'} {A₀ A₁ : Type ℓ} {e : A₀ ≃ A₁} {B : (i : I) → Type ℓ'}
+  → {f₀ : A₀ → B i0} {f₁ : A₁ → B i1}
+  → ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a))) ≃ PathP (λ i → ua e i → B i) f₀ f₁
+ua→Equiv .fst = ua→
+ua→Equiv .snd = isEquiv-ua→
+
 ua→ua : ∀ {ℓ ℓ'} {A₀ A₁ : Type ℓ} {B₀ B₁ : Type ℓ'}
   → {α : A₀ ≃ A₁}
   → {β : B₀ ≃ B₁}

@@ -1,16 +1,17 @@
 module GpdCont.GroupAction.AssociatedBundle where
 
 open import GpdCont.Prelude hiding (_▷_)
-open import GpdCont.Univalence using (ua ; ua→ua ; ua→ ; ua-gluePath)
+open import GpdCont.Univalence using (ua ; ua→ua ; ua→uaEquiv ; ua→ ; ua-gluePath)
 open import GpdCont.GroupAction.Base using (Action ; _⁺_ ; module ActionProperties)
-open import GpdCont.Delooping.Base using (𝔹)
+open import GpdCont.Delooping using (𝔹)
 open import GpdCont.Delooping.Map using (map)
 open import GpdCont.GroupAction.Equivariant using (isEquivariantMap[_][_,_])
 
-open import Cubical.Foundations.Equiv as Equiv using (equivFun ; invEquiv-is-rinv ; invEquiv-is-linv)
+open import Cubical.Foundations.Equiv as Equiv using (equivFun ; invEquiv ; invEquiv-is-rinv ; invEquiv-is-linv ; _∙ₑ_)
 open import Cubical.Foundations.HLevels as HLevels using (hSet)
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Path as Path using ()
+open import Cubical.Functions.FunExtEquiv using (funExtEquiv)
 open import Cubical.Data.Sigma
 open import Cubical.Algebra.Group.Base using (Group ; GroupStr)
 open import Cubical.Algebra.Group.Morphisms using (GroupHom)
@@ -19,42 +20,69 @@ open import Cubical.HITs.SetQuotients as SQ using (_/_)
 
 module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
   private
-    module 𝔹G = GpdCont.Delooping.Base ⟨ G ⟩ (str G)
+    module 𝔹G = GpdCont.Delooping ⟨ G ⟩ (str G)
     module σ = Action σ
 
   associatedBundle : 𝔹 ⟨ G ⟩ (str G) → hSet ℓ
   associatedBundle = 𝔹G.rec→hSet X σ.action σ.pres·
 
+  {- (Judgemental) computation rules for associated bundles. -}
+
+  -- Over the point, the fiber of the associated bundle is the given G-set.
+  associatedBundle-⋆ : associatedBundle 𝔹G.⋆ ≡ X
+  associatedBundle-⋆ = refl
+
+  -- Over a loop, the action defines the path of type X ≡ X.
+  associatedBundle-loop : ∀ g → cong (⟨_⟩ ∘ associatedBundle) (𝔹G.loop g) ≡ ua (σ.action g)
+  associatedBundle-loop g = refl
+
 module _ {ℓ} {G H : Group ℓ} {X Y : hSet ℓ} where
-  associatedBundleMap : (σ : Action G X) (τ : Action H Y)
-    → (φ : GroupHom G H) (f : ⟨ Y ⟩ → ⟨ X ⟩)
-    → isEquivariantMap[ φ , f ][ σ , τ ]
-    → (x : 𝔹 ⟨ G ⟩ (str G)) → ⟨ associatedBundle τ (map φ x) ⟩ → ⟨ associatedBundle σ x ⟩
-  associatedBundleMap σ τ φ f is-eqva = 𝔹G.elimSet {B = Motive} isSetMotive map⋆ map-comp where
-    module 𝔹G = GpdCont.Delooping.Base ⟨ G ⟩ (str G)
-    module σ = Action σ
-    module τ = Action τ
+  private
+    module 𝔹G = GpdCont.Delooping ⟨ G ⟩ (str G)
 
-    Motive : 𝔹G.𝔹 → Type _
-    Motive x = ⟨ associatedBundle τ (map φ x) ⟩ → ⟨ associatedBundle σ x ⟩
+  module _ (σ : Action G X) (τ : Action H Y) (φ : GroupHom G H) where
+    BundleMaps : 𝔹G.𝔹 → Type _
+    BundleMaps x = ⟨ associatedBundle τ (map φ x) ⟩ → ⟨ associatedBundle σ x ⟩
 
-    isSetMotive : ∀ x → isSet (Motive x)
-    isSetMotive x = HLevels.isSet→ (str (associatedBundle σ x))
+    isSetBundleMaps : ∀ x → isSet (BundleMaps x)
+    isSetBundleMaps x = HLevels.isSet→ (str (associatedBundle σ x))
 
-    map⋆ : ⟨ Y ⟩ → ⟨ X ⟩
-    map⋆ = f
+    isEquivariantMap≃BundleMapsPathP : (f : ⟨ Y ⟩ → ⟨ X ⟩)
+      → isEquivariantMap[ φ , f ][ σ , τ ] ≃ (∀ g → PathP (λ i → BundleMaps (𝔹.loop g i)) f f)
+    isEquivariantMap≃BundleMapsPathP f = Equiv.equivΠCod λ g →
+      ((σ ⁺ g) ∘ f ≡ f ∘ (τ ⁺ (φ .fst g))) ≃⟨ invEquiv funExtEquiv ⟩
+      (∀ y → ((σ ⁺ g) ∘ f $ y) ≡ (f ∘ (τ ⁺ (φ .fst g)) $ y)) ≃⟨ ua→uaEquiv {α = Action.action τ (φ .fst g)} {β = Action.action σ g} ⟩
+      (PathP (λ i → BundleMaps (𝔹.loop g i)) f f) ≃∎
 
-    map-comp′ : ∀ g (y : ⟨ Y ⟩) → (σ ⁺ g) (f y) ≡ f ((τ ⁺ φ .fst g) y)
-    map-comp′ g y = is-eqva g ≡$ y
+    associatedBundleMapEquiv :
+      (Σ[ f ∈ (⟨ Y ⟩ → ⟨ X ⟩) ] isEquivariantMap[ φ , f ][ σ , τ ])
+        ≃
+      ((x : 𝔹 ⟨ G ⟩ (str G)) → ⟨ associatedBundle τ (map φ x) ⟩ → ⟨ associatedBundle σ x ⟩)
+    associatedBundleMapEquiv = Σ-cong-equiv-snd isEquivariantMap≃BundleMapsPathP ∙ₑ 𝔹G.elimSetEquiv isSetBundleMaps
 
-    map-comp : ∀ g → PathP (λ i → ua (τ.action (φ .fst g)) i → ua (σ.action g) i) map⋆ map⋆
-    map-comp g = ua→ua $ map-comp′ g
+    associatedBundleMap : (f : ⟨ Y ⟩ → ⟨ X ⟩) → isEquivariantMap[ φ , f ][ σ , τ ] → (x : 𝔹 ⟨ G ⟩ (str G)) → ⟨ associatedBundle τ (map φ x) ⟩ → ⟨ associatedBundle σ x ⟩
+    associatedBundleMap f is-eqva = equivFun associatedBundleMapEquiv (f , is-eqva)
+
+    {- (Judgemental) computation rules for associated bundle map -}
+
+    -- At the point, the associated bundle map evaluates to the given equivariant map.
+    associatedBundleMap-⋆ : ∀ (f : (⟨ Y ⟩ → ⟨ X ⟩)) f-eqva → associatedBundleMap f f-eqva 𝔹.⋆ ≡ f
+    associatedBundleMap-⋆ _ _ = refl
+
+    -- Over a loop, the associated bundle map computes to the self-identification
+    -- of an equivariant map with itself over the witness* of it being equivariant.
+    associatedBundleMap-loop : ∀ (f : (⟨ Y ⟩ → ⟨ X ⟩)) (f-eqva : isEquivariantMap[ φ , f ][ σ , τ ])
+      → ∀ (g : ⟨ G ⟩)
+      → Path (PathP _ f f)
+          (cong (associatedBundleMap f f-eqva) (𝔹G.loop g))
+          (ua→ua (funExt⁻ (f-eqva g)))
+    associatedBundleMap-loop _ _ g = refl
 
 module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
   private
     module G = GroupStr (str G)
-    𝔹G = GpdCont.Delooping.Base.𝔹 ⟨ G ⟩ (str G)
-    module 𝔹G = GpdCont.Delooping.Base ⟨ G ⟩ (str G)
+    𝔹G = GpdCont.Delooping.𝔹 ⟨ G ⟩ (str G)
+    module 𝔹G = GpdCont.Delooping ⟨ G ⟩ (str G)
     open module σ = Action σ using (_▷_)
 
     -- Total space of the associated bundle (Symmetry 4.7.13)

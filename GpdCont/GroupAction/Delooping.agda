@@ -7,16 +7,17 @@ open import GpdCont.Univalence using (ua ; ua→)
 open import GpdCont.GroupAction.Base using (Action ; _⁺_ ; module ActionProperties)
 open import GpdCont.GroupAction.Equivariant renaming (isEquivariantMap[_][_,_] to isEquivariantMap)
 open import GpdCont.GroupAction.TwoCategory using (GroupActionᴰ ; GroupAction)
-open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleMap)
+open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleMap ; associatedBundleMapEquiv)
 open import GpdCont.Group.TwoCategory using (TwoGroup)
 
-open import GpdCont.SetBundle using (SetBundle ; SetBundleᴰ ; SetBundleᵀ)
+open import GpdCont.SetBundle using (SetBundle ; SetBundleᴰ ; SetBundleᵀ ; isLocallyGroupoidalSetBundle)
 
 import      GpdCont.Delooping as Delooping
 open import GpdCont.Delooping.Functor using (module TwoFunc ; module LocalInverse)
 
 open import GpdCont.TwoCategory.Base using (TwoCategory)
 open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
+open import GpdCont.TwoCategory.Pseudofunctor using (isPseudoFunctor ; isLocallyGroupoidal→isPseudofunctor)
 open import GpdCont.TwoCategory.LocalCategory using (LocalCategory)
 open import GpdCont.TwoCategory.LocalFunctor using (isLocallyFullyFaithful ; isLocallyEssentiallySurjective)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
@@ -24,11 +25,13 @@ open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
 open import GpdCont.TwoCategory.Displayed.LocallyThin using (IntoLocallyThin)
 open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
 
-open import Cubical.Foundations.Equiv using (isEquiv ; equivFun ; equivIsEquiv ; _∙ₑ_)
+open import Cubical.Foundations.Equiv as Equiv using (isEquiv ; equivFun ; equivIsEquiv ; fiber ; invEq ; _∙ₑ_)
 open import Cubical.Foundations.HLevels using (isOfHLevelPathP' ; isSet→)
 open import Cubical.Foundations.Path using (compPath→Square)
-open import Cubical.Functions.FunExtEquiv using (funExtEquiv)
+open import Cubical.Foundations.Transport using (subst⁻ ; subst⁻-filler ; substCommSlice)
+open import Cubical.Functions.FunExtEquiv using (funExtEquiv ; funExtDep)
 import      Cubical.Data.Sigma as Sigma
+open import Cubical.Algebra.Group.MorphismProperties using (GroupHom≡)
 
 -- Delooping of group actions into set bundles as a functor of 2-categories.
 -- =========================================================================
@@ -64,11 +67,20 @@ module _ (ℓ : Level) where
     𝔹₀ : ∀ {G} → GroupActionᴰ.ob[ G ] → SetBundleᴰ.ob[ 𝔹.₀ G ]
     𝔹₀ (X , σ) = associatedBundle {X = X} σ
 
-    -- Any equivariant map of group actions induces a map on associated bundles.
+    -- Any equivariant map of group actions is exactly a map of associated bundles.
+    𝔹₁-equiv : ∀ {G H} {φ : Group.hom G H} {Xᴳ : GroupActionᴰ.ob[ G ]} {Yᴴ : GroupActionᴰ.ob[ H ]}
+      → GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ ≃ SetBundleᴰ.hom[ 𝔹.₁ φ ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)
+    𝔹₁-equiv {φ} {Xᴳ = _ , σ} {Yᴴ = _ , τ} = associatedBundleMapEquiv σ τ φ
+
     𝔹₁ : ∀ {G H} {φ : Group.hom G H} {Xᴳ : GroupActionᴰ.ob[ G ]} {Yᴴ : GroupActionᴰ.ob[ H ]}
       → GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ
       → SetBundleᴰ.hom[ 𝔹.₁ φ ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)
-    𝔹₁ (f , f-eqva) = associatedBundleMap _ _ _ f f-eqva
+    𝔹₁ = equivFun 𝔹₁-equiv
+
+    𝔹₁⁻¹ : ∀ {G H} {φ : Group.hom G H} {Xᴳ : GroupActionᴰ.ob[ G ]} {Yᴴ : GroupActionᴰ.ob[ H ]}
+      → SetBundleᴰ.hom[ 𝔹.₁ φ ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)
+      → GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ
+    𝔹₁⁻¹ = invEq 𝔹₁-equiv
 
     -- Path lemma characterizing displayed homotopies of set bundle maps
     -- with a delooping in their codomain.  Such homotopies are defined
@@ -153,6 +165,9 @@ module _ (ℓ : Level) where
   Delooping : LaxFunctor (GroupAction ℓ) (SetBundle ℓ)
   Delooping = LaxFunctorᴰ.toTotalFunctor 𝔹ᴰ
 
+  isPseudoFunctorDelooping : isPseudoFunctor Delooping
+  isPseudoFunctorDelooping = isLocallyGroupoidal→isPseudofunctor Delooping (isLocallyGroupoidalSetBundle ℓ)
+
   private
     module 𝔹Act = LaxFunctor Delooping
 
@@ -171,48 +186,40 @@ module _ (ℓ : Level) where
     goal : isEquiv ∫𝔹₂
     goal = equivIsEquiv ∫𝔹₂-equiv
 
-  private
-    open LocalInverse using (unmap ; unmap-section)
-    module _
-      {G H : Group.ob}
-      {Xᴳ @ (X , σ) : GroupActionᴰ.ob[ G ]}
-      {Yᴴ @ (Y , τ) : GroupActionᴰ.ob[ H ]}
-      {Γ : hGpdCat.hom (𝔹.₀ G) (𝔹.₀ H)}
-      (Γᴰ : SetBundleᴰ.hom[ Γ ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ))
-      (Γ⋆-comp : Γ ⋆ ≡ ⋆)
-      where
-      φ = unmap Γ Γ⋆-comp
-      φ-sec = unmap-section Γ Γ⋆-comp
+  module _
+    {G H : Group.ob}
+    (Xᴳ @ (X , σ) : GroupActionᴰ.ob[ G ])
+    (Yᴴ @ (Y , τ) : GroupActionᴰ.ob[ H ])
+    (f : hGpdCat.hom (𝔹.₀ G) (𝔹.₀ H))
+    (fᴰ : SetBundleᴰ.hom[ f ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ))
+    (φ : Group.hom G H)
+    (φ-sec : 𝔹.₁ φ ≡ f)
+    where
+    𝔹₁-sectionOver : Σ[ φᴰ ∈ GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ ] PathP (λ i → SetBundleᴰ.hom[ φ-sec i ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)) (𝔹₁ φᴰ) fᴰ
+    𝔹₁-sectionOver = goal where
+      fᴰ′ : SetBundleᴰ.hom[ 𝔹.₁ φ ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)
+      fᴰ′ = subst (λ φ → SetBundleᴰ.hom[ φ ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)) (sym φ-sec) fᴰ
 
-      Γᴰ⋆ : ⟨ 𝔹₀ Yᴴ (Γ ⋆) ⟩ → ⟨ X ⟩
-      Γᴰ⋆ = Γᴰ ⋆
+      fᴰ′-filler : PathP (λ i → SetBundleᴰ.hom[ φ-sec (~ i) ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)) fᴰ fᴰ′
+      fᴰ′-filler = subst-filler (λ φ → SetBundleᴰ.hom[ φ ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)) (sym φ-sec) fᴰ
 
-      fixit : ⟨ 𝔹₀ Yᴴ ⋆ ⟩ ≡ ⟨ 𝔹₀ Yᴴ (Γ ⋆) ⟩
-      fixit = cong (λ x → ⟨ 𝔹₀ Yᴴ x ⟩) (sym Γ⋆-comp)
+      φᴰ : GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ
+      φᴰ = 𝔹₁⁻¹ fᴰ′
 
-      φᴰ : Σ[ f ∈ (⟨ Y ⟩ → ⟨ X ⟩) ] isEquivariantMap (φ , f) σ τ
-      φᴰ .fst = Γᴰ⋆ ∘ transport fixit
-      φᴰ .snd g = goal where
-        pᴰ : PathP (λ i → ⟨ 𝔹₀ Yᴴ (Γ (loop g i)) ⟩ → ⟨ 𝔹₀ Xᴳ (loop g i) ⟩) Γᴰ⋆ Γᴰ⋆
-        pᴰ = cong Γᴰ (loop g)
+      φᴰ-sec : fᴰ′ ≡ 𝔹₁ φᴰ
+      φᴰ-sec = sym (Equiv.secEq (𝔹₁-equiv {Xᴳ = Xᴳ} {Yᴴ = Yᴴ}) fᴰ′)
 
-        goal : (σ ⁺ g) ∘ (Γᴰ⋆ ∘ transport fixit) ≡ Γᴰ⋆ ∘ transport fixit ∘ (τ ⁺ (φ .fst g))
-        goal = {! fromPathP pᴰ !}
-
-      𝔹₁-sectionOver : Σ[ φᴰ ∈ GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ ] PathP (λ i → SetBundleᴰ.hom[ φ-sec i ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)) (𝔹₁ φᴰ) Γᴰ
-      𝔹₁-sectionOver .fst = φᴰ
-      𝔹₁-sectionOver .snd = {! !}
+      goal : Σ _ _
+      goal .fst = φᴰ
+      goal .snd = symP (subst (PathP _ fᴰ) φᴰ-sec fᴰ′-filler)
 
   isEssentiallySurjectiveDelooping : isLocallyEssentiallySurjective Delooping
   isEssentiallySurjectiveDelooping Xᴳ@(G , (X , σ)) Yᴴ@(H , (Y , τ)) = goal
-    where module _ (Γ* @ (Γ , Γᴰ) : SetBundle.hom (𝔹Act.₀ Xᴳ) (𝔹Act.₀ Yᴴ)) where
+    where module _ (f* @ (f , fᴰ) : SetBundle.hom (𝔹Act.₀ Xᴳ) (𝔹Act.₀ Yᴴ)) where
     open import Cubical.HITs.PropositionalTruncation.Monad
     open import Cubical.Categories.Category.Base using (CatIso ; pathToIso)
-    goal : ∃[ φ* ∈ GroupAction.hom Xᴳ Yᴴ ] CatIso (LocalCategory _ (𝔹Act.₀ Xᴳ) (𝔹Act.₀ Yᴴ)) (𝔹Act.₁ φ*) Γ*
+    goal : ∃[ φ* ∈ GroupAction.hom Xᴳ Yᴴ ] CatIso (LocalCategory _ (𝔹Act.₀ Xᴳ) (𝔹Act.₀ Yᴴ)) (𝔹Act.₁ φ*) f*
     goal = do
-      Γ⋆-comp ← Delooping.merePath ⟨ H ⟩ (str H) (Γ ⋆) ⋆
-      -- Γ⋆-comp : Γ ⋆ ≡ ⋆
-      let
-        (φ , p) = LocalInverse.conjugateSection-map Γ Γ⋆-comp
-        (φᴰ , pᴰ) = 𝔹₁-sectionOver Γᴰ Γ⋆-comp
-      ∃-intro (φ , φᴰ) $ pathToIso $ Sigma.ΣPathP (p , pᴰ)
+      (φ , φ-sec) ← LocalInverse.isSurjection-map f
+      let (φᴰ , φᴰ-sec) = 𝔹₁-sectionOver (X , σ) (Y , τ) f fᴰ φ φ-sec
+      ∃-intro (φ , φᴰ) $ pathToIso $ Sigma.ΣPathP (φ-sec , φᴰ-sec)

@@ -147,3 +147,12 @@ ua→ua : ∀ {ℓ ℓ'} {A₀ A₁ : Type ℓ} {B₀ B₁ : Type ℓ'}
   → (comm : (a₀ : A₀) →  equivFun β (f₀ a₀) ≡ f₁ (equivFun α a₀))
   → PathP (λ i → ua α i → ua β i) f₀ f₁
 ua→ua {α} {β} comm = ua→ λ a₀ → ua-gluePath β (comm a₀)
+
+ua→uaEquiv : ∀ {ℓ ℓ'} {A₀ A₁ : Type ℓ} {B₀ B₁ : Type ℓ'}
+  → {α : A₀ ≃ A₁}
+  → {β : B₀ ≃ B₁}
+  → {f₀ : A₀ → B₀} {f₁ : A₁ → B₁}
+  → ((a₀ : A₀) →  equivFun β (f₀ a₀) ≡ f₁ (equivFun α a₀)) ≃ PathP (λ i → ua α i → ua β i) f₀ f₁
+ua→uaEquiv {A₀} {α} {β} {f₀} {f₁} = equivΠCod lemma ∙ₑ ua→Equiv where
+  lemma : (a : A₀) → (equivFun β (f₀ a) ≡ f₁ (equivFun α a)) ≃ PathP (λ i → ua β i) (f₀ a) (f₁ (equivFun α a))
+  lemma a = invEquiv (ua-ungluePath-Equiv β)

@@ -6,6 +6,7 @@ open import GpdCont.Group.MapConjugator
 open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.Isomorphism using (module LocalIso)
 
+import      Cubical.Foundations.Path as Path
 open import Cubical.Categories.Category.Base
 open import Cubical.Algebra.Group.Base
 open import Cubical.Algebra.Group.Morphisms
@@ -74,13 +75,24 @@ module _ (ℓ : Level) where
     module K = GroupStr (str K)
     goal : K.1g K.· ψ H.1g ≡ K.1g
     goal = cong (K.1g K.·_) (ψ-hom .IsGroupHom.pres1) ∙ (K.·IdR K.1g)
-  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-trans = {! !}
-  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-hom-assoc = {! !}
-  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-hom-unit-left = {! !}
-  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-hom-unit-right = {! !}
-  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-assoc = {! !}
-  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-unit-left = {! !}
-  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-unit-right = {! !}
+  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-trans {z = K} s t u v = Conjugator≡ {! !} where
+    module K = GroupStr (str K)
+
+  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-hom-assoc = GroupHom.compGroupHomAssoc
+  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-hom-unit-left _ = GroupHom.GroupHom≡ refl
+  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-hom-unit-right = GroupHom.compGroupHomId
+  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-assoc {w = L} (s , s-conj) (t , t-conj) (u , u-conj) = ConjugatorPathP {! !}
+  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-unit-left {x = G} {y = H} {g = ψ , ψ-hom} (s , s-conj) = ConjugatorPathP goal where
+    module G = GroupStr (str G)
+    module H = GroupStr (str H)
+
+    goal : s H.· ψ G.1g ≡ s
+    goal = cong (s H.·_) (ψ-hom .IsGroupHom.pres1) ∙ H.·IdR s
+  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-unit-right {y = H} {f = φ , _} (r , r-conj) = ConjugatorPathP goal where
+    module H = GroupStr (str H)
+
+    goal : H.1g H.· r ≡ r
+    goal = H.·IdL r
 
   TwoGroup : TwoCategory (ℓ-suc ℓ) ℓ ℓ
   TwoGroup .TwoCategory.ob = Group ℓ

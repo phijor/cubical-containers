@@ -64,6 +64,20 @@ module GpdCont.Group.MapConjugator {ℓ} {G H : Group ℓ} where
   isSetConjugator : (φ ψ : GroupHom G H) → isSet (Conjugator φ ψ)
   isSetConjugator φ ψ = isSetΣSndProp H.is-set $ isPropIsConjugator {φ} {ψ}
 
+  ConjugatorPathP : {φ φ′ ψ ψ′ : GroupHom G H}
+    → {p : φ ≡ φ′} {q : ψ ≡ ψ′}
+    → {h₁ : Conjugator φ ψ}
+    → {h₂ : Conjugator φ′ ψ′}
+    → h₁ .fst ≡ h₂ .fst
+    → PathP (λ i → Conjugator (p i) (q i)) h₁ h₂
+  ConjugatorPathP h-path i .fst = h-path i
+  ConjugatorPathP {p} {q} {h₁} {h₂} h-path i .snd =
+    isProp→PathP {B = λ i → isConjugator (p i) (q i) (h-path i)}
+      (λ i → isPropIsConjugator {φ = p i} {ψ = q i} (h-path i))
+      (h₁ .snd)
+      (h₂ .snd)
+      i
+
   Conjugator≡ : {φ ψ : GroupHom G H} → {h₁ h₂ : Conjugator φ ψ} → h₁ .fst ≡ h₂ .fst → h₁ ≡ h₂
   Conjugator≡ {φ} {ψ} = Σ≡Prop $ isPropIsConjugator {φ} {ψ}
 

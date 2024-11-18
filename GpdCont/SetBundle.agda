@@ -5,11 +5,13 @@ open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryStrᴰ ; TwoCategoryᴰ)
 open import GpdCont.TwoCategory.Displayed.LocallyThin as LT using (IsLocallyThinOver ; LocallyThinOver)
 open import GpdCont.TwoCategory.HomotopyGroupoid
+open import GpdCont.TwoCategory.Isomorphism using (module LocalIso)
 
 
 open import Cubical.Foundations.HLevels
 import Cubical.Foundations.GroupoidLaws as GL
 import Cubical.Foundations.Path as Path
+open import Cubical.Data.Sigma using (ΣPath≃PathΣ)
 
 {-# INJECTIVE_FOR_INFERENCE ⟨_⟩ #-}
 
@@ -118,8 +120,36 @@ module _ (ℓ : Level) where
   SetBundle : TwoCategory (ℓ-suc ℓ) ℓ ℓ
   SetBundle = LT.TotalTwoCategory.∫ (hGpdCat ℓ) SetBundleᵀ
 
-  private module Sanity where
+  private
+    module SetBundleᴰ = TwoCategoryᴰ SetBundleᴰ
     module SetBundle = TwoCategory SetBundle
+
+  SetBundle₂≃Path : ∀ {x y} {f g : SetBundle.hom x y} → (SetBundle.rel {y = y} f g) ≃ (f ≡ g)
+  SetBundle₂≃Path = ΣPath≃PathΣ
+
+  isLocallyGroupoidalSetBundle : LocalIso.isLocallyGroupoidal SetBundle
+  isLocallyGroupoidalSetBundle {x = G , X} {y = H , Y} {f = f , fᴰ} {g = g , gᴰ} (r , rᴰ) = goal where
+    open import Cubical.Data.Sigma using (ΣPathP)
+
+    r-inv : LocalIso.hasLocalInverse (hGpdCat _) r
+    r-inv = isLocallyGroupoidalHGpdCat _ r
+
+    module r-inv = LocalIso.isLocalInverse (r-inv .snd)
+
+    r⁻ : hGpdCat.rel g f
+    r⁻ = r-inv .fst
+
+    rᴰ⁻ : S₂ {Y = Y} r⁻ gᴰ fᴰ
+    rᴰ⁻ = symP rᴰ
+
+    goal : LocalIso.hasLocalInverse SetBundle (r , rᴰ)
+    goal .fst = r⁻ , rᴰ⁻
+    goal .snd .LocalIso.isLocalInverse.dom-id i .fst = r-inv.dom-id i
+    goal .snd .LocalIso.isLocalInverse.dom-id i .snd = rCancelP' (λ φ → S₁ φ X Y) r rᴰ i
+    goal .snd .LocalIso.isLocalInverse.codom-id i .fst = r-inv.codom-id i
+    goal .snd .LocalIso.isLocalInverse.codom-id i .snd = lCancelP' (λ φ → S₁ φ X Y) r rᴰ i
+
+  private module Sanity where
     sanity₀ : (SetBundle.ob) ≡ (Σ[ G ∈ hGroupoid ℓ ] (⟨ G ⟩ → hSet ℓ))
     sanity₀ = refl
 

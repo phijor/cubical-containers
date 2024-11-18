@@ -3,7 +3,7 @@
 open import GpdCont.Prelude
 open import Cubical.Algebra.Group.Base as AbsGroup renaming (GroupStr to AbsGroupStr ; Group to AbsGroup)
 open import Cubical.Algebra.Group.Morphisms using (GroupHom ; IsGroupHom ; GroupEquiv)
-open import Cubical.Algebra.Group.MorphismProperties using (isPropIsGroupHom ; makeIsGroupHom ; invGroupEquiv)
+open import Cubical.Algebra.Group.MorphismProperties using (isPropIsGroupHom ; makeIsGroupHom ; invGroupEquiv ; GroupEquiv→GroupHom)
 open import Cubical.Algebra.Group.GroupPath using (uaGroup)
 open import Cubical.Algebra.SymmetricGroup using (Symmetric-Group)
 
@@ -187,6 +187,9 @@ private
 conjugatePathEquiv : {x₀ x₁ : 𝔹} → x₀ ≡ x₁ → GroupEquiv (π₁ x₀) (π₁ x₁)
 conjugatePathEquiv = FundamentalGroup.conjugateGroupEquiv (𝔹 , 𝔹.isGroupoid𝔹)
 
+conjugatePathHom : {x₀ x₁ : 𝔹} → x₀ ≡ x₁ → GroupHom (π₁ x₀) (π₁ x₁)
+conjugatePathHom p = GroupEquiv→GroupHom $ conjugatePathEquiv p
+
 loopHom : GroupHom (G , γ) π₁𝔹
 loopHom .fst = 𝔹.loop
 loopHom .snd .IsGroupHom.pres· g h = sym $ Delooping.loop-∙ g h
@@ -200,7 +203,10 @@ loopGroupEquiv .snd = loopHom .snd
 unloopGroupEquiv : GroupEquiv π₁𝔹 (G , γ)
 unloopGroupEquiv = invGroupEquiv loopGroupEquiv
 
-_ : equivFun (unloopGroupEquiv .fst) ≡ unloop
+unloopGroupHom : GroupHom π₁𝔹 (G , γ)
+unloopGroupHom = GroupEquiv→GroupHom unloopGroupEquiv
+
+_ : unloopGroupHom .fst ≡ unloop
 _ = refl
 
 elimSetIso : ∀ {ℓB} {B : 𝔹 → Type ℓB}

@@ -39,6 +39,13 @@ module _ {ℓo ℓo′ ℓh ℓh′ ℓr ℓr′}
     isLocallyEssentiallySurjective : Type _
     isLocallyEssentiallySurjective = Locally Functor.isEssentiallySurj
 
+    isLocallySplitEssentiallySurjective : Type _
+    isLocallySplitEssentiallySurjective = Locally isSplitEssentiallySurjective where
+      isSplitEssentiallySurjective : ∀ {C : Category ℓh ℓr} {D : Category ℓh′ ℓr′} → Functor C D → Type _
+      isSplitEssentiallySurjective {C} {D} F = (d : D .ob) → Σ[ c ∈ C .ob ] CatIso D (F .F-ob c) d where
+        open Category
+        open Functor
+
     localEmbedding : isLocallyFullyFaithful
       → ∀ {x y : C.ob} (f g : C.hom x y)
       → C.rel f g ≃ D.rel (F.₁ f) (F.₁ g)

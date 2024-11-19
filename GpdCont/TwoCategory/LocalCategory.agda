@@ -14,6 +14,9 @@ module _ {ℓo ℓh ℓr}
     private
       module C = TwoCategory C
 
+    isLocallyStrict : Type (ℓ-max ℓo ℓh)
+    isLocallyStrict = ∀ x y → isSet (C.hom x y)
+
     module _ (x y : TwoCategory.ob C) where
       LocalCategory :  Category ℓh ℓr
       LocalCategory .Category.ob = C.hom x y
@@ -24,6 +27,12 @@ module _ {ℓo ℓh ℓr}
       LocalCategory .Category.⋆IdR = C.trans-unit-right
       LocalCategory .Category.⋆Assoc = C.trans-assoc
       LocalCategory .Category.isSetHom = C.is-set-rel _ _
+
+    LocalCatIso : ∀ {x y : C.ob} (f g : C.hom x y) → Type _
+    LocalCatIso {x} {y} f g = CatIso (LocalCategory x y) f g
+
+    isSetLocalCatIso : ∀ {x y : C.ob} (f g : C.hom x y) → isSet (LocalCatIso f g)
+    isSetLocalCatIso {x} {y} f g = isSet-CatIso {C = LocalCategory x y} f g
 
     identityFunctor : ∀ (x : C.ob) → Functor (TerminalCategory {ℓ-zero}) (LocalCategory x x)
     identityFunctor x = FunctorFromTerminal (C.id-hom x)

@@ -32,7 +32,7 @@ private
 -- 1-connected type of (global) sections.
 -- The reason for that is that being 1-connected means having contractible
 -- propostional truncation — which is the case as soon as the truncation is inhabited.
-_ : ASC ℓ ≃ ∀ (X : hSet ℓ) (Y : ⟨ X ⟩ → hSet ℓ) → ((x : ⟨ X ⟩) → isConnected 1 ⟨ Y x ⟩) → isConnected 1 ((x : ⟨ X ⟩) → ⟨ Y x ⟩)
+_ : ASC ℓ ℓ ≃ ∀ (X : hSet ℓ) (Y : ⟨ X ⟩ → hSet ℓ) → ((x : ⟨ X ⟩) → isConnected 1 ⟨ Y x ⟩) → isConnected 1 ((x : ⟨ X ⟩) → ⟨ Y x ⟩)
 _ = equivΠCod λ X → equivΠCod λ Y → equiv→ (equivΠCod (λ x → merelyInh≃is1Connected)) merelyInh≃is1Connected
 
 -- We say that a family of n-types (indexed by a set) has "k-connected choice" iff

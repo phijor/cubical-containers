@@ -13,7 +13,7 @@ open import Cubical.HITs.Truncation as Tr using (∥_∥_)
 
 private
   variable
-    ℓ : Level
+    ℓ ℓX ℓY : Level
     X Y : Type ℓ
 
 -- A family of n-types has m-choice iff
@@ -34,12 +34,12 @@ AC ℓ n m = ∀ (X : hSet ℓ) (Y : ⟨ X ⟩ → TypeOfHLevel ℓ n) → hasCh
 -- In the special case of (n = 2, m = 1), we recover the content of the usual
 -- axiom of choice for sets: A family of sets has choice if being pointwise
 -- merely inhabited implies merely having a global section.
-hasSetChoice : (X : hSet ℓ) (Y : ⟨ X ⟩ → hSet ℓ) → Type _
+hasSetChoice : (X : hSet ℓX) (Y : ⟨ X ⟩ → hSet ℓY) → Type _
 hasSetChoice X Y = ((x : ⟨ X ⟩) → ∥ ⟨ Y x ⟩ ∥₁) → ∥ ((x : ⟨ X ⟩) → ⟨ Y x ⟩) ∥₁
 
 -- The axiom of (set-) choice: All merely inhabited families merely have sections.
-ASC : (ℓ : Level) → Type _
-ASC ℓ = ∀ (X : hSet ℓ) (Y : ⟨ X ⟩ → hSet ℓ) → hasSetChoice X Y
+ASC : (ℓX ℓY : Level) → Type _
+ASC ℓX ℓY = ∀ (X : hSet ℓX) (Y : ⟨ X ⟩ → hSet ℓY) → hasSetChoice X Y
 
 isPropHasChoice : (X : hSet ℓ) (Y : ⟨ X ⟩ → hSet ℓ) → isProp (hasSetChoice X Y)
 isPropHasChoice _ _ = isPropΠ λ _ → PT.isPropPropTrunc
@@ -65,7 +65,7 @@ AllSurjectionsSplit : (ℓ : Level) → Type _
 AllSurjectionsSplit ℓ = ∀ (X Y : hSet ℓ) (f : ⟨ X ⟩ → ⟨ Y ⟩) → isSurjection f → isSplit f
 
 isPropAllSurjectionsSplit : isProp (AllSurjectionsSplit ℓ)
-isPropAllSurjectionsSplit = isPropΠ4 λ { _ _ _ _ → isPropIsSplit _ }
+isPropAllSurjectionsSplit = isPropΠ4 λ { _ _ f _ → isPropIsSplit f }
 
 -- If we assume choice for the fibers of a function of sets,
 -- then the function splits if it is a surjection.
@@ -80,7 +80,7 @@ module FiberChoice (X Y : hSet ℓ) (f : ⟨ X ⟩ → ⟨ Y ⟩) where
     goal = PT.map (hasSection-fiberSection-Iso f .Iso.inv) (choice-fiber-f surj-f)
 
 -- The axiom of choice implies that all surjections split.
-ASC→AllSurjectionsSplit : ASC ℓ → AllSurjectionsSplit ℓ
+ASC→AllSurjectionsSplit : ASC ℓ ℓ → AllSurjectionsSplit ℓ
 ASC→AllSurjectionsSplit ac X Y f = hasChoiceFiber→isSplitSurjection has-set-choice where
   open FiberChoice X Y f using (hasChoiceFiber→isSplitSurjection ; fiberSet)
 
@@ -116,7 +116,7 @@ module TotalFibration (X : hSet ℓ) (Y : ⟨ X ⟩ → hSet ℓ) where
     goal = isSplitProj-mereSectionFam-Iso .Iso.fun $ proj-surj→split is-surjection-proj
 
 -- If all surjections between sets split, then the axiom of choice holds.
-AllSurjectionsSplit→ACS : AllSurjectionsSplit ℓ → ASC ℓ
+AllSurjectionsSplit→ACS : AllSurjectionsSplit ℓ → ASC ℓ ℓ
 AllSurjectionsSplit→ACS split X Y = surjectiveProjSplits→hasChoice is-surj→is-split where
   open TotalFibration X Y using (TotalSet ; proj ; surjectiveProjSplits→hasChoice)
   is-surj→is-split : isSurjection proj → isSplit proj

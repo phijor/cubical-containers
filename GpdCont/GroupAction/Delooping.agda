@@ -10,7 +10,7 @@ open import GpdCont.GroupAction.TwoCategory using (GroupActionᴰ ; GroupAction)
 open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleMap ; associatedBundleMapEquiv)
 open import GpdCont.Group.TwoCategory using (TwoGroup)
 
-open import GpdCont.SetBundle using (SetBundle ; SetBundleᴰ ; SetBundleᵀ ; isLocallyGroupoidalSetBundle)
+open import GpdCont.SetBundle.Base using (SetBundle ; SetBundleᴰ ; SetBundleᵀ ; isLocallyGroupoidalSetBundle)
 
 import      GpdCont.Delooping as Delooping
 open import GpdCont.Delooping.Functor using (module TwoFunc ; module LocalInverse)

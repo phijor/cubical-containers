@@ -35,6 +35,9 @@ isPathConnectedFun {B} f = (b : B) →  isPathConnected (fiber f b)
 isPathConnected→merePath : isPathConnected A → ∀ (a b : A) → ∥ a ≡ b ∥₁
 isPathConnected→merePath conn a b = equivFun PathSetTrunc≃PropTruncPath $ isContr→isProp conn ST.∣ a ∣₂ ST.∣ b ∣₂
 
+isPathConnected→isContrMerePath : isPathConnected A → ∀ (a b : A) → isContr ∥ a ≡ b ∥₁
+isPathConnected→isContrMerePath conn a b = inhProp→isContr (isPathConnected→merePath conn a b) PT.isPropPropTrunc
+
 isPropIsConnected : ∀ {n : HLevel} → isProp (isConnected n A)
 isPropIsConnected = isPropIsContr
 
@@ -194,6 +197,27 @@ conType→indMapEquiv {A} n conn-A (B , lvl-B) .equiv-proof = goal where
     -- goal = isContrRetract {B = ∥ A ∥ n} ev un-ev ev-retr conn-A
     goal .fst = ∣f∣ (conn-A .fst) , funExt λ a → Tr.elim {B = λ ∣a∣ → ∣f∣ ∣a∣ ≡ f a} {! !} (λ a′ → Tr.recUniq lvl-B f a′ ∙ cong f {! !}) (conn-A .fst)
     goal .snd = {! !}
+
+isPathConnected→isEquivConst : ∀ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'}
+  → isPathConnected A
+  → isSet B
+  → isEquiv (λ (b : B) → λ (a : A) → b)
+isPathConnected→isEquivConst {A} {B} conn-A is-set-B = subst isEquiv fun-equiv≡const (equivIsEquiv fun-equiv) where
+  fun-equiv : B ≃ (A → B)
+  fun-equiv =
+    B ≃⟨ invEquiv $ Π-contractDom conn-A ⟩
+    (∥ A ∥₂ → B) ≃⟨ ST.setTruncUniversal is-set-B ⟩
+    (A → B) ≃∎
+
+  fun-equiv≡const : equivFun fun-equiv ≡ (λ b a → b)
+  fun-equiv≡const = funExt λ b → funExt λ _ → transportRefl b
+
+isPathConnected→constEquiv : ∀ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'}
+  → isPathConnected A
+  → isSet B
+  → B ≃ (A → B)
+isPathConnected→constEquiv conn-A is-set-B .fst = _
+isPathConnected→constEquiv conn-A is-set-B .snd = isPathConnected→isEquivConst conn-A is-set-B
 
 -- In a path connected space, all loop spaces are merely equivalent
 isConnected→mereLoopSpaceEquiv : isPathConnected A → (a b : A) → ∥ (a ≡ a) ≃ (b ≡ b) ∥₁

@@ -99,7 +99,18 @@ module _ where
   pathComp→compSquareFiller : (p : x ≡ y) (q : y ≡ z) → compSquareFiller p q (p ∙ q)
   pathComp→compSquareFiller = compPath-filler
 
-  isPropCompSquareFiller : ∀ (p : x ≡ y) (q : y ≡ z) → isProp (Σ[ r ∈ x ≡ z ] compSquareFiller p q r)
+  PathCompFiller : (p : x ≡ y) (q : y ≡ z) → Type _
+  PathCompFiller {x} {z} p q = Σ[ r ∈ x ≡ z ] compSquareFiller p q r
+
+  pathComp→PathCompFiller : {p : x ≡ y} {q : y ≡ z} → PathCompFiller p q
+  pathComp→PathCompFiller .fst = _
+  pathComp→PathCompFiller .snd = pathComp→compSquareFiller _ _
+
+  congPathCompFiller : ∀ {B : Type ℓ} (f : A → B) {p : x ≡ y} {q : y ≡ z} → PathCompFiller p q → PathCompFiller (cong f p) (cong f q)
+  congPathCompFiller f (r , is-filler) .fst = cong f r
+  congPathCompFiller f (r , is-filler) .snd = λ i j → f (is-filler i j)
+
+  isPropCompSquareFiller : ∀ (p : x ≡ y) (q : y ≡ z) → isProp (PathCompFiller p q)
   isPropCompSquareFiller p q = compPath-unique refl p q
 
   isContrCompSquareFiller : ∀ (p : x ≡ y) (q : y ≡ z) → isContr (Σ[ r ∈ x ≡ z ] compSquareFiller p q r)
@@ -153,27 +164,58 @@ module _ where
     )
     (q j)
 
-  compPath≡Square' : {a b c d : A} {p : a ≡ c} {q : b ≡ d} {r : a ≡ b} {s : c ≡ d}
-    → (p ∙ s ≡ r ∙ q) ≡ (Square r s p q)
-  compPath≡Square' {A} {a} {b} {d} {p} {q} {r} {s} = goal where
-    open import Cubical.Foundations.Path
-    goal : PathP (λ i → a ≡ d) (p ∙ s) (r ∙ q) ≡ PathP (λ i → p i ≡ q i) r s
-    goal i = PathP Sq (sq₀ i) (sq₁ i) where
-      Sq : (j : I) → Type _
-      Sq j = p (i ∧ j) ≡ q (~ i ∨ j)
+  module _
+    {ℓ ℓ'} {A : Type ℓ} (B : A → Type ℓ')
+    {x y : A} (p : x ≡ y)
+    {x' : B x} {y' : B y}
+    (p' : PathP (λ i → B (p i)) x' y')
+    where
+    rCancelP' : PathP (λ j → PathP (λ i → B (rCancel p j i)) x' x') (compPathP' {B = B} {p = p} {q = sym p} p' (symP p')) (refl′ x')
+    rCancelP' j i =
+      comp (λ k → B (rCancel-filler p k j i))
+        (λ k → λ where
+          (i = i0) → x'
+          (i = i1) → p' (~ k ∧ ~ j)
+          (j = i1) → x'
+        )
+        (p' (i ∧ ~ j))
 
-      constr : (j : I) → Partial (i ∨ ~ i) (Type _)
-      constr j (i = i0) = a ≡ d
-      constr j (i = i1) = p j ≡ q j
+  module _
+    {ℓ ℓ'} {A : Type ℓ} (B : A → Type ℓ')
+    {x y : A} (p : x ≡ y)
+    {x' : B x} {y' : B y}
+    (p' : PathP (λ i → B (p i)) x' y')
+    where
+    lCancelP' : PathP (λ j → PathP (λ i → B (lCancel p j i)) y' y') (compPathP' {B = B} {p = sym p} {q = p} (symP p') p') (refl′ y')
+    lCancelP' = rCancelP' B (sym p) (symP p')
 
-      _ : (j : I) → Type _ [ (i ∨ ~ i) ↦ constr j ]
-      _ = λ j → inS (Sq j)
+  module _
+    {ℓ ℓ'} {A : Type ℓ} (B : A → Type ℓ')
+    {x y z w : A} (p : x ≡ y) (q : y ≡ z) (r : z ≡ w)
+    {x' : B x} {y' : B y} {z' : B z} {w' : B w}
+    (p' : PathP (λ i → B (p i)) x' y')
+    (q' : PathP (λ i → B (q i)) y' z')
+    (r' : PathP (λ i → B (r i)) z' w')
+    where
+    doubleCompPathP'-base : (i j : I) → Type ℓ'
+    doubleCompPathP'-base i j = B (doubleCompPath-filler p q r j i)
 
-      sq₀ : PathP (λ i → a ≡ q (~ i)) (p ∙ s) r
-      sq₀ i j = {! !}
+    doubleCompPathP'-faces : (i j : I) → Partial (∂ i) (B (doubleCompPath-filler p q r j i))
+    doubleCompPathP'-faces i j (i = i0) = p' (~ j)
+    doubleCompPathP'-faces i j (i = i1) = r' j
 
-      sq₁ : PathP (λ i → p i ≡ d) (r ∙ q) s
-      sq₁ i j = {! !}
+    doubleCompPathP' : PathP (λ i → B ((p ∙∙ q ∙∙ r) i)) x' w'
+    doubleCompPathP' i = comp
+      (doubleCompPathP'-base i)
+      (doubleCompPathP'-faces i)
+      (q' i)
+
+    doubleCompPathP'-filler : PathP (λ j → PathP (λ i → (B (doubleCompPath-filler p q r j i))) (p' (~ j)) (r' j)) q' doubleCompPathP'
+    doubleCompPathP'-filler j i = fill
+      (doubleCompPathP'-base i)
+      (doubleCompPathP'-faces i)
+      (inS (q' i))
+      j
 
   opaque
     compPath≡Square : {a b c d : A} {p : a ≡ c} {q : b ≡ d} {r : a ≡ b} {s : c ≡ d}

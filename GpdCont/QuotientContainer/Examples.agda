@@ -15,9 +15,12 @@ open import Cubical.HITs.PropositionalTruncation as PT using ()
 open import Cubical.HITs.SetQuotients as SQ using (_/_)
 open import Cubical.Foundations.Equiv.Properties using (equivAdjointEquiv)
 open import Cubical.Foundations.Univalence
+open import Cubical.Functions.Involution using (isInvolution ; involEquiv)
 open import Cubical.Relation.Nullary.Base
 open import Cubical.Data.Unit
 open import Cubical.Data.Bool as Bool hiding (_⊕_)
+open import Cubical.Data.SumFin
+open import Cubical.Data.Nat
 open import Cubical.Data.Sum
 open import Cubical.Data.Sigma
 open import Cubical.Data.Empty using () renaming (rec to ex-falso)
@@ -245,3 +248,37 @@ UPairPath i .symm-comp _ _ _ _ = tt
   UPairPath≡refl : UPairPath ≡ refl
   UPairPath≡refl = isoFunInjective (equivToIso $ _ , isUnivalent.univ univ _ _) UPairPath refl compare
   -}
+
+AllSymmetries : ∀ {ℓ} (S : hSet ℓ) (P : ⟨ S ⟩ → hSet ℓ) → QCont ℓ
+AllSymmetries S P .Shape = ⟨ S ⟩
+AllSymmetries S P .Pos = ⟨_⟩ ∘ P
+AllSymmetries S P .isSymm = const Unit*
+AllSymmetries S P .is-set-shape = str S
+AllSymmetries S P .is-set-pos = str ∘ P
+AllSymmetries S P .is-prop-symm = const isPropUnit*
+AllSymmetries S P .symm-id = λ _ → tt*
+AllSymmetries S P .symm-sym = λ σ _ → tt*
+AllSymmetries S P .symm-comp = λ σ τ _ _ → tt*
+
+UnorderedTuple : (n : ℕ) → QCont ℓ-zero
+UnorderedTuple n = AllSymmetries (Unit , isSetUnit) (const (Fin n , isSetFin))
+
+degenDup : Premorphism (UnorderedTuple 1) (UnorderedTuple 2) (id _)
+degenDup .pos-mor _ = const fzero
+degenDup .symm-pres _ g = ∃-intro (φ g) isNaturalFiller-φ where
+  swapPos : Pos (UnorderedTuple 2) _ → Pos (UnorderedTuple 2) _
+  swapPos fzero = fsuc fzero
+  swapPos (fsuc fzero) = fzero
+
+  isInvolutionSwapPos : isInvolution swapPos
+  isInvolutionSwapPos fzero = refl
+  isInvolutionSwapPos (fsuc fzero) = refl
+
+  swap-≃ : Pos (UnorderedTuple 2) _ ≃ Pos (UnorderedTuple 2) _
+  swap-≃ = involEquiv {f = swapPos} isInvolutionSwapPos
+
+  φ : Symm (UnorderedTuple 1) _ → Symm (UnorderedTuple 2) _
+  φ = const (swap-≃ , _)
+
+  isNaturalFiller-φ : isNaturalFiller (UnorderedTuple 1) (UnorderedTuple 2) (id _) (λ _ _ → fzero) g (φ g)
+  isNaturalFiller-φ = isProp→ (isContr→isProp isContrSumFin1) _ _

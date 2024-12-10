@@ -7,6 +7,7 @@ open import GpdCont.WildCat.FunctorCategory public
 
 open import Cubical.Foundations.Function using (flip) renaming (_∘_ to _∘fun_)
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
 open import Cubical.WildCat.Base using (WildCat ; _[_,_] ; concatMor)
 open import Cubical.WildCat.Functor hiding (_$_)
 open import Cubical.WildCat.Instances.Types using (TypeCat)
@@ -30,9 +31,9 @@ module _ (ℓ : Level) where
     Nat : (F G : WildFunctor hGroupoidCat hGroupoidCat) → Type _
     Nat F G = WildNatTrans _ _ F G
 
-    idNat : (F : WildFunctor hGroupoidCat hGroupoidCat) → Nat F F
-    idNat F .WildNatTrans.N-ob x = idfun (F .WildFunctor.F-ob x .fst)
-    idNat F .WildNatTrans.N-hom f = refl
+  idNat : (F : WildFunctor hGroupoidCat hGroupoidCat) → Nat F F
+  idNat F .WildNatTrans.N-ob x = idfun (F .WildFunctor.F-ob x .fst)
+  idNat F .WildNatTrans.N-hom f = refl
 
   module composite {F G H : WildFunctor hGroupoidCat hGroupoidCat} (α : Nat F G) (β : Nat G H) where
     module G = WildFunctor G
@@ -99,6 +100,29 @@ module _ (ℓ : Level) where
   hGroupoidEndo .⋆IdL = idNatTransₗ
   hGroupoidEndo .⋆IdR = idNatTransᵣ
   hGroupoidEndo .⋆Assoc = assocNatTrans
+
+  isGroupoidEndoNatTrans : ∀ F G → isGroupoid (hGroupoidEndo [ F , G ])
+  isGroupoidEndoNatTrans F G = isGroupoidRetract {B = NatTrans′} toNatTrans′ fromNatTrans′ retr isGroupoidNatTrans′ where
+    open WildFunctor
+    open WildNatTrans
+    NatTrans′ = Σ[ α ∈ (∀ X → ⟨ F .F-ob X ⟩ → ⟨ G .F-ob X ⟩) ] ∀ X Y (H : ⟨ X ⟩ → ⟨ Y ⟩) → F .F-hom H ⋆ α Y ≡ α X ⋆ G .F-hom H
+
+    isGroupoidNatTrans′ : isGroupoid NatTrans′
+    isGroupoidNatTrans′ = isGroupoidΣ
+      (isGroupoidΠ2 λ X _ → str (G .F-ob X))
+      (λ α → isGroupoidΠ3 λ X Y H → isOfHLevelPath 3 (isGroupoidΠ λ _ → str (G .F-ob Y)) _ _)
+
+    toNatTrans′ : hGroupoidEndo [ F , G ] → NatTrans′
+    toNatTrans′ α .fst = α .N-ob
+    toNatTrans′ α .snd _ _ = α .N-hom
+
+    fromNatTrans′ : NatTrans′ → hGroupoidEndo [ F , G ]
+    fromNatTrans′ (α , α-hom) .N-ob = α
+    fromNatTrans′ (α , α-hom) .N-hom = α-hom _ _
+
+    retr : ∀ α → fromNatTrans′ (toNatTrans′ α) ≡ α
+    retr α i .N-ob = α .N-ob
+    retr α i .N-hom = α .N-hom
 
 open WildCat hiding (_⋆_)
 hseq' : ∀ {ℓ} (x y z : hGroupoidCat ℓ .ob) (f : hGroupoidCat ℓ [ x , y ]) (g : hGroupoidCat ℓ [ y , z ]) → hGroupoidCat ℓ [ x , z ]

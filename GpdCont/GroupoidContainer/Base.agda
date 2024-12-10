@@ -21,12 +21,11 @@ record GCont (ℓ : Level) : Type (ℓ-suc ℓ) where
     PosSet s .fst = Pos s
     PosSet s .snd = is-set-pos s
 
-private
-  mkGCont : ∀ {ℓ} → (S : hGroupoid ℓ) (P : ⟨ S ⟩ → hSet ℓ) → GCont ℓ
-  mkGCont S P .GCont.Shape = ⟨ S ⟩
-  mkGCont S P .GCont.Pos = ⟨_⟩ ∘ P
-  mkGCont S P .GCont.is-groupoid-shape = str S
-  mkGCont S P .GCont.is-set-pos = str ∘ P
+mkGCont : ∀ {ℓ} → (S : hGroupoid ℓ) (P : ⟨ S ⟩ → hSet ℓ) → GCont ℓ
+mkGCont S P .GCont.Shape = ⟨ S ⟩
+mkGCont S P .GCont.Pos = ⟨_⟩ ∘ P
+mkGCont S P .GCont.is-groupoid-shape = str S
+mkGCont S P .GCont.is-set-pos = str ∘ P
 
 syntax mkGCont S (λ s → P) = [ s ∈ S ◁ P ]
 

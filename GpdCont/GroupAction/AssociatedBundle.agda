@@ -89,19 +89,20 @@ module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
     ∫σ : Type _
     ∫σ = Σ[ x ∈ 𝔹G ] ⟨ associatedBundle σ x ⟩
 
-    _∼_ : (x y : ⟨ X ⟩) → Type ℓ
-    x ∼ y = ∃[ g ∈ ⟨ G ⟩ ] g ▷ x ≡ y
+  _∼_ : (x y : ⟨ X ⟩) → Type ℓ
+  x ∼ y = ∃[ g ∈ ⟨ G ⟩ ] g ▷ x ≡ y
 
+  Orbits : Type _
+  Orbits = ⟨ X ⟩ / _∼_
+
+  isSetOrbits : isSet Orbits
+  isSetOrbits = SQ.squash/
+
+  private
     ∼-intro-right : (g : ⟨ G ⟩) (x : ⟨ X ⟩) → x ∼ (g ▷ x)
     ∼-intro-right g x = ∃-intro g goal where
       goal : g ▷ x ≡ g ▷ x
-      goal = refl -- (sym $ ActionProperties.action-cancel-right σ g) ≡$ x
-
-    Orbits : Type _
-    Orbits = ⟨ X ⟩ / _∼_
-
-    isSetOrbits : isSet Orbits
-    isSetOrbits = SQ.squash/
+      goal = refl
 
   associatedBundleComponents→Orbits : (x : 𝔹G) → ⟨ associatedBundle σ x ⟩ → Orbits
   associatedBundleComponents→Orbits = 𝔹G.elimSet (λ x → HLevels.isSet→ isSetOrbits) f⋆ f-loop where

@@ -91,6 +91,21 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓr
           → PathP (λ i → rel[ p i ] fᴰ gᴰ) rᴰ sᴰ
         relᴰ≡ = relᴰPathP
 
+        relΣPathP : {x y : C.ob}
+          → {f₀ f₁ : C.hom x y} → {f : PathP (λ i → C.hom x y) f₀ f₁}
+          → {g₀ g₁ : C.hom x y} → {g : PathP (λ i → C.hom x y) g₀ g₁}
+          → {r : C.rel f₀ g₀}
+          → {s : C.rel f₁ g₁}
+          → {xᴰ : ob[ x ]} {yᴰ : ob[ y ]}
+          → {fᴰ₀ : hom[ f₀ ] xᴰ yᴰ} → {fᴰ₁ : hom[ f₁ ] xᴰ yᴰ} → {fᴰ : PathP (λ i → hom[ f i ] xᴰ yᴰ) fᴰ₀  fᴰ₁}
+          → {gᴰ₀ : hom[ g₀ ] xᴰ yᴰ} → {gᴰ₁ : hom[ g₁ ] xᴰ yᴰ} → {gᴰ : PathP (λ i → hom[ g i ] xᴰ yᴰ) gᴰ₀  gᴰ₁}
+          → {rᴰ : rel[ r ] fᴰ₀ gᴰ₀}
+          → {sᴰ : rel[ s ] fᴰ₁ gᴰ₁}
+          → (p : PathP (λ i → rel (f i) (g i)) r s)
+          → PathP (λ i → Σ[ r ∈ (rel (f i) (g i)) ] rel[ r ] (fᴰ i) (gᴰ i)) (r , rᴰ) (s , sᴰ)
+        relΣPathP p i .fst = p i
+        relΣPathP {fᴰ} {gᴰ} {rᴰ} {sᴰ} p i .snd = relᴰPathP {fᴰ = fᴰ} {gᴰ = gᴰ} {rᴰ = rᴰ} {sᴰ = sᴰ} p i
+
         toIsTwoCategoryᴰ : IsTwoCategoryᴰ C _ _ _ ob[_] hom[_] rel[_] sᴰ
         toIsTwoCategoryᴰ .IsTwoCategoryᴰ.is-set-relᴰ fᴰ gᴰ = isProp→isSet $ is-prop-relᴰ fᴰ gᴰ
         toIsTwoCategoryᴰ .IsTwoCategoryᴰ.trans-assocᴰ _ _ _ = relᴰ≡ (C.trans-assoc _ _ _)

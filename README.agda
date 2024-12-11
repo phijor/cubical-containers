@@ -124,9 +124,9 @@ module 2·3-LiftingQuotientContainers where
   15-Definition : {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) → (𝔹 G → hSet ℓ)
   15-Definition = associatedBundle
 
-  -- TODO: Bundles associated to faithful actions are set-truncated.
-  16-Proposition : {! !}
-  16-Proposition = {! !}
+  -- Bundles associated to faithful actions are set-truncated.
+  16-Proposition : {σ : Action {ℓ} G X} → isFaithful σ → (Y : hSet ℓ) → isSet (fiber (associatedBundle σ) Y)
+  16-Proposition {σ} = isFaithful→isSetTruncAssociatedBundle {σ = σ}
 
   -- Any quotient container defines a symmetric container.
   17-Definition : QCont ℓ → GCont ℓ

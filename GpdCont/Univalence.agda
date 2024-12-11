@@ -1,5 +1,6 @@
 module GpdCont.Univalence where
 
+open import GpdCont.Equiv using (lineEquiv ; secEquiv)
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Path using (PathP≡compPath)
@@ -29,23 +30,12 @@ ua-unglue-equiv′ : (e : A ≃ B) → ∀ φ → ua e φ ≃ B
 ua-unglue-equiv′ e φ .fst = ua-unglue e φ
 ua-unglue-equiv′ e φ .snd = ua-unglue-isEquiv e φ
 
-lineEquiv : {A B : I → Type ℓ} (f : (i : I) → A i → B i)
-  → (is-equiv₀ : isEquiv (f i0))
-  → (is-equiv₁ : isEquiv (f i1))
-  → ∀ φ → A φ ≃ B φ
-lineEquiv f is-equiv₀ is-equiv₁ φ = λ where
-  .fst → f φ
-  .snd → isProp→PathP (λ i → isPropIsEquiv (f i)) is-equiv₀ is-equiv₁ φ
-
 ua-unglue-equiv : (e : A ≃ B) → ∀ φ → ua e φ ≃ B
 ua-unglue-equiv e φ .fst = ua-unglue e φ
 ua-unglue-equiv e φ .snd = isProp→PathP (λ i → isPropIsEquiv (ua-unglue e i)) (equivIsEquiv e) (idIsEquiv _) φ
 
 ua-comp-unglue-equiv : {A B C : Type ℓ} (f : A ≃ B) (g : B ≃ C) → ∀ φ → ua f φ ≃ C
 ua-comp-unglue-equiv {C} f g = lineEquiv (λ φ x → equivFun g (ua-unglue f φ x)) (equivIsEquiv (f ∙ₑ g)) (equivIsEquiv g)
-
-secEquiv : (e : A ≃ B) → ∀ (φ : I) → B ≃ B
-secEquiv {B} e = lineEquiv (λ φ b → secEq e b φ) (equivIsEquiv (invEquiv e ∙ₑ e)) (idIsEquiv B)
 
 uaCompEquivSquare : ∀ {A B C : Type ℓ} → (f : A ≃ B) (g : B ≃ C) → PathP (λ j → A ≡ ua g j) (ua f) (ua (f ∙ₑ g))
 uaCompEquivSquare {ℓ} {A} {B} {C} f g i j = Glue C {φ} system where

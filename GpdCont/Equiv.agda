@@ -8,6 +8,11 @@ open import Cubical.Foundations.Univalence using (pathToEquiv ; EquivJ)
 open import Cubical.Foundations.Transport using (transportComposite)
 open import Cubical.Functions.FunExtEquiv using (funExtEquiv)
 
+private
+  variable
+    ℓ : Level
+    A B : Type ℓ
+
 pathToEquivSym : ∀ {ℓ} {A B : Type ℓ}
   → (p : A ≡ B)
   → pathToEquiv (sym p) ≡ invEquiv (pathToEquiv p)
@@ -43,3 +48,17 @@ equivAdjointEquivExtDomain {B} {C} =
   EquivJ
     (λ A e → (f : B → C) (g : A → C) → (g ∘ invEq e ≡ f) ≃ (g ≡ f ∘ equivFun e))
     (λ f g → idEquiv (g ≡ f))
+
+lineEquiv : ∀ {A B : I → Type ℓ} (f : (i : I) → A i → B i)
+  → (is-equiv₀ : isEquiv (f i0))
+  → (is-equiv₁ : isEquiv (f i1))
+  → ∀ φ → A φ ≃ B φ
+lineEquiv f is-equiv₀ is-equiv₁ φ = λ where
+  .fst → f φ
+  .snd → isProp→PathP (λ i → isPropIsEquiv (f i)) is-equiv₀ is-equiv₁ φ
+
+secEquiv : (e : A ≃ B) → ∀ (φ : I) → B ≃ B
+secEquiv {B} e = lineEquiv (λ φ b → secEq e b φ) (equivIsEquiv (invEquiv e ∙ₑ e)) (idIsEquiv B)
+
+retEquiv : (e : A ≃ B) → ∀ (φ : I) → A ≃ A
+retEquiv {A} e = lineEquiv (λ φ a → retEq e a φ) (equivIsEquiv (e ∙ₑ invEquiv e)) (idIsEquiv A)

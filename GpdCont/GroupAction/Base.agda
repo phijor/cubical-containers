@@ -61,7 +61,7 @@ GroupHomPreCompAction {G} {X} φ σ = GroupHom→Action φ*σ where
   φ*σ : GroupHom G (𝔖 X)
   φ*σ = compGroupHom φ $ Action→GroupHom σ
 
-module ActionProperties {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
+module ActionProperties {ℓX} {G : Group ℓ} {X : hSet ℓX} (σ : Action G X) where
   private
     open module G = GroupStr (str G) using (_·_)
     module σ = Action σ

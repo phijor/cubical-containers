@@ -250,19 +250,19 @@ module TotalTwoCategory
     ∫₂ : {x y : ∫₀} (f g : ∫₁ x y) → Type _
     ∫₂ (f , fᴰ) (g , gᴰ) = Σ[ r ∈ rel f g ] rel[ r ] fᴰ gᴰ
 
-    ∫₁≡ : {x y : ∫₀} {f g : ∫₁ x y}
-      → (p : f .fst ≡ g .fst)
-      → (pᴰ : PathP (λ i → hom[ p i ] (x .snd) (y .snd)) (f .snd) (g .snd))
-      → f ≡ g
-    ∫₁≡ p pᴰ i .fst = p i
-    ∫₁≡ p pᴰ i .snd = pᴰ i
+  ∫₁≡ : {x y : ∫₀} {f g : ∫₁ x y}
+    → (p : f .fst ≡ g .fst)
+    → (pᴰ : PathP (λ i → hom[ p i ] (x .snd) (y .snd)) (f .snd) (g .snd))
+    → f ≡ g
+  ∫₁≡ p pᴰ i .fst = p i
+  ∫₁≡ p pᴰ i .snd = pᴰ i
 
-    ∫₂≡ : {x y : ∫₀} {f g : ∫₁ x y} {r s : ∫₂ f g}
-      → (p : r .fst ≡ s .fst)
-      → (pᴰ : PathP (λ i → rel[ p i ] (f .snd) (g .snd)) (r .snd) (s .snd))
-      → r ≡ s
-    ∫₂≡ p pᴰ i .fst = p i
-    ∫₂≡ p pᴰ i .snd = pᴰ i
+  ∫₂≡ : {x y : ∫₀} {f g : ∫₁ x y} {r s : ∫₂ f g}
+    → (p : r .fst ≡ s .fst)
+    → (pᴰ : PathP (λ i → rel[ p i ] (f .snd) (g .snd)) (r .snd) (s .snd))
+    → r ≡ s
+  ∫₂≡ p pᴰ i .fst = p i
+  ∫₂≡ p pᴰ i .snd = pᴰ i
 
   ∫-two-category-structure : TwoCategoryStr ∫₀ ∫₁ ∫₂
   ∫-two-category-structure .TwoCategoryStr.id-hom (x , xᴰ) = id-hom x , id-homᴰ xᴰ

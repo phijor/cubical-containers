@@ -3,9 +3,10 @@ module GpdCont.GroupAction.Pi where
 open import GpdCont.Prelude
 open import GpdCont.GroupAction.Base
 open import GpdCont.Equiv using (equivΠCodComp)
-open import GpdCont.HomotopySet using (ΠSet ; ΣSet)
+open import GpdCont.HomotopySet using (ΠSet ; ΣSet ; _→Set_)
 
 open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Equiv.Properties using (preCompEquiv)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Function using (flip)
 open import Cubical.Data.Sigma
@@ -64,3 +65,28 @@ open Action using (action ; pres·)
   act : Action _ _
   act .action = σ*
   act .pres· = σ-pres·
+
+-- Any G-action on X also acts on functions (f : X → Y) by precomposition.
+-- Note that in order the respect variance (σ acts on X, which is in a negative
+-- position), the action inverts group elements:
+--
+--    σ*(g) : (X → Y) → (X → Y)
+--    σ*(g) = λ f → f ∘ σ(g⁻¹)
+preCompAction : ∀ {ℓG ℓX ℓY} {G : Group ℓG} {X : hSet ℓX}
+  → (σ : Action G X)
+  → (Y : hSet ℓY)
+  → Action G (X →Set Y)
+preCompAction {G} σ Y = σ* where
+  open module G = GroupStr (str G) using (_·_ ; inv)
+
+  σ*-pres· : ∀ g h → (σ ⁺ inv (g · h)) ≡ ((σ ⁺ inv g) ∘ (σ ⁺ inv h))
+  σ*-pres· g h =
+    (σ ⁺ inv (g · h)) ≡⟨ ActionProperties.action-inv σ _ ⟩
+    invEq (action σ (g · h)) ≡⟨ cong invEq (σ .pres· g h) ⟩
+    invEq (action σ g ∙ₑ action σ h) ≡⟨⟩
+    (invEq (action σ g) ∘ invEq (action σ h)) ≡[ i ]⟨ (ActionProperties.action-inv σ g (~ i)) ∘ (ActionProperties.action-inv σ h (~ i)) ⟩
+    ((σ ⁺ inv g) ∘ (σ ⁺ inv h)) ∎
+
+  σ* : Action _ _
+  σ* .action g = preCompEquiv $ σ .action $ inv g
+  σ* .pres· g h = equivEq $ funExt λ f → cong (f ∘_) $ σ*-pres· g h

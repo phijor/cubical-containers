@@ -3,6 +3,7 @@ module GpdCont.QuotientContainer.Base where
 open import GpdCont.Prelude hiding (_▷_ ; _◁_)
 open import GpdCont.Univalence
 open import GpdCont.GroupAction.Base using (Action)
+open import GpdCont.GroupAction.Faithful using (isFaithful)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
@@ -138,6 +139,9 @@ record QCont (ℓ : Level) : Type (ℓ-suc ℓ) where
   symmAction : (s : Shape) → Action (SymmGroup s) (PosSet s)
   symmAction s .Action.action (g , is-symm-g) = g
   symmAction s .Action.pres· g h = refl
+
+  isFaithfulSymmAction : ∀ s → isFaithful (symmAction s)
+  isFaithfulSymmAction s = SymmPath
 
   Label : ∀ {ℓX} (X : Type ℓX) → Shape → Type _
   Label X s = Pos s → X

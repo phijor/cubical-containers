@@ -2,7 +2,7 @@ module GpdCont.SetTruncation where
 
 open import GpdCont.Prelude
 
-open import Cubical.Foundations.Equiv.Base
+open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
@@ -29,6 +29,9 @@ IsoSetTruncateFstΣ {A} {B} is-set-A = go where
 
 setTruncateFstΣ≃ : isSet A → ∥ Σ A B ∥₂ ≃ (Σ A (∥_∥₂ ∘ B))
 setTruncateFstΣ≃ = isoToEquiv ∘ IsoSetTruncateFstΣ
+
+setTruncEquiv : ∀ {B : Type ℓB} → A ≃ B → ∥ A ∥₂ ≃ ∥ B ∥₂
+setTruncEquiv = isoToEquiv ∘ ST.setTruncIso ∘ equivToIso
 
 PathSetTrunc≃PropTruncPath : {a b : A} → (∣ a ∣₂ ≡ ∣ b ∣₂) ≃ ∥ a ≡ b ∥₁
 PathSetTrunc≃PropTruncPath = isoToEquiv ST.PathIdTrunc₀Iso

@@ -52,6 +52,12 @@ module _ {ℓo ℓh ℓr : Level}
     _∙ᵥ_ = trans
     _∙ₕ_ = comp-rel
 
+    pathToHom : ∀ {x y : ob} → x ≡ y → hom x y
+    pathToHom {x} = J (λ y p → hom x y) $ id-hom x
+
+    pathToRel : ∀ {x y : ob} {f g : hom x y} → (p : f ≡ g) → rel f g
+    pathToRel {f} = J (λ g p → rel f g) (id-rel f)
+
   record IsTwoCategory (s : TwoCategoryStr) : Type ℓ where
     no-eta-equality
     private

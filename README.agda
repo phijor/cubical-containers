@@ -2,6 +2,7 @@ module README where
 
 open import GpdCont.Prelude
 
+open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Nat
 open import Cubical.HITs.SetQuotients.Base using (_/_)
@@ -96,6 +97,7 @@ module 2·3-LiftingQuotientContainers where
   open import GpdCont.QuotientContainer.Examples using (UnorderedTuple ; degenDup)
   open import GpdCont.QuotientContainer.Base using (QCont)
   open import GpdCont.QuotientContainer.Delooping using (QContDelooping)
+  open import GpdCont.QuotientContainer.DeloopingEval using (LiftEvalEquiv ; Tr)
   open import GpdCont.QuotientContainer.Eval using () renaming (⟦_⟧ to ⟦_⟧/)
 
   private
@@ -134,16 +136,9 @@ module 2·3-LiftingQuotientContainers where
   18-Proposition : {! !}
   18-Proposition = {! !}
 
-  -- Each endo-map on hGroupoids can be truncated to one on hSets.
-  Tr : ∀ {ℓ} (F : hGroupoid ℓ → hGroupoid ℓ) → (hSet ℓ → hSet ℓ)
-  Tr F (X , is-set-X) .fst = ∥ ⟨ F (X , isSet→isGroupoid is-set-X) ⟩ ∥₂
-  Tr F (X , is-set-X) .snd = ST.isSetSetTrunc
-
-  -- TODO: The (truncated) interpretation of the delooped container coincides with its ordinary
-  -- interpretation as a set-endofunctor.
-  -- This is done in GpdCont.QuotientContainer.LiftEvalEquiv, but needs to be refactored
+  -- The (truncated) interpretation of a delooped container coincides with its ordinary interpretation as a set-endofunctor.
   19-Theorem : (Q : QCont ℓ) (X : hSet ℓ) → ⟨ Tr ⟦ QContDelooping Q ⟧ X ⟩ ≃ ⟨ ⟦ Q ⟧/ X ⟩
-  19-Theorem = {! !}
+  19-Theorem = LiftEvalEquiv
 
   20-Lemma : {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) → ∥ Σ[ x ∈ 𝔹 G ] ⟨ associatedBundle σ x ⟩ ∥₂ ≃ Orbits σ
   20-Lemma = associatedBundleComponents≃Orbits

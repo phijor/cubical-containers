@@ -89,6 +89,7 @@ module 2·3-LiftingQuotientContainers where
 
   open import GpdCont.Group.FundamentalGroup using (π₁)
   open import GpdCont.GroupAction.Base using (Action)
+  open import GpdCont.GroupAction.Faithful using (isFaithful ; isFaithful→isSetTruncAssociatedBundle)
   open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleComponents≃Orbits ; Orbits)
   open import GpdCont.Delooping.Map using (map)
   open import GpdCont.GroupoidContainer.Base using (GCont)
@@ -96,7 +97,7 @@ module 2·3-LiftingQuotientContainers where
   open import GpdCont.GroupoidContainer.Eval using (⟦_⟧)
   open import GpdCont.QuotientContainer.Examples using (UnorderedTuple ; degenDup)
   open import GpdCont.QuotientContainer.Base using (QCont)
-  open import GpdCont.QuotientContainer.Delooping using (QContDelooping)
+  open import GpdCont.QuotientContainer.Delooping using (QContDelooping ; DeloopingPos ; hasSetFibersDeloopingPos)
   open import GpdCont.QuotientContainer.DeloopingEval using (LiftEvalEquiv ; Tr)
   open import GpdCont.QuotientContainer.Eval using () renaming (⟦_⟧ to ⟦_⟧/)
 
@@ -132,9 +133,9 @@ module 2·3-LiftingQuotientContainers where
   17-Definition : QCont ℓ → GCont ℓ
   17-Definition = QContDelooping
 
-  -- TODO: Actions associated to quotient containers are set-truncated.
-  18-Proposition : {! !}
-  18-Proposition = {! !}
+  -- Bundles associated to quotient containers are set-truncated.
+  18-Proposition : (Q : QCont ℓ) (Y : hSet ℓ) → isSet (fiber (DeloopingPos Q) Y)
+  18-Proposition = hasSetFibersDeloopingPos
 
   -- The (truncated) interpretation of a delooped container coincides with its ordinary interpretation as a set-endofunctor.
   19-Theorem : (Q : QCont ℓ) (X : hSet ℓ) → ⟨ Tr ⟦ QContDelooping Q ⟧ X ⟩ ≃ ⟨ ⟦ Q ⟧/ X ⟩

@@ -31,6 +31,27 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓ : Level) where
     Fam₁ {x} f xᴰ yᴰ = (j : ⟨ x ⟩) → C.hom (xᴰ j) (yᴰ (f j))
     {-# INJECTIVE_FOR_INFERENCE Fam₁ #-}
 
+  Famᴰ₂ : {x y : SetEq.ob} {f : SetEq.hom x y}
+    → {xᴰ : Fam₀ x}
+    → (yᴰ : Fam₀ y)
+    → (fᴰ : Fam₁ f xᴰ yᴰ)
+    → (gᴰ : Fam₁ f xᴰ yᴰ)
+    → Type (ℓ-max ℓr ℓ)
+  Famᴰ₂ {x} yᴰ fᴰ gᴰ = (j : ⟨ x ⟩) → C.rel (fᴰ j) (gᴰ j)
+
+  Fam₂J[_] : {x y : SetEq.ob} {f g : SetEq.hom x y}
+    → {xᴰ : Fam₀ x}
+    → (yᴰ : Fam₀ y)
+    → (r : f ≡ g)
+    → (fᴰ : Fam₁ f xᴰ yᴰ)
+    → (gᴰ : Fam₁ g xᴰ yᴰ)
+    → Type (ℓ-max ℓr ℓ)
+  Fam₂J[_] {x} {f} {xᴰ} yᴰ =
+    J
+      (λ g (p : f ≡ g) → (fᴰ : Fam₁ f xᴰ yᴰ) (gᴰ : Fam₁ g xᴰ yᴰ) → Type _)
+      (Famᴰ₂ yᴰ)
+
+  private
     Fam₂[_] : {x y : SetEq.ob} {f g : SetEq.hom x y}
       → {xᴰ : Fam₀ x}
       → (yᴰ : Fam₀ y)
@@ -38,7 +59,7 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓ : Level) where
       → (fᴰ : Fam₁ f xᴰ yᴰ)
       → (gᴰ : Fam₁ g xᴰ yᴰ)
       → Type (ℓ-max ℓr ℓ)
-    Fam₂[_] {x} yᴰ Eq.refl fᴰ gᴰ = (j : ⟨ x ⟩) → C.rel (fᴰ j) (gᴰ j)
+    Fam₂[_] {x} yᴰ Eq.refl = Famᴰ₂ yᴰ
 
     Fam₂ : {x y : SetEq.ob} {f g : SetEq.hom x y}
       → {xᴰ : Fam₀ x}
@@ -127,3 +148,12 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓ : Level) where
 
   Fam : TwoCategory (ℓ-max ℓo (ℓ-suc ℓ)) (ℓ-max ℓh ℓ) (ℓ-max ℓr ℓ)
   Fam = TotalTwoCategory.∫ (SetEq ℓ) Famᴰ
+
+  Fam₂PathP : {x y : SetEq.ob} {f g : SetEq.hom x y}
+    → {xᴰ : Fam₀ x}
+    → (yᴰ : Fam₀ y)
+    → (r : f ≡ g)
+    → (fᴰ : Fam₁ f xᴰ yᴰ)
+    → (gᴰ : Fam₁ g xᴰ yᴰ)
+    → Type _
+  Fam₂PathP {x} {xᴰ} yᴰ r fᴰ gᴰ = PathP (λ i → Fam₁ (r i) xᴰ yᴰ) fᴰ gᴰ

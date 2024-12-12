@@ -19,7 +19,7 @@ open import GpdCont.TwoCategory.Base using (TwoCategory)
 open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
 open import GpdCont.TwoCategory.Pseudofunctor using (isPseudoFunctor ; isLocallyGroupoidal→isPseudofunctor)
 open import GpdCont.TwoCategory.LocalCategory using (LocalCategory)
-open import GpdCont.TwoCategory.LocalFunctor using (isLocallyFullyFaithful ; isLocallyEssentiallySurjective)
+open import GpdCont.TwoCategory.LocalFunctor as LocalFunctor using (isLocallyFullyFaithful ; isLocallyEssentiallySurjective ; isLocallyWeakEquivalence)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
 open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
 open import GpdCont.TwoCategory.Displayed.LocallyThin using (IntoLocallyThin)
@@ -169,9 +169,12 @@ module _ (ℓ : Level) where
   isPseudoFunctorDelooping = isLocallyGroupoidal→isPseudofunctor Delooping (isLocallyGroupoidalSetBundle ℓ)
 
   private
-    module 𝔹Act = LaxFunctor Delooping
+    module 𝔹Act where
+      open LaxFunctor Delooping public
+      open LocalFunctor Delooping public
 
-  isLocallyFullyFaithfulDelooping : isLocallyFullyFaithful Delooping
+
+  isLocallyFullyFaithfulDelooping : 𝔹Act.isLocallyFullyFaithful
   isLocallyFullyFaithfulDelooping σ τ f@(φ , _) g@(ψ , _) = goal where
     ∫𝔹₁ = LaxFunctor.F-hom Delooping
 
@@ -213,7 +216,7 @@ module _ (ℓ : Level) where
       goal .fst = φᴰ
       goal .snd = symP (subst (PathP _ fᴰ) φᴰ-sec fᴰ′-filler)
 
-  isEssentiallySurjectiveDelooping : isLocallyEssentiallySurjective Delooping
+  isEssentiallySurjectiveDelooping : 𝔹Act.isLocallyEssentiallySurjective
   isEssentiallySurjectiveDelooping Xᴳ@(G , (X , σ)) Yᴴ@(H , (Y , τ)) = goal
     where module _ (f* @ (f , fᴰ) : SetBundle.hom (𝔹Act.₀ Xᴳ) (𝔹Act.₀ Yᴴ)) where
     open import Cubical.HITs.PropositionalTruncation.Monad
@@ -223,3 +226,9 @@ module _ (ℓ : Level) where
       (φ , φ-sec) ← LocalInverse.isSurjection-map f
       let (φᴰ , φᴰ-sec) = 𝔹₁-sectionOver (X , σ) (Y , τ) f fᴰ φ φ-sec
       ∃-intro (φ , φᴰ) $ pathToIso $ Sigma.ΣPathP (φ-sec , φᴰ-sec)
+
+  isLocallyWeakEquivalenceDelooping : 𝔹Act.isLocallyWeakEquivalence
+  isLocallyWeakEquivalenceDelooping =
+    𝔹Act.isLocallyFullyFaithful×EssentiallySurjective→isLocallyWeakEquivalence
+      isLocallyFullyFaithfulDelooping
+      isEssentiallySurjectiveDelooping

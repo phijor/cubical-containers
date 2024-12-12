@@ -326,17 +326,6 @@ module TwoFunc (ℓ : Level) where
       (φ , section-f-mapφ) ← LocalInverse.isSurjection-map f
       ∃-intro φ $ pathToIso section-f-mapφ
 
-  module _ (G H : TwoGroup.ob) where
-    private
-      Group[_,_] = LocalCategory (TwoGroup ℓ)
-      hGpd[_,_] = LocalCategory (hGpdCat ℓ)
-
-      TwoDelooping[_,_] = LocalFunctor TwoDelooping
-
-    isLocalWeakEquivalenceDelooping : isWeakEquivalence TwoDelooping[ G , H ]
-    isLocalWeakEquivalenceDelooping .isWeakEquivalence.fullfaith = isLocallyFullyFaithfulDelooping G H
-    isLocalWeakEquivalenceDelooping .isWeakEquivalence.esssurj = isLocallyEssentiallySurjectiveDelooping G H
-
-    LocalWeakEquivalence : WeakEquivalence Group[ G , H ] hGpd[ 𝔹-ob G , 𝔹-ob H ]
-    LocalWeakEquivalence .WeakEquivalence.func = TwoDelooping[ G , H ]
-    LocalWeakEquivalence .WeakEquivalence.isWeakEquiv = isLocalWeakEquivalenceDelooping
+  isLocallyWeakEquivalenceDelooping : LocalFunctor.isLocallyWeakEquivalence TwoDelooping
+  isLocallyWeakEquivalenceDelooping G H .isWeakEquivalence.fullfaith = isLocallyFullyFaithfulDelooping G H
+  isLocallyWeakEquivalenceDelooping G H .isWeakEquivalence.esssurj = isLocallyEssentiallySurjectiveDelooping G H

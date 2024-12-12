@@ -91,7 +91,7 @@ module 2·3-LiftingQuotientContainers where
   open import GpdCont.GroupAction.Base using (Action)
   open import GpdCont.GroupAction.Faithful using (isFaithful ; isFaithful→isSetTruncAssociatedBundle)
   open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleComponents≃Orbits ; Orbits)
-  open import GpdCont.Delooping.Map using (map)
+  open import GpdCont.Delooping.Map using () renaming (map to 𝔹-map)
   open import GpdCont.GroupoidContainer.Base using (GCont)
   open import GpdCont.QuotientContainer.Premorphism using (Premorphism)
   open import GpdCont.GroupoidContainer.Eval using (⟦_⟧)
@@ -120,7 +120,7 @@ module 2·3-LiftingQuotientContainers where
     13-Proposition {X} = 𝔹G.recEquivHom {X = X}
 
   14-Definition : {G H : Group ℓ} → GroupHom G H → 𝔹 G → 𝔹 H
-  14-Definition = map
+  14-Definition = 𝔹-map
 
   15-Definition : {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) → (𝔹 G → hSet ℓ)
   15-Definition = associatedBundle

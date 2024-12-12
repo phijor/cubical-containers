@@ -62,7 +62,7 @@ module 2·1-SymmetricContainers where
   open import GpdCont.TwoCategory.Base using (TwoCategory)
   open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
   open import GpdCont.TwoCategory.GroupoidEndo using (Endo)
-  
+
 
   08-Definition : Type (ℓ-suc ℓ)
   08-Definition = GCont _
@@ -106,7 +106,7 @@ module 2·3-LiftingQuotientContainers where
       G : Group ℓ
       ℓX : Level
       X : hSet ℓ
-  
+
   module _ (G : Group ℓ) where
     open import GpdCont.Delooping ⟨ G ⟩ (str G) using (𝔹) public
     open import GpdCont.Delooping ⟨ G ⟩ (str G) as 𝔹G

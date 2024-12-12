@@ -214,3 +214,123 @@ module 3-ActionContainers where
 
     -- 30-Proposition : ∀ {ℓ} (K : hSet ℓ) (C : ActionContainer ℓ) → Exponential (ActCont {ℓ}) (konst K) C (binProducts konst K))
     30-Proposition = konst-exponential
+
+
+{- Section 4: The 2-category of Action Containers -}
+module 4-ActionContainers-2-Category where
+  open import GpdCont.ActionContainer.Abstract using (ActionContainer)
+  open import GpdCont.ActionContainer.Morphism renaming (Morphism to ActionContainerMorphism)
+  open import GpdCont.ActionContainer.Delooping using (module Container ; module Morphism) renaming (module Functor to DeloopingFunctor)
+  open import GpdCont.ActionContainer.Category renaming (Act to ActCont)
+  open import GpdCont.GroupoidContainer.Base using (GCont)
+  open import GpdCont.GroupoidContainer.Morphism using (GContMorphism)
+  open import GpdCont.GroupoidContainer.WildCat using (GContCat)
+  open import GpdCont.WildCat.HomotopyCategory using (ho)
+
+  open import Cubical.Categories.Functor.Base using (Functor)
+
+  31-Proposition-1 : ActionContainer ℓ → GCont ℓ
+  31-Proposition-1 = Container.Delooping
+
+  31-Proposition-2 : ∀ {F G : ActionContainer ℓ} → ActionContainerMorphism F G → GContMorphism (Container.Delooping F) (Container.Delooping G)
+  31-Proposition-2 = Morphism.Delooping
+
+  -- Allthough symmetric containers do not form a category,
+  -- we can consider its "homotopy category", i.e. the category obtained
+  -- by set-truncating the type of container morphisms.
+  -- In this case, delooping of containers *does* behave functorially:
+  _ : Functor (ActCont {ℓ}) (ho (GContCat ℓ))
+  _ = DeloopingFunctor.Delooping _
+
+  module 4·1-Groups where
+    open import GpdCont.Group.TwoCategory using (TwoGroup)
+    open import GpdCont.Delooping.Functor using (module TwoFunc)
+    open import GpdCont.TwoCategory.Base using (TwoCategory)
+    open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
+    open import GpdCont.TwoCategory.LocalFunctor as LocalFunctor using (LocalFunctor)
+    open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
+
+    open TwoFunc renaming (TwoDelooping to 𝔹)
+
+    32-Definition : TwoCategory (ℓ-suc ℓ) ℓ ℓ
+    32-Definition = TwoGroup _
+
+    33-Lemma : LaxFunctor (TwoGroup ℓ) (hGpdCat ℓ)
+    33-Lemma = 𝔹 _
+
+    -- Delooping of groups is locally a weak equalence of categories
+    34-Theorem : LocalFunctor.isLocallyWeakEquivalence (𝔹 ℓ)
+    34-Theorem = TwoFunc.isLocallyWeakEquivalenceDelooping _
+
+    35-Proposition : LocalFunctor.isLocallyFullyFaithful (𝔹 ℓ)
+    35-Proposition = TwoFunc.isLocallyFullyFaithfulDelooping _
+
+    36-Proposition : LocalFunctor.isLocallyEssentiallySurjective (𝔹 ℓ)
+    36-Proposition = TwoFunc.isLocallyEssentiallySurjectiveDelooping _
+
+  module 4·2-GroupActions where
+    open import GpdCont.GroupAction.Base using (Action)
+    open import GpdCont.GroupAction.Equivariant using (isEquivariantMap[_][_,_])
+    open import GpdCont.GroupAction.TwoCategory using (GroupAction ; GroupActionᴰ)
+    open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleMap)
+    open import GpdCont.GroupAction.Delooping as ActionDelooping renaming (𝔹ᴰ to 𝔹′ᴰ ; Delooping to 𝔹′)
+    open import GpdCont.Delooping.Functor using (module TwoFunc)
+
+    open import GpdCont.TwoCategory.Base using (TwoCategory)
+    open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
+    open import GpdCont.TwoCategory.LocalFunctor using (isLocallyWeakEquivalence)
+    open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
+    open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
+    open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
+
+    open import GpdCont.Group.TwoCategory using (TwoGroup)
+    open import GpdCont.SetBundle.Base using (SetBundle ; SetBundleᴰ)
+
+    open import Cubical.Algebra.Group.Base using (Group)
+    open import Cubical.Algebra.Group.Morphisms using (GroupHom)
+
+    open TwoFunc renaming (TwoDelooping to 𝔹)
+    module 𝔹 {ℓ} = LaxFunctor (𝔹 ℓ)
+    module 𝔹′ᴰ {ℓ} = LaxFunctorᴰ (𝔹′ᴰ ℓ)
+
+    -- The 2-category of group actions is defined by displaying it over the 2-category of groups:
+    37-Definition : TwoCategory (ℓ-suc ℓ) ℓ ℓ
+    37-Definition {ℓ} = GroupAction ℓ where
+      _ : TwoCategoryᴰ (TwoGroup ℓ) _ _ _
+      _ = GroupActionᴰ ℓ
+
+    -- The 2-category of set bundles, displayed over h-groupoids:
+    38-Definition : TwoCategory (ℓ-suc ℓ) ℓ ℓ
+    38-Definition {ℓ} = SetBundle ℓ where
+      _ : TwoCategoryᴰ (hGpdCat ℓ) _ _ _
+      _ = SetBundleᴰ ℓ
+
+    -- Any equivariant map f : X ← Y induces a map of associated bundles:
+    39-Definition : {G H : Group ℓ} {X Y : hSet ℓ} (σ : Action G X) (τ : Action H Y)
+      → (φ : GroupHom G H)
+      → (f : ⟨ Y ⟩ → ⟨ X ⟩) → isEquivariantMap[ φ , f ][ σ , τ ]
+      → (x : ⟨ 𝔹.₀ G ⟩) → ⟨ associatedBundle τ (𝔹.₁ φ x) ⟩ → ⟨ associatedBundle σ x ⟩
+    39-Definition = associatedBundleMap
+
+    40-Definition : LaxFunctorᴰ (𝔹 ℓ) (GroupActionᴰ ℓ) (SetBundleᴰ ℓ)
+    40-Definition = 𝔹′ᴰ _
+
+    module TwoGroup ℓ = TwoCategory (TwoGroup ℓ)
+    module GroupActionᴰ {ℓ} = TwoCategoryᴰ (GroupActionᴰ ℓ)
+
+    module _
+      {ℓ : Level}
+      {G H : TwoGroup.ob ℓ}
+      {φ ψ : TwoGroup.hom ℓ G H}
+      {r : TwoGroup.rel ℓ φ ψ}
+      {Xᴳ : GroupActionᴰ.ob[ G ]}
+      {Yᴴ : GroupActionᴰ.ob[ H ]}
+      {fᴰ : GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ}
+      {gᴰ : GroupActionᴰ.hom[ ψ ] Xᴳ Yᴴ}
+      where
+      41-Lemma : (isEquiv (𝔹′ᴰ.₁ {ℓ} {G} {H} {φ} {Xᴳ} {Yᴴ})) × (isEquiv (𝔹′ᴰ.₂ {ℓ} {G} {H} {φ} {ψ} {r} {Xᴳ} {Yᴴ} {fᴰ} {gᴰ}))
+      41-Lemma .fst = ActionDelooping.isEquiv-𝔹₁ ℓ {G} {H} {φ} {Xᴳ} {Yᴴ}
+      41-Lemma .snd = ActionDelooping.isEquiv-𝔹₂ ℓ {G} {H} {φ} {ψ} {r} {Xᴳ} {Yᴴ} {fᴰ} {gᴰ}
+
+    42-Theorem : isLocallyWeakEquivalence (𝔹′ ℓ)
+    42-Theorem = ActionDelooping.isLocallyWeakEquivalenceDelooping _

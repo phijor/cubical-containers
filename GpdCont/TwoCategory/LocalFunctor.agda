@@ -1,5 +1,3 @@
-module GpdCont.TwoCategory.LocalFunctor where
-
 open import GpdCont.Prelude
 open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.LaxFunctor
@@ -10,8 +8,10 @@ open import Cubical.Categories.Functor.Base
 open import Cubical.Categories.NaturalTransformation.Base
 open import Cubical.Categories.Constructions.BinProduct using (_×F_)
 open import Cubical.Categories.Instances.Terminal using (TerminalCategory)
+open import Cubical.Categories.Equivalence.WeakEquivalence using (isWeakEquivalence ; WeakEquivalence)
 
-module _ {ℓo ℓo′ ℓh ℓh′ ℓr ℓr′}
+module GpdCont.TwoCategory.LocalFunctor
+  {ℓo ℓo′ ℓh ℓh′ ℓr ℓr′}
   {C : TwoCategory ℓo ℓh ℓr}
   {D : TwoCategory ℓo′ ℓh′ ℓr′}
   (F : LaxFunctor C D)

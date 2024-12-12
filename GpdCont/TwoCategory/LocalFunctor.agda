@@ -52,6 +52,18 @@ module GpdCont.TwoCategory.LocalFunctor
     localEmbedding is-ff f g .fst = F.₂
     localEmbedding is-ff f g .snd = is-ff _ _ f g
 
+    isLocallyWeakEquivalence : Type _
+    isLocallyWeakEquivalence = Locally isWeakEquivalence
+
+    isLocallyFullyFaithful×EssentiallySurjective→isLocallyWeakEquivalence :
+      isLocallyFullyFaithful → isLocallyEssentiallySurjective → isLocallyWeakEquivalence
+    isLocallyFullyFaithful×EssentiallySurjective→isLocallyWeakEquivalence ff eso x y .isWeakEquivalence.fullfaith = ff x y
+    isLocallyFullyFaithful×EssentiallySurjective→isLocallyWeakEquivalence ff eso x y .isWeakEquivalence.esssurj = eso x y
+
+    localWeakEquivalence : isLocallyWeakEquivalence → ∀ (x y : C.ob) → WeakEquivalence (LocalCategory C x y) (LocalCategory D (F.₀ x) (F.₀ y))
+    localWeakEquivalence is-weq x y .WeakEquivalence.func = LocalFunctor x y
+    localWeakEquivalence is-weq x y .WeakEquivalence.isWeakEquiv = is-weq x y
+
     LaxFunctoriality : (x y z : C.ob) →
       compositionFunctor D (F.₀ x) (F.₀ y) (F.₀ z) ∘F (LocalFunctor x y ×F LocalFunctor y z)
         ⇒

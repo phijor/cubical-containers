@@ -1,5 +1,6 @@
 open import GpdCont.Prelude
 open import GpdCont.ActionContainer.Abstract
+open import GpdCont.GroupAction.Equivariant using (isEquivariantMap[_][_,_])
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
@@ -45,6 +46,9 @@ module GpdCont.ActionContainer.Morphism {ℓ} (C D : ActionContainer ℓ) where
     symm-hom : ∀ s → GroupHom (C.SymmGroup s) (D.SymmGroup $ shape-map s)
     symm-hom s .fst = symm-map s
     symm-hom s .snd = is-group-hom-symm-map s
+
+    is-equivariant-pos-map' : ∀ s → isEquivariantMap[ symm-hom s , pos-map s ][ C.symmAction s , D.symmAction (shape-map s) ]
+    is-equivariant-pos-map' = is-equivariant-pos-map
 
   unquoteDecl MorphismᴰIsoΣ = declareRecordIsoΣ MorphismᴰIsoΣ (quote Morphismᴰ)
 

@@ -6,7 +6,7 @@ open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Nat
 open import Cubical.HITs.SetQuotients.Base using (_/_)
-open import Cubical.Categories.Category.Base using (Category)
+open import Cubical.Categories.Category.Base using (Category ; _^op)
 
 private
   variable
@@ -146,3 +146,71 @@ module 2·3-LiftingQuotientContainers where
 
   21-Example : Premorphism (UnorderedTuple 1) (UnorderedTuple 2) (id _)
   21-Example = degenDup
+
+{- Section 3: Action Containers -}
+module 3-ActionContainers where
+  open import GpdCont.ActionContainer.Abstract using (ActionContainer)
+  open import GpdCont.ActionContainer.Morphism using (Morphism)
+  open import GpdCont.ActionContainer.Category using (Act≃FamGroupAction) renaming (Act to ActCont)
+
+  22-Defintion : Type (ℓ-suc ℓ)
+  22-Defintion = ActionContainer _
+
+  -- TODO: Cyclic lists as an action container
+  23-Example : {! !}
+  23-Example = {! !}
+
+  24-Definition : (F G : ActionContainer ℓ) → Type ℓ
+  24-Definition = Morphism
+
+  -- Action containers and their morphisms form a category
+  25-Definition : Category (ℓ-suc ℓ) ℓ
+  25-Definition = ActCont
+
+  module 3·1-Algebra where
+    open import GpdCont.GroupAction.Category using (GroupAction ; GroupActionᴰ)
+    open import GpdCont.DisplayedCategories using (Fam)
+    open import GpdCont.ActionContainer.Constant using (konst ; konst-exponential)
+    open import GpdCont.ActionContainer.DirectProduct using (binProducts)
+
+    open import Cubical.Categories.Equivalence using (_≃ᶜ_)
+    open import Cubical.Categories.Exponentials using (Exponential)
+
+    {-# INJECTIVE_FOR_INFERENCE Fam #-}
+    {-# INJECTIVE_FOR_INFERENCE konst #-}
+    {-# INJECTIVE_FOR_INFERENCE konst-exponential #-}
+
+    -- The category of group actions and equivariant maps.
+    -- It is defined as a category displayed over Group × Setᵒᵖ.
+    26-Definition : Category (ℓ-suc ℓ) ℓ
+    26-Definition {ℓ} = GroupAction ℓ where
+      open import Cubical.Categories.Instances.Groups using (GroupCategory)
+      open import Cubical.Categories.Instances.Sets using (SET)
+      open import Cubical.Categories.Constructions.TotalCategory.Base using (∫C)
+      open import Cubical.Categories.Constructions.BinProduct as Prod using (_×C_)
+      open import Cubical.Categories.Displayed.Base using (Categoryᴰ)
+      {-# INJECTIVE_FOR_INFERENCE GroupAction #-}
+      {-# INJECTIVE_FOR_INFERENCE GroupActionᴰ #-}
+
+      _ : Categoryᴰ (GroupCategory {ℓ} ×C SET ℓ ^op) ℓ ℓ
+      _ = GroupActionᴰ ℓ
+
+      _ : GroupAction ℓ ≡ ∫C {ℓCᴰ = ℓ} (GroupActionᴰ ℓ)
+      _ = refl
+
+    27-Theorem : ActCont {ℓ} ≃ᶜ Fam ℓ (GroupAction ℓ)
+    27-Theorem = Act≃FamGroupAction
+
+    -- TODO: GroupAction has all products
+    28-Proposition : {! !}
+    28-Proposition = {! !}
+
+    -- TODO: Action containers are closed under products and coproducts
+    29-Corollary : {! !}
+    29-Corollary = {! !}
+
+    _ : hSet ℓ → ActionContainer ℓ
+    _ = konst
+
+    -- 30-Proposition : ∀ {ℓ} (K : hSet ℓ) (C : ActionContainer ℓ) → Exponential (ActCont {ℓ}) (konst K) C (binProducts konst K))
+    30-Proposition = konst-exponential

@@ -111,9 +111,9 @@ module _ {ℓ} where
   FamGroupAction→Act .F-id = refl
   FamGroupAction→Act .F-seq f g = Morphism≡ _ _ refl refl refl
 
-  theorem : Act ≃ᶜ Fam ℓ (GroupAction ℓ)
-  theorem ._≃ᶜ_.func = Act→FamGroupAction
-  theorem ._≃ᶜ_.isEquiv = PT.∣ weak-inv ∣₁ where
+  Act≃FamGroupAction : Act ≃ᶜ Fam ℓ (GroupAction ℓ)
+  Act≃FamGroupAction ._≃ᶜ_.func = Act→FamGroupAction
+  Act≃FamGroupAction ._≃ᶜ_.isEquiv = PT.∣ weak-inv ∣₁ where
     to = Act→FamGroupAction
     from = FamGroupAction→Act
 

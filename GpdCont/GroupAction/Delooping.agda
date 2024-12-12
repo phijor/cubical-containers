@@ -67,11 +67,12 @@ module _ (ℓ : Level) where
     𝔹₀ : ∀ {G} → GroupActionᴰ.ob[ G ] → SetBundleᴰ.ob[ 𝔹.₀ G ]
     𝔹₀ (X , σ) = associatedBundle {X = X} σ
 
-    -- Any equivariant map of group actions is exactly a map of associated bundles.
-    𝔹₁-equiv : ∀ {G H} {φ : Group.hom G H} {Xᴳ : GroupActionᴰ.ob[ G ]} {Yᴴ : GroupActionᴰ.ob[ H ]}
-      → GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ ≃ SetBundleᴰ.hom[ 𝔹.₁ φ ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)
-    𝔹₁-equiv {φ} {Xᴳ = _ , σ} {Yᴴ = _ , τ} = associatedBundleMapEquiv σ τ φ
+  -- Any equivariant map of group actions is exactly a map of associated bundles.
+  𝔹₁-equiv : ∀ {G H} {φ : Group.hom G H} {Xᴳ : GroupActionᴰ.ob[ G ]} {Yᴴ : GroupActionᴰ.ob[ H ]}
+    → GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ ≃ SetBundleᴰ.hom[ 𝔹.₁ φ ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)
+  𝔹₁-equiv {φ} {Xᴳ = _ , σ} {Yᴴ = _ , τ} = associatedBundleMapEquiv σ τ φ
 
+  private
     𝔹₁ : ∀ {G H} {φ : Group.hom G H} {Xᴳ : GroupActionᴰ.ob[ G ]} {Yᴴ : GroupActionᴰ.ob[ H ]}
       → GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ
       → SetBundleᴰ.hom[ 𝔹.₁ φ ] (𝔹₀ Xᴳ) (𝔹₀ Yᴴ)
@@ -82,6 +83,11 @@ module _ (ℓ : Level) where
       → GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ
     𝔹₁⁻¹ = invEq 𝔹₁-equiv
 
+  isEquiv-𝔹₁ : ∀ {G H} {φ : Group.hom G H} {Xᴳ : GroupActionᴰ.ob[ G ]} {Yᴴ : GroupActionᴰ.ob[ H ]}
+    → isEquiv (𝔹₁ {G} {H} {φ} {Xᴳ} {Yᴴ})
+  isEquiv-𝔹₁ = equivIsEquiv 𝔹₁-equiv
+
+  private
     -- Path lemma characterizing displayed homotopies of set bundle maps
     -- with a delooping in their codomain.  Such homotopies are defined
     -- pointwise in the delooping; and since the target is a proposition
@@ -113,28 +119,32 @@ module _ (ℓ : Level) where
         → SetBundleᴰ.rel[_] {yᴰ = yᴰ} r fᴰ gᴰ
       𝔹₁PathP = equivFun 𝔹₁-PathP≃SetBundleRel
 
-    -- A conjugator relating two equivariant maps is exactly a homotopy of associated bundle maps.
-    -- We define the map underlying this equivalence to be the action of 𝔹 on 2-cells.
-    module _
-      {G H} {φ ψ : Group.hom G H}
-      {r : Group.rel φ ψ}
-      {Xᴳ : GroupActionᴰ.ob[ G ]}
-      {Yᴴ @ (Y , τ) : GroupActionᴰ.ob[ H ]}
-      {fᴰ @ (f , _) : GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ}
-      {gᴰ @ (g , _) : GroupActionᴰ.hom[ ψ ] Xᴳ Yᴴ}
-      where
+  -- A conjugator relating two equivariant maps is exactly a homotopy of associated bundle maps.
+  -- We define the map underlying this equivalence to be the action of 𝔹 on 2-cells.
+  module _
+    {G H} {φ ψ : Group.hom G H}
+    {r : Group.rel φ ψ}
+    {Xᴳ : GroupActionᴰ.ob[ G ]}
+    {Yᴴ @ (Y , τ) : GroupActionᴰ.ob[ H ]}
+    {fᴰ @ (f , _) : GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ}
+    {gᴰ @ (g , _) : GroupActionᴰ.hom[ ψ ] Xᴳ Yᴴ}
+    where
 
-      -- Some `r` is a conjugator of `f` and `g` iff and only if it identifies it identifies
-      -- them as a permutation of their domain.
-      𝔹₂-equiv : (GroupActionᴰ.rel[ r ] fᴰ gᴰ) ≃ (SetBundleᴰ.rel[_] {yᴰ = 𝔹₀ Yᴴ} (𝔹.₂ r) (𝔹₁ fᴰ) (𝔹₁ gᴰ))
-      𝔹₂-equiv =
-        (GroupActionᴰ.rel[ r ] fᴰ gᴰ) ≃⟨ ActionProperties.uaExtEquiv τ (r .fst) ⟩
-        (PathP (λ i → ⟨ 𝔹₀ Yᴴ (𝔹.₂ r i ⋆) ⟩ → ⟨ 𝔹₀ Xᴳ ⋆ ⟩) f g) ≃⟨ 𝔹₁-PathP≃SetBundleRel (𝔹₀ Yᴴ) ⟩
-        (SetBundleᴰ.rel[_] {yᴰ = 𝔹₀ Yᴴ} (𝔹.₂ r) (𝔹₁ fᴰ) (𝔹₁ gᴰ)) ≃∎
+    -- Some `r` is a conjugator of `f` and `g` iff and only if it identifies it identifies
+    -- them as a permutation of their domain.
+    𝔹₂-equiv : (GroupActionᴰ.rel[ r ] fᴰ gᴰ) ≃ (SetBundleᴰ.rel[_] {yᴰ = 𝔹₀ Yᴴ} (𝔹.₂ r) (𝔹₁ fᴰ) (𝔹₁ gᴰ))
+    𝔹₂-equiv =
+      (GroupActionᴰ.rel[ r ] fᴰ gᴰ) ≃⟨ ActionProperties.uaExtEquiv τ (r .fst) ⟩
+      (PathP (λ i → ⟨ 𝔹₀ Yᴴ (𝔹.₂ r i ⋆) ⟩ → ⟨ 𝔹₀ Xᴳ ⋆ ⟩) f g) ≃⟨ 𝔹₁-PathP≃SetBundleRel (𝔹₀ Yᴴ) ⟩
+      (SetBundleᴰ.rel[_] {yᴰ = 𝔹₀ Yᴴ} (𝔹.₂ r) (𝔹₁ fᴰ) (𝔹₁ gᴰ)) ≃∎
 
-      𝔹₂ : GroupActionᴰ.rel[ r ] fᴰ gᴰ → SetBundleᴰ.rel[_] {yᴰ = 𝔹₀ Yᴴ} (𝔹.₂ r) (𝔹₁ fᴰ) (𝔹₁ gᴰ)
-      𝔹₂ = equivFun 𝔹₂-equiv
+    𝔹₂ : GroupActionᴰ.rel[ r ] fᴰ gᴰ → SetBundleᴰ.rel[_] {yᴰ = 𝔹₀ Yᴴ} (𝔹.₂ r) (𝔹₁ fᴰ) (𝔹₁ gᴰ)
+    𝔹₂ = equivFun 𝔹₂-equiv
 
+    isEquiv-𝔹₂ : isEquiv 𝔹₂
+    isEquiv-𝔹₂ = equivIsEquiv 𝔹₂-equiv
+
+  private
     -- On the point, 𝔹 stricly preserves vertical composition of 2-cells...
     𝔹-trans-lax : ∀ {G H K} {φ : Group.hom G H} {ψ : Group.hom H K}
       → {Xᴳ : GroupActionᴰ.ob[ G ]}

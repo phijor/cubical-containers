@@ -7,12 +7,14 @@ open import GpdCont.GroupAction.Base using (Action ; _⁺_ ; module ActionProper
 open import GpdCont.GroupAction.Equivariant renaming (isEquivariantMap[_][_,_] to isEquivariantMap)
 open import GpdCont.Group.TwoCategory using (TwoGroup)
 open import GpdCont.TwoCategory.Base using (TwoCategory)
+open import GpdCont.TwoCategory.LocalCategory using (isLocallyStrict)
 open import GpdCont.TwoCategory.HomotopySet using (hSetCat)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ ; TwoCategoryStrᴰ)
 open import GpdCont.TwoCategory.Displayed.LocallyThin using (LocallyThinOver ; IsLocallyThinOver ; module TotalTwoCategory)
 
-open import Cubical.Foundations.HLevels using (hSet ; isSet→)
+open import Cubical.Foundations.HLevels using (hSet ; isSet→ ; isSetΣ ; isSetΣSndProp)
 open import Cubical.Algebra.Group.Base using (GroupStr)
+open import Cubical.Algebra.Group.MorphismProperties using (isSetGroupHom)
 
 module _ (ℓ : Level) where
   private
@@ -24,6 +26,9 @@ module _ (ℓ : Level) where
 
     GroupActionᴰ₁ : ∀ {G H} (φ : TwoGroup.hom G H) → GroupActionᴰ₀ G → GroupActionᴰ₀ H → Type ℓ
     GroupActionᴰ₁ φ (X , σ) (Y , τ) = Σ[ f ∈ (⟨ Y ⟩ → ⟨ X ⟩) ] isEquivariantMap (φ , f) σ τ
+
+    isSetGroupActionᴰ₁ : ∀ {G H} (φ : TwoGroup.hom G H) (Xᴳ : GroupActionᴰ₀ G) (Yᴴ : GroupActionᴰ₀ H) → isSet (GroupActionᴰ₁ φ Xᴳ Yᴴ)
+    isSetGroupActionᴰ₁ φ (X , σ) (_ , τ) = isSetΣSndProp (isSet→ (str X)) λ f → isPropIsEquivariantMap (φ , f) σ τ
 
     GroupActionᴰ₂ : ∀ {G H} {φ ψ : TwoGroup.hom G H} {Xᴳ : GroupActionᴰ₀ G} {Yᴴ : GroupActionᴰ₀ H} → (r : TwoGroup.rel φ ψ) → GroupActionᴰ₁ φ Xᴳ Yᴴ → GroupActionᴰ₁ ψ Xᴳ Yᴴ → Type _
     GroupActionᴰ₂ {Yᴴ = Y , τ} (r , _) (f₁ , _) (f₂ , _) = f₁ ≡ f₂ ∘ (τ ⁺ r)
@@ -122,3 +127,6 @@ module _ (ℓ : Level) where
 
   GroupAction : TwoCategory (ℓ-suc ℓ) ℓ ℓ
   GroupAction = TotalTwoCategory.∫ (TwoGroup ℓ) GroupActionᵀ
+
+  isLocallyStrictGroupAction : isLocallyStrict GroupAction
+  isLocallyStrictGroupAction x y = isSetΣ isSetGroupHom λ φ → isSetGroupActionᴰ₁ φ (x .snd) (y .snd)

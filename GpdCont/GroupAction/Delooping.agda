@@ -3,6 +3,7 @@ module GpdCont.GroupAction.Delooping where
 
 open import GpdCont.Prelude
 open import GpdCont.Univalence using (ua ; ua→)
+open import GpdCont.Connectivity using (isPathConnected)
 
 open import GpdCont.GroupAction.Base using (Action ; _⁺_ ; module ActionProperties)
 open import GpdCont.GroupAction.Equivariant renaming (isEquivariantMap[_][_,_] to isEquivariantMap)
@@ -10,7 +11,7 @@ open import GpdCont.GroupAction.TwoCategory using (GroupActionᴰ ; GroupAction)
 open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleMap ; associatedBundleMapEquiv)
 open import GpdCont.Group.TwoCategory using (TwoGroup)
 
-open import GpdCont.SetBundle.Base using (SetBundle ; SetBundleᴰ ; SetBundleᵀ ; isLocallyGroupoidalSetBundle)
+open import GpdCont.SetBundle.Base using (SetBundle ; SetBundleᴰ ; SetBundleᵀ ; isLocallyGroupoidalSetBundle ; module SetBundleNotation)
 
 import      GpdCont.Delooping as Delooping
 open import GpdCont.Delooping.Functor using (module TwoFunc ; module LocalInverse)
@@ -183,6 +184,10 @@ module _ (ℓ : Level) where
       open LaxFunctor Delooping public
       open LocalFunctor Delooping public
 
+  open SetBundleNotation ℓ using (Base)
+
+  isConnectedDeloopingBase : (σ : GroupAction.ob) → isPathConnected ⟨ Base (𝔹Act.₀ σ) ⟩
+  isConnectedDeloopingBase (G , (X , σ)) = Delooping.isConnectedDelooping ⟨ G ⟩ (str G)
 
   isLocallyFullyFaithfulDelooping : 𝔹Act.isLocallyFullyFaithful
   isLocallyFullyFaithfulDelooping σ τ f@(φ , _) g@(ψ , _) = goal where

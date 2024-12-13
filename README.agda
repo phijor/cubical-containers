@@ -381,13 +381,14 @@ module 4-ActionContainers-2-Category where
     open import GpdCont.ActionContainer.Abstract using (ActionContainer)
     open import GpdCont.ActionContainer.Morphism using (Morphism)
     open import GpdCont.ActionContainer.AsFamily ℓ as AsFamily using () renaming (FamAction to ActCont ; FamActionᴰ to ActContᴰ)
+    open import GpdCont.ActionContainer.AsSymmetricContainer ℓ using (isLocallyFullyFaithfulActToSymmCont)
     open import GpdCont.GroupAction.Base using (Action)
     open import GpdCont.GroupAction.TwoCategory using (GroupAction)
     open import GpdCont.Group.MapConjugator using (Conjugator ; isConjugator)
     open import GpdCont.SetBundle.Base ℓ using (SetBundle ; module SetBundleNotation)
     open import GpdCont.SetBundle.Summation ℓ as Summation using (SetBundleΣ)
     open import GpdCont.TwoCategory.Base using (TwoCategory)
-    open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
+    open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor) renaming (compLaxFunctor to _⋆F_)
     open import GpdCont.TwoCategory.LocalFunctor
     open import GpdCont.TwoCategory.Family.Base using (Fam ; Famᴰ)
     open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
@@ -454,5 +455,5 @@ module 4-ActionContainers-2-Category where
     50-Lemma : (x y : FamSetBundle.ob) → ((j : ⟨ x .fst ⟩) → isPathConnected ⟨ SetBundle.Base (x .snd j) ⟩) → Functor.isFullyFaithful (LocalFunctor SetBundleΣ x y)
     50-Lemma = Summation.isLocallyFullyFaithfulΣ-at-connBase
 
-    51-Theorem : isLocallyFullyFaithful {! !}
-    51-Theorem = {! !}
+    51-Theorem : isLocallyFullyFaithful (AsFamily.Fam𝔹 ⋆F SetBundleΣ)
+    51-Theorem = isLocallyFullyFaithfulActToSymmCont

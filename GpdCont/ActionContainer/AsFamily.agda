@@ -15,7 +15,7 @@ open import GpdCont.SetBundle.Base ℓ using (SetBundle)
 open import GpdCont.SetBundle.Summation ℓ using (SetBundleΣ)
 
 open import GpdCont.TwoCategory.Base using (TwoCategory)
-open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor ; compLaxFunctor)
+open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
 open import GpdCont.TwoCategory.LocalFunctor as LocalFunctor using (LocalFunctor)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
 open import GpdCont.TwoCategory.Family.Base using (Fam ; Famᴰ)
@@ -140,9 +140,6 @@ private
 
 Fam𝔹 : LaxFunctor FamAction FamSetBundle
 Fam𝔹 = FamFunctor (ActionDelooping ℓ) ℓ
-
-ActionToSymm : LaxFunctor FamAction SetBundle
-ActionToSymm = compLaxFunctor Fam𝔹 SetBundleΣ
 
 private
   module Fam𝔹 where

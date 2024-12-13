@@ -1,30 +1,31 @@
 {-# OPTIONS --lossy-unification #-}
-module GpdCont.TwoCategory.Family.Properties where
-
 open import GpdCont.Prelude
+
 open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.LaxFunctor
-open import GpdCont.TwoCategory.LocalCategory
-open import GpdCont.TwoCategory.LocalFunctor
-open import GpdCont.TwoCategory.Family.Base
-open import GpdCont.TwoCategory.Family.Functor
-open import GpdCont.TwoCategory.Displayed.Base
-open import GpdCont.Axioms.TruncatedChoice using (ASC)
 
-open import Cubical.Foundations.Equiv as Equiv using (isEquiv)
-open import Cubical.Foundations.HLevels using (isSetΣ ; hSet)
-import      Cubical.Data.Sigma as Sigma
-import      Cubical.Data.Equality as Eq
-import      Cubical.HITs.PropositionalTruncation as PT
-import      Cubical.Categories.Category.Base as Category
-
-module _
+module GpdCont.TwoCategory.Family.Properties
   {ℓo ℓh ℓr ℓo′ ℓh′ ℓr′}
   {C : TwoCategory ℓo ℓh ℓr}
   {D : TwoCategory ℓo′ ℓh′ ℓr′}
   (F : LaxFunctor C D)
   (ℓ : Level)
   where
+
+  open import GpdCont.TwoCategory.LocalCategory
+  open import GpdCont.TwoCategory.LocalFunctor
+  open import GpdCont.TwoCategory.Family.Base
+  open import GpdCont.TwoCategory.Family.Functor
+  open import GpdCont.TwoCategory.Displayed.Base
+  open import GpdCont.Axioms.TruncatedChoice using (ASC)
+
+  open import Cubical.Foundations.Equiv as Equiv using (isEquiv)
+  open import Cubical.Foundations.HLevels using (isSetΣ ; hSet)
+  import      Cubical.Data.Sigma as Sigma
+  import      Cubical.Data.Equality as Eq
+  import      Cubical.HITs.PropositionalTruncation as PT
+  import      Cubical.Categories.Category.Base as Category
+
   private
     module C = TwoCategory C
     module D = TwoCategory D

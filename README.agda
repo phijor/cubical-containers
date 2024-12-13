@@ -336,3 +336,42 @@ module 4-ActionContainers-2-Category where
 
     42-Theorem : isLocallyWeakEquivalence (𝔹′ ℓ)
     42-Theorem = ActionDelooping.isLocallyWeakEquivalenceDelooping _
+
+  module 4·3-Families where
+    open import GpdCont.TwoCategory.Family.Base using (Fam ; Famᴰ)
+    open import GpdCont.TwoCategory.Family.Functor using (LiftFunctor ; LiftFunctorᴰ)
+    open import GpdCont.TwoCategory.Base using (TwoCategory)
+    open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
+    open import GpdCont.TwoCategory.HomotopySet using () renaming (SetEq to hSetCat ; idSetEq to idHSet)
+    open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
+    open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
+
+    private
+      variable
+        ℓo ℓh ℓr : Level
+        C D : TwoCategory ℓo ℓh ℓr
+
+    43-Definition : (C : TwoCategory ℓo ℓh ℓr) (ℓ : Level) → TwoCategory _ _ _
+    43-Definition C ℓ = Fam C ℓ where
+      _ : TwoCategoryᴰ (hSetCat ℓ) _ _ _
+      _ = Famᴰ C ℓ
+
+    44-Defintion : LaxFunctor C D → LaxFunctor (Fam C ℓ) (Fam D ℓ)
+    44-Defintion {C} {D} {ℓ} F = LiftFunctor F ℓ where
+      _ : LaxFunctorᴰ (idHSet ℓ) (Famᴰ C ℓ) (Famᴰ D ℓ)
+      _ = LiftFunctorᴰ F ℓ
+
+    module 45-Proposition {ℓ} (F : LaxFunctor C D) where
+      open import GpdCont.TwoCategory.Family.Properties
+      open import GpdCont.TwoCategory.LocalCategory using (isLocallyStrict)
+      open import GpdCont.TwoCategory.LocalFunctor
+      open import GpdCont.Axioms.TruncatedChoice renaming (ASC to AxiomOfSetChoice)
+
+      1-locally-ff : isLocallyFullyFaithful F → isLocallyFullyFaithful (LiftFunctor F ℓ)
+      1-locally-ff = isLocallyFullyFaithfulFam F ℓ
+
+      2-locally-split-eso : isLocallySplitEssentiallySurjective F → isLocallySplitEssentiallySurjective (LiftFunctor F ℓ)
+      2-locally-split-eso = isLocallySplitEssentiallySurjectiveFam F ℓ
+
+      3-locally-eso : AxiomOfSetChoice ℓ _ → isLocallyStrict C → isLocallyEssentiallySurjective F → isLocallyEssentiallySurjective (LiftFunctor F ℓ)
+      3-locally-eso = isLocallyEssentiallySurjectiveFam F ℓ

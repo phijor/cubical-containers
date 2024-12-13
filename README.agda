@@ -1,6 +1,7 @@
 module README where
 
 open import GpdCont.Prelude
+{-# INJECTIVE_FOR_INFERENCE ⟨_⟩ #-}
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
@@ -220,7 +221,7 @@ module 4-ActionContainers-2-Category where
   open import GpdCont.ActionContainer.Abstract using (ActionContainer)
   open import GpdCont.ActionContainer.Morphism renaming (Morphism to ActionContainerMorphism)
   open import GpdCont.ActionContainer.Delooping using (module Container ; module Morphism) renaming (module Functor to DeloopingFunctor)
-  open import GpdCont.ActionContainer.Category renaming (Act to ActCont)
+  open import GpdCont.ActionContainer.Category renaming (Act to ActContCat)
   open import GpdCont.GroupoidContainer.Base using (GCont)
   open import GpdCont.GroupoidContainer.Morphism using (GContMorphism)
   open import GpdCont.GroupoidContainer.WildCat using (GContCat)
@@ -238,7 +239,7 @@ module 4-ActionContainers-2-Category where
   -- we can consider its "homotopy category", i.e. the category obtained
   -- by set-truncating the type of container morphisms.
   -- In this case, delooping of containers *does* behave functorially:
-  _ : Functor (ActCont {ℓ}) (ho (GContCat ℓ))
+  _ : Functor (ActContCat {ℓ}) (ho (GContCat ℓ))
   _ = DeloopingFunctor.Delooping _
 
   module 4·1-Groups where
@@ -375,3 +376,83 @@ module 4-ActionContainers-2-Category where
 
       3-locally-eso : AxiomOfSetChoice ℓ _ → isLocallyStrict C → isLocallyEssentiallySurjective F → isLocallyEssentiallySurjective (LiftFunctor F ℓ)
       3-locally-eso = isLocallyEssentiallySurjectiveFam F ℓ
+
+  module 4·3-ActionContainers {ℓ} where
+    open import GpdCont.ActionContainer.Abstract using (ActionContainer)
+    open import GpdCont.ActionContainer.Morphism using (Morphism)
+    open import GpdCont.ActionContainer.AsFamily ℓ as AsFamily using () renaming (FamAction to ActCont ; FamActionᴰ to ActContᴰ)
+    open import GpdCont.GroupAction.Base using (Action)
+    open import GpdCont.GroupAction.TwoCategory using (GroupAction)
+    open import GpdCont.Group.MapConjugator using (Conjugator ; isConjugator)
+    open import GpdCont.SetBundle.Base ℓ using (SetBundle ; module SetBundleNotation)
+    open import GpdCont.SetBundle.Summation ℓ as Summation using (SetBundleΣ)
+    open import GpdCont.TwoCategory.Base using (TwoCategory)
+    open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
+    open import GpdCont.TwoCategory.LocalFunctor
+    open import GpdCont.TwoCategory.Family.Base using (Fam ; Famᴰ)
+    open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
+    open import GpdCont.Connectivity using (isPathConnected)
+
+    -- The 2-category of action containers, defined as a 2-category of families of group actions.
+    46-Definition : TwoCategory (ℓ-suc ℓ) ℓ ℓ
+    46-Definition = ActCont where
+      _ : ActCont ≡ Fam (GroupAction ℓ) ℓ
+      _ = refl
+
+    module ActCont where
+      open TwoCategory ActCont public
+      open TwoCategoryᴰ ActContᴰ public
+
+    -- Objects and 1-cells of this 2-category coincide with the defintion of
+    -- action containers and their morphisms made earlier:
+    _ : ActCont.ob ≃ ActionContainer ℓ
+    _ = AsFamily.obEquiv
+
+    _ : (F G : ActCont.ob) → ActCont.hom F G ≃ Morphism (AsFamily.ob→ F) (AsFamily.ob→ G)
+    _ = AsFamily.homEquiv
+
+    module _
+      (E @ (S , Eᴰ) F @ (T , Fᴰ) : ActCont.ob)
+      (u : ⟨ S ⟩ → ⟨ T ⟩)
+      (f g : ActCont.hom[ u ] Eᴰ Fᴰ)
+      where
+        module _ (s : ⟨ S ⟩) where
+          φ = f s .fst
+          f′ = f s .snd .fst
+          ψ = g s .fst
+          g′ = g s .snd .fst
+
+        module _ (t : ⟨ T ⟩) where
+          τ = equivFun ∘ ((Fᴰ t .snd .snd) .Action.action)
+          H = ⟨ Fᴰ t .fst ⟩
+
+        _ : ∀ s → Conjugator (φ s) (ψ s) ≡ (Σ[ r ∈ H (u s) ] isConjugator (φ s) (ψ s) r)
+        _ = λ s → refl
+
+        47-Proposition : ActCont.rel (u , f) (u , g) ≃ ((s : ⟨ S ⟩) → Σ[ (r , _) ∈ Conjugator (φ s) (ψ s) ] f′ s ≡ g′ s ∘ (τ (u s) r))
+        47-Proposition = AsFamily.relEquiv E F u f g
+
+    module 48-Corollary where
+      open import GpdCont.Axioms.TruncatedChoice renaming (ASC to AxiomOfSetChoice)
+
+      {-# INJECTIVE_FOR_INFERENCE AsFamily.isLocallyWeakEquivalenceFam𝔹 #-}
+      {-# INJECTIVE_FOR_INFERENCE AsFamily.Fam𝔹 #-}
+
+      1-locally-ff : isLocallyFullyFaithful AsFamily.Fam𝔹
+      1-locally-ff = AsFamily.isLocallyFullyFaithfulFam𝔹
+
+      -- 2-locally-weq : AxiomOfSetChoice ℓ ℓ → isLocallyWeakEquivalence AsFamily.Fam𝔹
+      2-locally-weq = AsFamily.isLocallyWeakEquivalenceFam𝔹
+
+    49-Definition : LaxFunctor (Fam SetBundle ℓ) SetBundle
+    49-Definition = SetBundleΣ
+
+    private
+      module SetBundle = SetBundleNotation
+      module FamSetBundle = TwoCategory (Fam SetBundle ℓ)
+
+    50-Lemma : (x y : FamSetBundle.ob) → ((j : ⟨ x .fst ⟩) → isPathConnected ⟨ SetBundle.Base (x .snd j) ⟩) → Functor.isFullyFaithful (LocalFunctor SetBundleΣ x y)
+    50-Lemma = Summation.isLocallyFullyFaithfulΣ-at-connBase
+
+    51-Theorem : isLocallyFullyFaithful {! !}
+    51-Theorem = {! !}

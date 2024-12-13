@@ -281,3 +281,60 @@ isLocallyFullyFaithfulΣ-at-connBase (J , X) (K , Y) conn-X (u , f) (v , g) = is
 
   is-equiv-Σ₂ : isEquiv Σ₂
   is-equiv-Σ₂ = subst isEquiv Σ₂-equiv≡Σ₂ (equivIsEquiv Σ₂-equiv)
+
+SetBundleΣ₀⁻¹ : ∀ (X : SetBundle.ob) → FamSetBundle.ob
+SetBundleΣ₀⁻¹ ((B , is-gpd-B) , F) = goal where
+  S : hSet _
+  S .fst = ∥ B ∥₂
+  S .snd = ST.isSetSetTrunc
+
+  B*-base : ⟨ S ⟩ → hGroupoid _
+  B*-base s .fst = fiber ∣_∣₂ s
+  B*-base s .snd = isGroupoidΣ is-gpd-B λ b → isProp→isOfHLevelSuc 2 (ST.isSetSetTrunc ∣ b ∣₂ s)
+
+  B*-fib : (s : ⟨ S ⟩) → (⟨ B*-base s ⟩ → hSet _)
+  B*-fib s = F ∘ fst
+
+  B* : ⟨ S ⟩ → SetBundle.ob
+  B* s .fst = B*-base s
+  B* s .snd = B*-fib s
+
+  goal : FamSetBundle.ob
+  goal .fst = S
+  goal .snd = B*
+
+SetBundleΣ₀-section : section SetBundleΣ.₀ SetBundleΣ₀⁻¹
+SetBundleΣ₀-section y@((B , _) , F) = sym (Sigma.ΣPathP (TypeOfHLevel≡ 3 base-path , fiber-path)) where
+  base-path : B ≡ Σ ∥ B ∥₂ (fiber ∣_∣₂)
+  base-path = ua (componentEquiv B)
+
+  fiber-path : PathP (λ i → base-path i → hSet _) F (ΣSnd₀ (SetBundleΣ₀⁻¹ y))
+  fiber-path = ua→ λ b → refl′ (F b)
+
+isSurjection-SetBundleΣ₀ : isSurjection SetBundleΣ.₀
+isSurjection-SetBundleΣ₀ = section→isSurjection SetBundleΣ₀-section
+
+SetBundleΣ₀Surjection : FamSetBundle.ob ↠ SetBundle.ob
+SetBundleΣ₀Surjection .fst = SetBundleΣ.₀
+SetBundleΣ₀Surjection .snd = isSurjection-SetBundleΣ₀
+
+SetBundleΣ₁⁻¹ : ∀ (X Y : SetBundle.ob) → SetBundle.hom X Y → FamSetBundle.hom (SetBundleΣ₀⁻¹ X) (SetBundleΣ₀⁻¹ Y)
+SetBundleΣ₁⁻¹ X@((B , is-gpd-B) , F) Y@((D , is-gpd-D) , G) (u , f) = goal where
+  open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
+  ∣u∣ : ∥ B ∥₂ → ∥ D ∥₂
+  ∣u∣ = ST.map u
+
+  ∣f∣-base : (x : ∥ B ∥₂) → fiber ∣_∣₂ x → fiber ∣_∣₂ (∣u∣ x)
+  ∣f∣-base x (b , ∣b∣≡x) .fst = u b
+  ∣f∣-base x (b , ∣b∣≡x) .snd = cong ∣u∣ ∣b∣≡x
+
+  ∣f∣-fib : (x : ∥ B ∥₂) → (x⁻¹ : fiber ∣_∣₂ x) → ⟨ G (u (x⁻¹ .fst)) ⟩ → ⟨ F (x⁻¹ .fst) ⟩
+  ∣f∣-fib _ (b , _) = f b
+
+  ∣f∣ : (x : ∥ B ∥₂) → SetBundle.hom (SetBundleΣ₀⁻¹ X .snd x) (SetBundleΣ₀⁻¹ Y .snd (∣u∣ x))
+  ∣f∣ x .fst = ∣f∣-base x
+  ∣f∣ x .snd = ∣f∣-fib x
+
+  goal : FamSetBundle.hom (SetBundleΣ₀⁻¹ X) (SetBundleΣ₀⁻¹ Y)
+  goal .fst = ∣u∣
+  goal .snd = ∣f∣

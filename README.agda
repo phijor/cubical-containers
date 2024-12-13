@@ -278,7 +278,7 @@ module 4-ActionContainers-2-Category where
     open import GpdCont.TwoCategory.Base using (TwoCategory)
     open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
     open import GpdCont.TwoCategory.LocalFunctor using (isLocallyWeakEquivalence)
-    open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
+    open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ ; module TotalTwoCategory)
     open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
     open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
 
@@ -303,6 +303,9 @@ module 4-ActionContainers-2-Category where
     38-Definition {ℓ} = SetBundle ℓ where
       _ : TwoCategoryᴰ (hGpdCat ℓ) _ _ _
       _ = SetBundleᴰ ℓ
+
+      _ : SetBundle ℓ ≡ TotalTwoCategory.∫ (hGpdCat ℓ) (SetBundleᴰ ℓ)
+      _ = refl
 
     -- Any equivariant map f : X ← Y induces a map of associated bundles:
     39-Definition : {G H : Group ℓ} {X Y : hSet ℓ} (σ : Action G X) (τ : Action H Y)

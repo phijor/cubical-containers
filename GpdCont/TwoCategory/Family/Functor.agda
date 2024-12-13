@@ -5,7 +5,7 @@ open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.LaxFunctor
 open import GpdCont.TwoCategory.Displayed.LaxFunctor
 open import GpdCont.TwoCategory.Family.Base
-open import GpdCont.TwoCategory.HomotopySet using (SetEq ; isLocallyThinSetEq)
+open import GpdCont.TwoCategory.HomotopySet using (SetEq ; isLocallyThinSetEq ; idSetEq)
 
 open import Cubical.Functions.FunExtEquiv
 import      Cubical.Data.Equality as Eq
@@ -22,20 +22,7 @@ module _
     module F = LaxFunctor F
     module SetEq = TwoCategory (SetEq ℓ)
 
-  idSet : LaxFunctor (SetEq ℓ) (SetEq ℓ)
-  idSet .LaxFunctor.F-ob = id _
-  idSet .LaxFunctor.F-hom = id _
-  idSet .LaxFunctor.F-rel = id _
-  idSet .LaxFunctor.F-rel-id = refl
-  idSet .LaxFunctor.F-rel-trans _ _ = refl
-  idSet .LaxFunctor.F-trans-lax _ _ = Eq.refl
-  idSet .LaxFunctor.F-trans-lax-natural Eq.refl Eq.refl = refl
-  idSet .LaxFunctor.F-id-lax x = Eq.refl
-  idSet .LaxFunctor.F-assoc {x} {w} f g h = refl
-  idSet .LaxFunctor.F-unit-left {x} {y} f = refl
-  idSet .LaxFunctor.F-unit-right {x} {y} f = refl
-
-  LiftFunctorᴰ : LaxFunctorᴰ idSet (Famᴰ C ℓ) (Famᴰ D ℓ)
+  LiftFunctorᴰ : LaxFunctorᴰ (idSetEq ℓ) (Famᴰ C ℓ) (Famᴰ D ℓ)
   LiftFunctorᴰ .LaxFunctorᴰ.F-obᴰ xᴰ = F.₀ ∘ xᴰ
   LiftFunctorᴰ .LaxFunctorᴰ.F-homᴰ fᴰ = F.₁ ∘ fᴰ
   LiftFunctorᴰ .LaxFunctorᴰ.F-relᴰ {r = Eq.refl} rᴰ = F.₂ ∘ rᴰ

@@ -3,6 +3,7 @@ module GpdCont.TwoCategory.HomotopySet where
 open import GpdCont.Prelude
 open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.LocallyThin
+open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
 
 open import Cubical.Foundations.HLevels as HLevels using (hSet)
 open import Cubical.Foundations.Isomorphism using (invIso)
@@ -74,3 +75,16 @@ module _ (ℓ : Level) where
 
   isLocallyThinSetEq : isLocallyThin SetEq
   isLocallyThinSetEq = isPropSetEq₂
+
+  idSetEq : LaxFunctor SetEq SetEq
+  idSetEq .LaxFunctor.F-ob = id _
+  idSetEq .LaxFunctor.F-hom = id _
+  idSetEq .LaxFunctor.F-rel = id _
+  idSetEq .LaxFunctor.F-rel-id = refl
+  idSetEq .LaxFunctor.F-rel-trans _ _ = refl
+  idSetEq .LaxFunctor.F-trans-lax _ _ = Eq.refl
+  idSetEq .LaxFunctor.F-trans-lax-natural Eq.refl Eq.refl = refl
+  idSetEq .LaxFunctor.F-id-lax x = Eq.refl
+  idSetEq .LaxFunctor.F-assoc {x} {w} f g h = refl
+  idSetEq .LaxFunctor.F-unit-left {x} {y} f = refl
+  idSetEq .LaxFunctor.F-unit-right {x} {y} f = refl

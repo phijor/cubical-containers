@@ -189,13 +189,12 @@ module 3-ActionContainers where
       open import Cubical.Categories.Constructions.TotalCategory.Base using (∫C)
       open import Cubical.Categories.Constructions.BinProduct as Prod using (_×C_)
       open import Cubical.Categories.Displayed.Base using (Categoryᴰ)
-      {-# INJECTIVE_FOR_INFERENCE GroupAction #-}
-      {-# INJECTIVE_FOR_INFERENCE GroupActionᴰ #-}
+      {-# INJECTIVE_FOR_INFERENCE _×C_ #-}
 
       _ : Categoryᴰ (GroupCategory {ℓ} ×C SET ℓ ^op) ℓ ℓ
       _ = GroupActionᴰ ℓ
 
-      _ : GroupAction ℓ ≡ ∫C {ℓCᴰ = ℓ} (GroupActionᴰ ℓ)
+      _ : GroupAction ℓ ≡ ∫C (GroupActionᴰ ℓ)
       _ = refl
 
     27-Theorem : ActCont {ℓ} ≃ᶜ Fam ℓ (GroupAction ℓ)

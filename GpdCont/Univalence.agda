@@ -75,6 +75,9 @@ module _ {ℓA ℓB}
   →ua⁻ : (p : PathP (λ i → A → ua e i) f₀ f₁) → ∀ a → equivFun e (f₀ a) ≡ f₁ a
   →ua⁻ p a = ua-ungluePath e λ i → p i a
 
+  →uaEquiv : (∀ a → equivFun e (f₀ a) ≡ f₁ a) ≃ PathP (λ i → A → ua e i) f₀ f₁
+  unquoteDef →uaEquiv = defStrictEquiv →uaEquiv →ua →ua⁻
+
 ua→ : ∀ {ℓ ℓ'} {A₀ A₁ : Type ℓ} {e : A₀ ≃ A₁} {B : (i : I) → Type ℓ'}
   {f₀ : A₀ → B i0} {f₁ : A₁ → B i1}
   → (p : (a : A₀) → PathP B (f₀ a) (f₁ (e .fst a)))

@@ -1,19 +1,20 @@
 module GpdCont.Univalence where
 
-open import GpdCont.Equiv using (lineEquiv ; secEquiv)
-open import Cubical.Foundations.Prelude
+open import GpdCont.Prelude
+open import GpdCont.Equiv using (lineEquiv ; secEquiv ; equivΠDomain)
 open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Path using (PathP≡compPath)
-open import Cubical.Foundations.Univalence as UA hiding (ua ; ua→) public
+open import Cubical.Foundations.Univalence as UA hiding (ua ; ua→ ; ua→⁻) public
 open import Cubical.Foundations.Univalence using (ua-unglue ; unglueIsEquiv ; Glue)
+open import Cubical.Functions.FunExtEquiv
+open import Cubical.Reflection.StrictEquiv
+open import Cubical.Data.Sigma using (ΣPathP ; Σ-contractSnd)
 
 private
   variable
     ℓ : Level
     A B C : Type ℓ
-
-  ∂ : I → I
-  ∂ i = i ∨ ~ i
 
 ua : ∀ {ℓ} {A B : Type ℓ} → A ≃ B → A ≡ B
 ua = UA.ua
@@ -78,11 +79,34 @@ module _ {ℓA ℓB}
   →uaEquiv : (∀ a → equivFun e (f₀ a) ≡ f₁ a) ≃ PathP (λ i → A → ua e i) f₀ f₁
   unquoteDef →uaEquiv = defStrictEquiv →uaEquiv →ua →ua⁻
 
-ua→ : ∀ {ℓ ℓ'} {A₀ A₁ : Type ℓ} {e : A₀ ≃ A₁} {B : (i : I) → Type ℓ'}
+module _ {ℓ} {A₀ A₁ : Type ℓ} (e : A₀ ≃ A₁) where
+  ua-gluePtPath : ∀ (a₀ : A₀) → PathP (λ i → ua e i) a₀ (equivFun e a₀)
+  ua-gluePtPath a₀ i = ua-gluePt e i a₀
+
+  isContrSingl-ua : ∀ (a₀ : A₀) → isContr (singlP (λ i → ua e i) a₀)
+  isContrSingl-ua a₀ .fst = equivFun e a₀ , ua-gluePtPath a₀
+  isContrSingl-ua a₀ .snd (a₁ , h) = ΣPathP (p , pᴰ) where
+
+    p : equivFun e a₀ ≡ a₁
+    p = ua-ungluePath e h
+
+    T : (j : I) → Partial (∂ j) (Type _)
+    T j (j = i0) = A₀
+    T j (j = i1) = A₁
+
+    system : (i j : I) → PartialP (∂ j) (T j)
+    system i j (j = i0) = a₀
+    system i j (j = i1) = p i
+
+    pᴰ : SquareP (λ i j → ua e j) (ua-gluePtPath a₀) h (refl {x = a₀}) (ua-ungluePath e h)
+    pᴰ i j = glue {φ = ∂ j} {T = T j} (system i j) (p (i ∧ j))
+
+module _ {ℓ ℓ'}
+  {A₀ A₁ : Type ℓ}
+  {e : A₀ ≃ A₁}
+  {B : (i : I) → Type ℓ'}
   {f₀ : A₀ → B i0} {f₁ : A₁ → B i1}
-  → (p : (a : A₀) → PathP B (f₀ a) (f₁ (e .fst a)))
-  → PathP (λ i → ua e i → B i) f₀ f₁
-ua→ {A₀} {A₁} {e} {B} {f₀} {f₁} h i a = goal i a where module _ (i : I) (a : ua e i) where
+  where
   -- Construct the path from f₀ to f₁ as a heterogeneous composition.
   --
   --     (f₀ a₀ : B i0) - - - - - - - - - - - - > (f₁ a₁ : B i1)
@@ -93,45 +117,81 @@ ua→ {A₀} {A₁} {e} {B} {f₀} {f₁} h i a = goal i a where module _ (i : I
   --            |                                        |
   -- (f₁ (e a₀) : B i1) ------------------------> (f₁ a₁ : B i1)
   --                     (f₁ (ua-unglue e i a))
-  --
-  -- The partial elements `(i = i0) ⊢ (a : A₀)` and `(i = i1) ⊢ (a : A₁)`
-  -- are denoted a₀ and a₁, respectively:
-  a₀ : Partial (~ i) A₀
-  a₀ (i = i0) = a
+  private
+    ua→-Box : (i j : I) → Type ℓ'
+    ua→-Box i j = B (i ∨ ~ j)
 
-  a₁ : Partial i A₁
-  a₁ (i = i1) = a
+  -- Above we assume (a : ua e i), and the partial elements `(i = i0) ⊢ (a : A₀)`
+  -- and `(i = i1) ⊢ (a : A₁)` are denoted a₀ and a₁, respectively:
+  module _
+    (h : (a : A₀) → PathP B (f₀ a) (f₁ (e .fst a)))
+    (i : I)
+    (a : ua e i)
+    where
+    private
+      a₀ : Partial (~ i) A₀
+      a₀ (i = i0) = a
 
-  Box : (j : I) → Type _
-  Box j = B (i ∨ ~ j)
+      a₁ : Partial i A₁
+      a₁ (i = i1) = a
 
-  -- Observe that:
-  --  ∙ (i = i0) ⊢ (ua-unglue e i a = (e a) : A₁)
-  --  ∙ (i = i1) ⊢ (ua-unglue e i a =   a   : A₁)
-  -- Thus we can apply f₁ and obtain a term in `B i1` that reduces to
-  -- `f₁ (e a₀)` an `f₁ a₁` when i is i0 or i1, respectively.
-  base : Box i0
-  base = f₁ (ua-unglue e i a)
+    -- The left side of the box connects `f₀ a₀` and `f₁ (e a₀)` via h,
+    -- the right side is constantly `f₁ a₁`.
+    ua→-side : (j : I) → Partial (i ∨ ~ i) (ua→-Box i j)
+    ua→-side j (i = i0) = h (a₀ 1=1) (~ j)
+    ua→-side j (i = i1) = f₁ (a₁ 1=1)
 
-  -- The left side of the box connects `f₀ a₀` and `f₁ (e a₀)` via p,
-  -- the right side is constantly `f₁ a₁`.
-  side : (j : I) → Partial (i ∨ ~ i) (Box j)
-  side j (i = i0) = h (a₀ 1=1) (~ j)
-  side j (i = i1) = f₁ (a₁ 1=1)
 
-  goal : Box i1
-  goal = comp Box side base
+  ua→-base : PathP (λ i → (a : ua e i) → B i1) (f₁ ∘ (equivFun e)) f₁
+  ua→-base i a = f₁ (ua-unglue e i a)
 
-isEquiv-ua→ : ∀ {ℓ ℓ'} {A₀ A₁ : Type ℓ} {e : A₀ ≃ A₁} {B : (i : I) → Type ℓ'}
-  → {f₀ : A₀ → B i0} {f₁ : A₁ → B i1}
-  → isEquiv (ua→ {e = e} {B} {f₀} {f₁})
-isEquiv-ua→ {e} {B} {f₀} {f₁} = {! !}
+  module _
+    (h : (a : A₀) → PathP B (f₀ a) (f₁ (e .fst a)))
+    where
+    ua→ : PathP (λ i → ua e i → B i) f₀ f₁
+    ua→ i a = comp (ua→-Box i) (ua→-side h i a) (ua→-base i a)
 
-ua→Equiv : ∀ {ℓ ℓ'} {A₀ A₁ : Type ℓ} {e : A₀ ≃ A₁} {B : (i : I) → Type ℓ'}
-  → {f₀ : A₀ → B i0} {f₁ : A₁ → B i1}
-  → ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a))) ≃ PathP (λ i → ua e i → B i) f₀ f₁
-ua→Equiv .fst = ua→
-ua→Equiv .snd = isEquiv-ua→
+    ua→-filler : SquareP (λ i j → ua e i → B (i ∨ ~ j)) (symP (funExt h)) (refl {x = f₁}) ua→-base ua→
+    ua→-filler i j a = fill
+      (λ j → ua→-Box i j)
+      {φ = ∂ i}
+      (ua→-side h i a)
+      (inS (ua→-base i a))
+      j
+
+  ua→⁻ : PathP (λ i → ua e i → B i) f₀ f₁ → ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a)))
+  ua→⁻ pᴰ a i = pᴰ i (UA.ua-gluePt e i a)
+
+  private
+    ua→⁻Equiv' : PathP (λ i → ua e i → B i) f₀ f₁ ≃ ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a)))
+    ua→⁻Equiv' =
+      PathP (λ i → ua e i → B i) f₀ f₁ ≃⟨ invEquiv funExtNonDepEquiv ⟩
+      ({x₀ : A₀} {x₁ : A₁} → PathP (λ i → ua e i) x₀ x₁ → PathP B (f₀ x₀) (f₁ x₁)) ≃⟨ shuffle ⟩
+      ((x : Σ[ x₀ ∈ A₀ ] (singlP (λ i → ua e i) x₀)) → PathP B (f₀ (x .fst)) (f₁ (x .snd .fst))) ≃⟨ equivΠDomain (invEquiv (Σ-contractSnd (isContrSingl-ua e))) ⟩
+      ((a : A₀) → PathP B (f₀ a) (f₁ (equivFun e a))) ≃∎
+      where
+      shuffle-iso : Iso
+        ({x₀ : A₀} {x₁ : A₁} → PathP (λ i → ua e i) x₀ x₁ → PathP B (f₀ x₀) (f₁ x₁))
+        ((x : Σ[ x₀ ∈ A₀ ] (singlP (λ i → ua e i) x₀)) → PathP B (f₀ (x .fst)) (f₁ (x .snd .fst)))
+      shuffle-iso .Iso.fun f (x₀ , x₁ , p) = f {x₀} {x₁} p
+      shuffle-iso .Iso.inv f {x₀} {x₁} p = f (x₀ , x₁ , p)
+      shuffle-iso .Iso.rightInv _ = refl
+      shuffle-iso .Iso.leftInv _ = refl
+
+      shuffle : _ ≃ _
+      shuffle = strictIsoToEquiv shuffle-iso
+
+  ua→⁻Equiv : PathP (λ i → ua e i → B i) f₀ f₁ ≃ ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a)))
+  ua→⁻Equiv .fst = ua→⁻
+  ua→⁻Equiv .snd = equivIsEquiv ua→⁻Equiv'
+
+  -- TODO: Ensure that ua→ is an equivalence as well.
+  isEquiv-ua→ : isEquiv ua→
+  isEquiv-ua→ = {! !}
+
+  ua→Equiv : ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a))) ≃ PathP (λ i → ua e i → B i) f₀ f₁
+  ua→Equiv .fst = ua→
+  ua→Equiv .snd = isEquiv-ua→
 
 ua→ua : ∀ {ℓ ℓ'} {A₀ A₁ : Type ℓ} {B₀ B₁ : Type ℓ'}
   → {α : A₀ ≃ A₁}

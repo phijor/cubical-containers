@@ -62,3 +62,9 @@ secEquiv {B} e = lineEquiv (λ φ b → secEq e b φ) (equivIsEquiv (invEquiv e 
 
 retEquiv : (e : A ≃ B) → ∀ (φ : I) → A ≃ A
 retEquiv {A} e = lineEquiv (λ φ a → retEq e a φ) (equivIsEquiv (e ∙ₑ invEquiv e)) (idIsEquiv A)
+
+equivΠDomain : ∀ {ℓ ℓ'} {A₀ : Type ℓ} {A₁ : Type ℓ} {B : A₁ → Type ℓ'}
+  → (e : A₀ ≃ A₁)
+  → ((a₁ : A₁) → B a₁) ≃ ((a₀ : A₀) → B (equivFun e a₀))
+equivΠDomain {A₀} {A₁} {B} e .fst = _∘ equivFun e
+equivΠDomain {A₀} {A₁} {B} e .snd = EquivJ (λ A₀ e → isEquiv (_∘ equivFun e)) (idIsEquiv ((a₁ : A₁) → B a₁)) e

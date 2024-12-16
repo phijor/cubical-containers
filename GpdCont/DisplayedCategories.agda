@@ -163,7 +163,6 @@ module FamExponentials {ℓ} (C : Category ℓ ℓ) (bp : BinProducts C) (exp : 
     ue .UniversalElement.vertex = x ⇒Π y
     ue .UniversalElement.element = (λ { x₁ → {! !} }) , {! !}
     ue .UniversalElement.universal = {! !}
-    -}
 
 module DisplayedOverContr {ℓo ℓh ℓoᴰ ℓhᴰ} (C : Category ℓo ℓh) (Cᴰ : Categoryᴰ C ℓoᴰ ℓhᴰ)
   (contr-ob : isContr (C .Category.ob))

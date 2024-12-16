@@ -193,6 +193,18 @@ module UA→ {ℓ ℓ'}
 
 open UA→ hiding (ua→ ; ua→-filler ; ua→-side ; ua→-base) renaming (ua→′ to ua→ ; ua→′Equiv to ua→Equiv) public
 
+module _ {ℓ ℓ'}
+  {A₀ A₁ : Type ℓ}
+  {e : A₀ ≃ A₁}
+  {B : Type ℓ'}
+  {f₀ : A₀ → B} {f₁ : A₁ → B}
+  where
+  ua→⁻ExtEquiv : PathP (λ i → ua e i → B) f₀ f₁ ≃ (f₀ ≡ f₁ ∘ equivFun e)
+  ua→⁻ExtEquiv = ua→⁻Equiv {e = e} {B = λ _ → B} ∙ₑ funExtEquiv
+
+  ua→ExtEquiv : (f₀ ≡ f₁ ∘ equivFun e) ≃ PathP (λ i → ua e i → B) f₀ f₁
+  ua→ExtEquiv = invEquiv ua→⁻ExtEquiv
+
 ua→ua : ∀ {ℓ ℓ'} {A₀ A₁ : Type ℓ} {B₀ B₁ : Type ℓ'}
   → {α : A₀ ≃ A₁}
   → {β : B₀ ≃ B₁}

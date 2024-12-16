@@ -101,7 +101,7 @@ module _ {ℓ} {A₀ A₁ : Type ℓ} (e : A₀ ≃ A₁) where
     pᴰ : SquareP (λ i j → ua e j) (ua-gluePtPath a₀) h (refl {x = a₀}) (ua-ungluePath e h)
     pᴰ i j = glue {φ = ∂ j} {T = T j} (system i j) (p (i ∧ j))
 
-module _ {ℓ ℓ'}
+module UA→ {ℓ ℓ'}
   {A₀ A₁ : Type ℓ}
   {e : A₀ ≃ A₁}
   {B : (i : I) → Type ℓ'}
@@ -162,36 +162,36 @@ module _ {ℓ ℓ'}
   ua→⁻ : PathP (λ i → ua e i → B i) f₀ f₁ → ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a)))
   ua→⁻ pᴰ a i = pᴰ i (UA.ua-gluePt e i a)
 
-  private
-    ua→⁻Equiv' : PathP (λ i → ua e i → B i) f₀ f₁ ≃ ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a)))
-    ua→⁻Equiv' =
-      PathP (λ i → ua e i → B i) f₀ f₁ ≃⟨ invEquiv funExtNonDepEquiv ⟩
-      ({x₀ : A₀} {x₁ : A₁} → PathP (λ i → ua e i) x₀ x₁ → PathP B (f₀ x₀) (f₁ x₁)) ≃⟨ shuffle ⟩
-      ((x : Σ[ x₀ ∈ A₀ ] (singlP (λ i → ua e i) x₀)) → PathP B (f₀ (x .fst)) (f₁ (x .snd .fst))) ≃⟨ equivΠDomain (invEquiv (Σ-contractSnd (isContrSingl-ua e))) ⟩
-      ((a : A₀) → PathP B (f₀ a) (f₁ (equivFun e a))) ≃∎
-      where
-      shuffle-iso : Iso
-        ({x₀ : A₀} {x₁ : A₁} → PathP (λ i → ua e i) x₀ x₁ → PathP B (f₀ x₀) (f₁ x₁))
-        ((x : Σ[ x₀ ∈ A₀ ] (singlP (λ i → ua e i) x₀)) → PathP B (f₀ (x .fst)) (f₁ (x .snd .fst)))
-      shuffle-iso .Iso.fun f (x₀ , x₁ , p) = f {x₀} {x₁} p
-      shuffle-iso .Iso.inv f {x₀} {x₁} p = f (x₀ , x₁ , p)
-      shuffle-iso .Iso.rightInv _ = refl
-      shuffle-iso .Iso.leftInv _ = refl
+  ua→⁻Equiv' : PathP (λ i → ua e i → B i) f₀ f₁ ≃ ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a)))
+  ua→⁻Equiv' =
+    PathP (λ i → ua e i → B i) f₀ f₁ ≃⟨ invEquiv funExtNonDepEquiv ⟩
+    ({x₀ : A₀} {x₁ : A₁} → PathP (λ i → ua e i) x₀ x₁ → PathP B (f₀ x₀) (f₁ x₁)) ≃⟨ shuffle ⟩
+    ((x : Σ[ x₀ ∈ A₀ ] (singlP (λ i → ua e i) x₀)) → PathP B (f₀ (x .fst)) (f₁ (x .snd .fst))) ≃⟨ equivΠDomain (invEquiv (Σ-contractSnd (isContrSingl-ua e))) ⟩
+    ((a : A₀) → PathP B (f₀ a) (f₁ (equivFun e a))) ≃∎
+    where
+    shuffle-iso : Iso
+      ({x₀ : A₀} {x₁ : A₁} → PathP (λ i → ua e i) x₀ x₁ → PathP B (f₀ x₀) (f₁ x₁))
+      ((x : Σ[ x₀ ∈ A₀ ] (singlP (λ i → ua e i) x₀)) → PathP B (f₀ (x .fst)) (f₁ (x .snd .fst)))
+    shuffle-iso .Iso.fun f (x₀ , x₁ , p) = f {x₀} {x₁} p
+    shuffle-iso .Iso.inv f {x₀} {x₁} p = f (x₀ , x₁ , p)
+    shuffle-iso .Iso.rightInv _ = refl
+    shuffle-iso .Iso.leftInv _ = refl
 
-      shuffle : _ ≃ _
-      shuffle = strictIsoToEquiv shuffle-iso
+    shuffle : _ ≃ _
+    shuffle = strictIsoToEquiv shuffle-iso
 
   ua→⁻Equiv : PathP (λ i → ua e i → B i) f₀ f₁ ≃ ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a)))
   ua→⁻Equiv .fst = ua→⁻
   ua→⁻Equiv .snd = equivIsEquiv ua→⁻Equiv'
 
-  -- TODO: Ensure that ua→ is an equivalence as well.
-  isEquiv-ua→ : isEquiv ua→
-  isEquiv-ua→ = {! !}
+  -- TODO: Have a look at transport-filler-ua in Cubical.Foundations.Transport
+  ua→′Equiv : ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a))) ≃ PathP (λ i → ua e i → B i) f₀ f₁
+  ua→′Equiv = invEquiv ua→⁻Equiv
 
-  ua→Equiv : ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a))) ≃ PathP (λ i → ua e i → B i) f₀ f₁
-  ua→Equiv .fst = ua→
-  ua→Equiv .snd = isEquiv-ua→
+  ua→′ : ((a : A₀) → PathP B (f₀ a) (f₁ (e .fst a))) → PathP (λ i → ua e i → B i) f₀ f₁
+  ua→′ = equivFun ua→′Equiv
+
+open UA→ hiding (ua→ ; ua→-filler ; ua→-side ; ua→-base) renaming (ua→′ to ua→ ; ua→′Equiv to ua→Equiv) public
 
 ua→ua : ∀ {ℓ ℓ'} {A₀ A₁ : Type ℓ} {B₀ B₁ : Type ℓ'}
   → {α : A₀ ≃ A₁}

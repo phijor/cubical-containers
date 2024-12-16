@@ -2,6 +2,7 @@ module GpdCont.SetQuotients where
 
 open import GpdCont.Prelude
 
+open import Cubical.Foundations.Equiv using (equivToIso)
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Function using (_∘_)
 
@@ -12,7 +13,7 @@ private
   variable
     ℓ ℓ' ℓ'' : Level
     A B : Type ℓ
-    R S : A → A → Type ℓ
+    R S : A → A → Type ℓ'
 
 open Iso
 
@@ -30,6 +31,26 @@ module _
   relBiimpl→QuotIso .rightInv = SQ.elimProp (λ _ → _/_.squash/ _ _) λ a → cong [_] (isoA .rightInv a)
   relBiimpl→QuotIso .leftInv = SQ.elimProp (λ _ → _/_.squash/ _ _) λ b → cong [_] (isoA .leftInv b)
 
+  relBiimpl→QuotEquiv : (A / R) ≃ (B / S)
+  relBiimpl→QuotEquiv = isoToEquiv relBiimpl→QuotIso
+
+module _
+  {A : Type ℓ}
+  {R S : A → A → Type ℓ'}
+  (presS : ∀ {a a'} → R a a' → S a a')
+  (presR : ∀ {a a'} → S a a' → R a a')
+  where
+  relBiimpl→QuotIdIso : Iso (A / R) (A / S)
+  relBiimpl→QuotIdIso = relBiimpl→QuotIso idIso presS presR
+
+  relBiimpl→QuotIdEquiv : (A / R) ≃ (A / S)
+  relBiimpl→QuotIdEquiv = relBiimpl→QuotEquiv idIso presS presR
+
+relIso→QuotIdIso : {R S : A → A → Type ℓ'} → (∀ {a a'} → Iso (R a a') (S a a')) → Iso (A / R) (A / S)
+relIso→QuotIdIso rel-iso = relBiimpl→QuotIdIso (rel-iso .fun) (rel-iso .inv)
+
+relEquiv→QuotIdEquiv : {R S : A → A → Type ℓ'} → (∀ {a a'} → (R a a') ≃ (S a a')) → (A / R) ≃ (A / S)
+relEquiv→QuotIdEquiv rel-equiv = isoToEquiv (relIso→QuotIdIso (equivToIso rel-equiv))
 
 SetTruncSetQuotientPathIso : Iso ∥ A ∥₂ (A / _≡_)
 SetTruncSetQuotientPathIso .Iso.fun = ST.rec SQ.squash/ SQ.[_]

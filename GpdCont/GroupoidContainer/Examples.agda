@@ -5,6 +5,8 @@ open import GpdCont.GroupoidContainer.Base
 open import GpdCont.GroupoidContainer.Eval
 open import GpdCont.GroupoidContainer.Morphism using () renaming (GContMorphism to Morphism)
 open import GpdCont.Polynomial as Poly using (Polynomial ; poly⟨_,_⟩)
+open import GpdCont.Modulo as Modulo using (Fin ; isSetFin ; shiftPath)
+
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.GroupoidLaws as GL using ()
@@ -48,65 +50,9 @@ private
 
   open S1 using (S¹)
 
-  module Modulo where
-    open import Cubical.HITs.Modulo public
-    open Nat using (_+_)
 
-    elimProp : ∀ k {ℓ} {P : Modulo k → Type ℓ} → (∀ x → isProp (P x)) → (embed* : ∀ n → P (embed n)) → ∀ x → P x
-    elimProp zero _ embed* (embed n) = embed* n
-    elimProp (suc k) is-prop-P embed* (embed n) = embed* n
-    elimProp (suc k) is-prop-P embed* (step n i) = isProp→PathP (λ i → is-prop-P (step n i)) (embed* n) (embed* (suc (k + n))) i
-
-    Fin : (k : ℕ) → Type
-    Fin zero = ⊥
-    Fin (suc k) = Modulo (suc k)
-
-    isSetFin : ∀ {k} → isSet (Fin k)
-    isSetFin {k = zero} ()
-    isSetFin {k = suc k} = isSetModulo
-
-    shift-mod : ∀ {k} → Modulo k → Modulo k
-    shift-mod (embed n) = embed (suc n)
-    shift-mod {k} (step n i) = path i where
-      path : embed (suc n) ≡ embed (suc (k + n))
-      path = ztep (suc n) ∙ cong embed (Nat.+-suc k n)
-
-    unshift-mod-suc : ∀ k → Modulo (suc k) → Modulo (suc k)
-    unshift-mod-suc k (embed n) = embed (k + n)
-    unshift-mod-suc k (step n i) = path i where
-      path : embed (k + n) ≡ embed (k + suc (k + n))
-      path = ztep {suc k} (k + n) ∙ cong embed (sym (Nat.+-suc k (k + n)))
-
-    unshift-mod : ∀ {k} → Modulo k → Modulo k
-    unshift-mod {k = zero} (embed n) = embed n
-    unshift-mod {k = suc k} = unshift-mod-suc k
-
-    shift : ∀ {k} → Fin k → Fin k
-    shift {k = zero} ()
-    shift {k = suc k} = shift-mod
-
-    unshift : ∀ {k} → Fin k → Fin k
-    unshift {k = zero} ()
-    unshift {k = suc k} = unshift-mod-suc k
-
-    shiftIso : ∀ k → Iso (Fin k) (Fin k)
-    shiftIso k .Iso.fun = shift
-    shiftIso k .Iso.inv = unshift
-    shiftIso zero .Iso.rightInv ()
-    shiftIso (suc k) .Iso.rightInv = elimProp (suc k) (λ _ → isSetModulo _ _) λ n → sym (step n)
-    shiftIso zero .Iso.leftInv ()
-    shiftIso (suc k) .Iso.leftInv = elimProp (suc k) (λ _ → isSetModulo _ _) λ n → cong embed (Nat.+-suc k n) ∙ sym (ztep {suc k} n)
-
-    shiftEquiv : ∀ k → Fin k ≃ Fin k
-    shiftEquiv k = isoToEquiv $ shiftIso k
-
-    shiftPath : ∀ k → Fin k ≡ Fin k
-    shiftPath k = ua $ shiftEquiv k
-
-    intShiftPath : (n : ℤ) → ∀ k → Fin k ≡ Fin k
-    intShiftPath n k = shiftPath k ^ n
-    
-  open Modulo using (Fin ; isSetFin)
+  intShiftPath : (n : ℤ) → ∀ k → Fin k ≡ Fin k
+  intShiftPath n k = shiftPath k ^ n
 
 module CyclicList where
   Shape : Type
@@ -215,32 +161,32 @@ CyclicListShiftPathEquiv {A} {n} {xs} {ys} =
     ℤ≃ΩS¹ = isoToEquiv $ invIso S1.ΩS¹Isoℤ
 
 mkCycPath≃intShift : ∀ {n} {xs ys : Fin n → A}
-  → (mkCyc xs ≡ mkCyc ys) ≃ (Σ[ winding ∈ ℤ ] xs ≡ ys ∘ transport (Modulo.intShiftPath winding n))
+  → (mkCyc xs ≡ mkCyc ys) ≃ (Σ[ winding ∈ ℤ ] xs ≡ ys ∘ transport (intShiftPath winding n))
 mkCycPath≃intShift {A} {n} {xs} {ys} =
   (mkCyc xs ≡ mkCyc ys) ≃⟨ CyclicListShiftPathEquiv ⟩
   Σ[ winding ∈ ℤ ] ((PathP (λ i → CyclicList.Pos (n , S1.intLoop winding i) → A) xs ys))
     ≃⟨ Sigma.Σ-cong-equiv-snd (λ z → pathToEquiv (Path.PathP≡Path (λ i → CyclicList.Pos (n , S1.intLoop z i) → A) _ _)) ⟩
   Σ[ winding ∈ ℤ ] (subst (λ s → CyclicList.Sh n s → A) (S1.intLoop winding) ) xs ≡ ys ≃⟨ Sigma.Σ-cong-equiv-snd step ⟩
-  Σ[ winding ∈ ℤ ] xs ≡ ys ∘ transport (Modulo.intShiftPath winding n) ≃∎
+  Σ[ winding ∈ ℤ ] xs ≡ ys ∘ transport (intShiftPath winding n) ≃∎
   where module _ (k : ℤ) where
     subst-path : subst (λ s → CyclicList.Sh n s → A) (S1.intLoop k) xs ≡ xs ∘ subst (CyclicList.Sh n) (sym $ S1.intLoop k)
     subst-path = substCodomain (CyclicList.Sh n) (S1.intLoop k) xs
 
-    shift-path : transport⁻ (cong (CyclicList.Sh n) $ S1.intLoop k) ≡ transport⁻ (Modulo.intShiftPath k n)
+    shift-path : transport⁻ (cong (CyclicList.Sh n) $ S1.intLoop k) ≡ transport⁻ (intShiftPath k n)
     shift-path = cong transport⁻ (CyclicList.congShLoop≡shiftPath k)
 
     step =
       (subst (λ s → CyclicList.Sh n s → A) (S1.intLoop k) xs ≡ ys)
         ≃⟨ pathToEquiv $ cong (_≡ ys) $ subst-path ∙ (cong (xs ∘_) shift-path) ⟩
-      (xs ∘ transport⁻ (Modulo.intShiftPath k n) ≡ ys)
+      (xs ∘ transport⁻ (intShiftPath k n) ≡ ys)
         ≃⟨ isoToEquiv Path.symIso ⟩
-      (ys ≡ xs ∘ transport⁻ (Modulo.intShiftPath k n))
-        ≃⟨ pathToEquiv $ cong (λ f → ys ≡ xs ∘ f) $ funExt (λ pos → sym $ transportRefl {A = Fin n} (transport⁻ (Modulo.intShiftPath k n) pos)) ⟩
-      (ys ≡ xs ∘ invEq (pathToEquiv $ Modulo.intShiftPath k n))
-        ≃⟨ preCompAdjointEquiv (pathToEquiv (Modulo.intShiftPath k n)) xs ys ⟩
-      (ys ∘ transport (Modulo.intShiftPath k n) ≡ xs)
+      (ys ≡ xs ∘ transport⁻ (intShiftPath k n))
+        ≃⟨ pathToEquiv $ cong (λ f → ys ≡ xs ∘ f) $ funExt (λ pos → sym $ transportRefl {A = Fin n} (transport⁻ (intShiftPath k n) pos)) ⟩
+      (ys ≡ xs ∘ invEq (pathToEquiv $ intShiftPath k n))
+        ≃⟨ preCompAdjointEquiv (pathToEquiv (intShiftPath k n)) xs ys ⟩
+      (ys ∘ transport (intShiftPath k n) ≡ xs)
         ≃⟨ isoToEquiv Path.symIso ⟩
-      (xs ≡ ys ∘ transport (Modulo.intShiftPath k n))
+      (xs ≡ ys ∘ transport (intShiftPath k n))
         ≃∎
 
 module cyc3 (x₀ x₁ x₂ : A) where

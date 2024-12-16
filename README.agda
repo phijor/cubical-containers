@@ -18,11 +18,13 @@ private
 
 module 2·1-QuotientContainers where
   open import GpdCont.QuotientContainer.Base using (QCont)
-  open import GpdCont.QuotientContainer.Examples using (UnorderedTuple)
+  open import GpdCont.QuotientContainer.Examples using (UnorderedTuple ; UnorderedTupleExt ; _∼permute_)
   open import GpdCont.QuotientContainer.Eval using (⟦_⟧)
   open import GpdCont.QuotientContainer.Premorphism using (Premorphism) renaming (PremorphismEquiv to _≈′_)
   open import GpdCont.QuotientContainer.Morphism using (Morphism)
   open import GpdCont.QuotientContainer.Category using (QCONT)
+
+  open import Cubical.Data.SumFin using (Fin)
 
   01-Definition : Type (ℓ-suc ℓ)
   01-Definition {ℓ} = QCont ℓ
@@ -35,8 +37,8 @@ module 2·1-QuotientContainers where
   03-Definition : QCont ℓ → (hSet ℓ → hSet ℓ)
   03-Definition = ⟦_⟧
 
-  04-Example : ∀ {n} {X} → ⟦ UnorderedTuple n ⟧ X ≡ {! !}
-  04-Example = {! !}
+  04-Example : ∀ {n} {X} → ⟨ ⟦ UnorderedTuple n ⟧ X ⟩ ≃ (Fin n → ⟨ X ⟩) / _∼permute_
+  04-Example {n} {X} = UnorderedTupleExt n X
 
   05-Definition : (F G : QCont ℓ) → Type ℓ
   05-Definition F G = Σ[ u ∈ (F.Shape → G.Shape) ] Premorphism F G u where

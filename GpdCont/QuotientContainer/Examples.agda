@@ -1,10 +1,12 @@
 module GpdCont.QuotientContainer.Examples where
 
 open import GpdCont.Prelude
+open import GpdCont.Univalence using (ua ; ua→ ; ua→⁻ ; ua→⁻ExtEquiv)
 open import GpdCont.QuotientContainer.Base
 open import GpdCont.QuotientContainer.Premorphism
 open import GpdCont.QuotientContainer.Morphism
 open import GpdCont.QuotientContainer.Category
+open import GpdCont.QuotientContainer.Eval as Eval using (⟦_⟧)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
@@ -14,7 +16,6 @@ open import Cubical.Foundations.Transport using (substIso)
 open import Cubical.HITs.PropositionalTruncation as PT using ()
 open import Cubical.HITs.SetQuotients as SQ using (_/_)
 open import Cubical.Foundations.Equiv.Properties using (equivAdjointEquiv)
-open import Cubical.Foundations.Univalence
 open import Cubical.Functions.Involution using (isInvolution ; involEquiv)
 open import Cubical.Relation.Nullary.Base
 open import Cubical.Data.Unit
@@ -35,220 +36,6 @@ open QCont hiding (_⁻¹ ; _·_)
 open Premorphism
 open Morphism
 
-UPair : QCont ℓ-zero
-UPair .Shape = Unit
-UPair .Pos _ = Bool
-UPair .isSymm σ = Unit
-UPair .is-set-shape = isSetUnit
-UPair .is-set-pos _ = isSetBool
-UPair .is-prop-symm _ = isPropUnit
-UPair .symm-id _ = tt
-UPair .symm-sym _ _ = tt
-UPair .symm-comp _ _ _ _ = tt
-
-Unit×UPair : QCont ℓ-zero
-Unit×UPair .Shape = Unit
-Unit×UPair .Pos _ = Unit ⊎ Bool
-Unit×UPair .isSymm σ = equivFun σ (inl tt) ≡ inl tt
-Unit×UPair .is-set-shape = isSetUnit
-Unit×UPair .is-set-pos _ = isSet⊎ isSetUnit isSetBool
-Unit×UPair .is-prop-symm _ = isSet⊎ isSetUnit isSetBool _ _
-Unit×UPair .symm-id _ = refl
-Unit×UPair .symm-sym σ σ-fix-0 = sym (invEq (equivAdjointEquiv σ) σ-fix-0)
-Unit×UPair .symm-comp σ τ σ-fix-0 τ-fix-0 = cong (equivFun τ) σ-fix-0 ∙ τ-fix-0
-
-UnitC : QCont ℓ-zero
-UnitC .Shape = Unit
-UnitC .Pos _ = Unit
-UnitC .isSymm _ = Unit
-UnitC .is-set-shape = isSetUnit
-UnitC .is-set-pos = const isSetUnit
-UnitC .is-prop-symm = const isPropUnit
-UnitC .symm-id _ = tt
-UnitC .symm-sym _ _ = tt
-UnitC .symm-comp _ _ _ _ = tt
-
-dup : Premorphism UnitC UPair (id _)
-dup .pos-mor tt = const tt
-dup .symm-pres tt _ = ∃-intro (notEquiv , tt) (funExt λ _ → refl)
-
--- ¬isGroupHomDupSymmPres : ¬ IsGroupHom (SymmGroupStr UnitC tt) (dup .symm-pres tt) (SymmGroupStr UPair tt)
--- ¬isGroupHomDupSymmPres is-group-hom = not≢const false (not≡const false) where
---   pres-id : (notEquiv , tt) ≡ (idEquiv _ , tt)
---   pres-id = is-group-hom .IsGroupHom.pres1
-
---   not≡const : ∀ (b : Bool) → not b ≡ b
---   not≡const = funExt⁻ $ cong (fst ∘ fst) pres-id
-
-private
-  open module UPair = QCont UPair using (_⁻¹) renaming (_·_ to _⊕_)
-  module ℤ₂ = GroupStr (UPair.SymmGroupStr tt)
-
-  ℤ₂ : Type _
-  ℤ₂ = UPair.Symm tt
-
-  swap : ℤ₂
-  swap .fst = notEquiv
-  swap .snd = tt
-
-  data Graph (f : Bool → Bool) : Type where
-    inspect : (x y : Bool)
-      → f true ≡ x
-      → f false ≡ y
-      → Graph f
-
-  graph : (f : Bool → Bool) → Graph f
-  graph f = inspect (f true) (f false) refl refl
-
-  open import Cubical.Algebra.AbGroup using (AbGroup ; IsAbGroup ; AbGroupPath)
-  open import Cubical.Algebra.Group.Instances.Bool using (BoolGroup ; ≅Bool)
-
-  module BoolGroup = GroupStr (str BoolGroup)
-
-  isCommBoolGroup : ∀ (x y : ⟨ BoolGroup ⟩) → x BoolGroup.· y ≡ y BoolGroup.· x
-  isCommBoolGroup false false = refl
-  isCommBoolGroup false true = refl
-  isCommBoolGroup true false = refl
-  isCommBoolGroup true true = refl
-
-  BoolAb : AbGroup ℓ-zero
-  BoolAb .fst = Bool
-  BoolAb .snd = {! !}
-
-  opaque
-    SymmIso : GroupIso BoolGroup (UPair.SymmGroup tt)
-    SymmIso = ≅Bool $ invIso $ compIso BoolReflection.reflectIso (compIso univalenceIso $ equivToIso $ invEquiv (Σ-contractSnd λ _ → isContrUnit))
-
-    BoolGroup≡SymmGroup : BoolGroup ≡ (UPair.SymmGroup tt)
-    BoolGroup≡SymmGroup = equivFun (GroupPath BoolGroup (UPair.SymmGroup tt)) (GroupIso→GroupEquiv SymmIso)
-
-  SymmAb : AbGroup ℓ-zero
-  SymmAb = {!AbGroupPath _ BoolAb !}
-
-isCommUPairSymm : ∀ (g h : ℤ₂) → g ⊕ h ≡ h ⊕ g
-isCommUPairSymm = {!(IsAbGroup.+Comm) !}
-
-swap₀-pos : Premorphism UPair UPair $ id (UPair .Shape)
-swap₀-pos .Premorphism.pos-mor _ = id _
-swap₀-pos .Premorphism.symm-pres tt σ = ∃-intro σ refl
-
-swap₀ : Morphism UPair UPair
-swap₀ .Morphism.shape-mor = id (UPair .Shape)
-swap₀ .Morphism.pos-equiv = SQ.[ swap₀-pos ]
-
-swap₁-pos : Premorphism UPair UPair $ id (UPair .Shape)
-swap₁-pos .Premorphism.pos-mor _ = not
-swap₁-pos .Premorphism.symm-pres tt σ = ∃-intro σ $ cong UPair._⁺ $ isCommUPairSymm swap σ
-
-swap₁ : Morphism UPair UPair
-swap₁ .Morphism.shape-mor = id (UPair .Shape)
-swap₁ .Morphism.pos-equiv = SQ.[ swap₁-pos ]
-
-{-
-r : PremorphismEquiv swap₀-pos swap₁-pos
-r .PremorphismEquiv.η _ = (notEquiv , tt)
-r .PremorphismEquiv.η-comm _ = funExt $ sym ∘ notnot
-
-swap₀≡swap₁ : swap₀ ≡ swap₁
-swap₀≡swap₁ i .Morphism.shape-mor = refl i
-swap₀≡swap₁ i .Morphism.pos-equiv = pre-morphism-eq/ r i
-
-isEquivPosMorUPairEndomorphism : (f : Premorphism UPair UPair (const tt)) → isEquiv (f .pos-mor tt)
-isEquivPosMorUPairEndomorphism f = isoToIsEquiv $ the-iso (f .pos-mor tt) (f .symm-pres tt) (f .symm-pres-natural tt) where
-  module _ (f : Bool → Bool) (φ : ℤ₂ → ℤ₂) (nat : ∀ (g : ℤ₂) → f UPair.▷ g ≡ φ g UPair.◁ f) where
-    ¬f-const : (c : Bool) → ¬ (∀ b → f b ≡ c)
-    ¬f-const c f-const = not≢const c contra where
-      contra : not c ≡ c
-      contra =
-        not c ≡⟨ cong not $ sym (f-const c) ⟩
-        not (f c) ≡⟨ funExt⁻ (nat swap) c ⟩
-        f ((φ swap UPair.⁺) c) ≡⟨ f-const _ ⟩
-        c ∎
-
-    is-iso : Σ[ inv ∈ (Bool → Bool) ] (section f inv) × (retract f inv)
-    is-iso with (graph f)
-    ... | inspect true false p q = id _ , Bool.elim p q , Bool.elim p q
-    ... | inspect false true p q = not , Bool.elim q p , Bool.elim (cong not p) (cong not q)
-    ... | inspect false false f-true≡false f-false≡false = ex-falso $ ¬f-const false f-const where
-      f-const : ∀ b → f b ≡ false
-      f-const = Bool.elim f-true≡false f-false≡false
-    ... | inspect true true f-true≡true f-false≡true = ex-falso $ ¬f-const true f-const where
-      f-const : ∀ b → f b ≡ true
-      f-const = Bool.elim f-true≡true f-false≡true
-
-    the-iso : Iso Bool Bool
-    the-iso .Iso.fun = f
-    the-iso .Iso.inv = is-iso .fst
-    the-iso .Iso.rightInv = is-iso .snd .fst
-    the-iso .Iso.leftInv = is-iso .snd .snd
-
-UPairEndomorphism→Symm : Premorphism UPair UPair (const tt) → ℤ₂
-UPairEndomorphism→Symm f .fst = _ , isEquivPosMorUPairEndomorphism f
-UPairEndomorphism→Symm f .snd = tt
-
-isPropUPairEndomorphism : isProp (Morphism UPair UPair)
-isPropUPairEndomorphism = MorphismElimProp2 _≡_ isSetMorphism goal where
-  open Premorphism
-  open PremorphismEquiv
-
-  _≈?_ : (f g : Premorphism UPair UPair (const tt)) → PremorphismEquiv f g
-  (f ≈? g) = f≈?g where
-    fˢ gˢ : ℤ₂
-    fˢ = UPairEndomorphism→Symm f
-    gˢ = UPairEndomorphism→Symm g
-
-    f≈?g : PremorphismEquiv f g
-    f≈?g .η tt = fˢ ⊕ gˢ ⁻¹
-    f≈?g .η-comm tt =
-      (fˢ UPair.⁺) ≡⟨ cong UPair._⁺ (ℤ₂.·IdR fˢ) ⟩
-      (fˢ ⊕ ℤ₂.1g) UPair.⁺ ≡⟨ cong (λ · → (fˢ ⊕ ·) UPair.⁺) $ sym (ℤ₂.·InvL gˢ) ⟩
-      (fˢ ⊕ (gˢ ⁻¹ ⊕ gˢ)) UPair.⁺ ≡⟨⟩
-      (fˢ ⊕ gˢ ⁻¹) UPair.◁ (gˢ UPair.⁺) ∎
-
-  goal' : (f g : Premorphism UPair UPair (const tt)) → pre→mor f ≡ pre→mor g
-  goal' f g i .shape-mor = const tt
-  goal' f g i .pos-equiv = pre-morphism-eq/ (f ≈? g) i
-
-  goal : (u v : Unit → Unit) → (f : Premorphism UPair UPair u) → (g : Premorphism UPair UPair v) → pre→mor f ≡ pre→mor g
-  goal u v = goal'
-
-isContrUPairEndomorphism : isContr (Morphism UPair UPair)
-isContrUPairEndomorphism = inhProp→isContr swap₀ isPropUPairEndomorphism
-
-UPairPath : UPair ≡ UPair
-UPairPath i .Shape = Unit
-UPairPath i .Pos _ = notEq i
-UPairPath i .isSymm _ = Unit
-UPairPath i .is-set-shape = isSetUnit
-UPairPath i .is-set-pos _ = isProp→PathP (λ i → isPropIsSet {A = notEq i}) isSetBool isSetBool i
-UPairPath i .is-prop-symm _ _ _ _ = tt
-UPairPath i .symm-id _ = tt
-UPairPath i .symm-sym _ _ = tt
-UPairPath i .symm-comp _ _ _ _ = tt
-
-¬UPairPath≡refl : ¬ UPairPath ≡ refl
-¬UPairPath≡refl upair-path-compare = false≢true false≡true where
-  bool-path-compare : notEq ≡ refl
-  bool-path-compare i j = upair-path-compare i j .Pos (isSet→SquareP {A = λ i j → upair-path-compare i j .Shape} (λ i j → upair-path-compare i j .is-set-shape) refl refl refl refl i j)
-
-  false≡true : false ≡ true
-  false≡true i = transport (bool-path-compare i) true
-
-¬isSetQCont : ¬ isSet (QCont ℓ-zero)
-¬isSetQCont is-set-qcont = ¬UPairPath≡refl $ is-set-qcont _ _ UPairPath refl
-
-¬isUnivalentQCONT : ¬ isUnivalent (QCONT ℓ-zero)
-¬isUnivalentQCONT univ = ¬UPairPath≡refl UPairPath≡refl where
-  isPropUPairAutomorphism : isProp (CatIso (QCONT _) UPair UPair)
-  isPropUPairAutomorphism = isPropΣ isPropUPairEndomorphism isPropIsIso
-
-  compare : pathToIso UPairPath ≡ pathToIso refl
-  compare = isPropUPairAutomorphism _ _
-
-  UPairPath≡refl : UPairPath ≡ refl
-  UPairPath≡refl = isoFunInjective (equivToIso $ _ , isUnivalent.univ univ _ _) UPairPath refl compare
-  -}
-
 AllSymmetries : ∀ {ℓ} (S : hSet ℓ) (P : ⟨ S ⟩ → hSet ℓ) → QCont ℓ
 AllSymmetries S P .Shape = ⟨ S ⟩
 AllSymmetries S P .Pos = ⟨_⟩ ∘ P
@@ -263,22 +50,51 @@ AllSymmetries S P .symm-comp = λ σ τ _ _ → tt*
 UnorderedTuple : (n : ℕ) → QCont ℓ-zero
 UnorderedTuple n = AllSymmetries (Unit , isSetUnit) (const (Fin n , isSetFin))
 
-degenDup : Premorphism (UnorderedTuple 1) (UnorderedTuple 2) (id _)
+_∼permute_ : ∀ {ℓ} {n} {X : Type ℓ} (v w : Fin n → X) → Type ℓ
+_∼permute_ {n} v w = ∃[ σ ∈ Fin n ≃ Fin n ] v ≡ w ∘ equivFun σ
+
+UnorderedTupleExt : ∀ n X → ⟨ ⟦ UnorderedTuple n ⟧ X ⟩ ≃ (Fin n → ⟨ X ⟩) / _∼permute_
+UnorderedTupleExt n X =
+  ⟨ ⟦ UnorderedTuple n ⟧ X ⟩ ≃⟨ _ ≃Σ ⟩
+  Σ[ _ ∈ Unit ] ((Fin n → ⟨ X ⟩) / LabelEquiv _ ⟨ X ⟩) ≃⟨ Σ-contractFst isContrUnit ⟩
+  (Fin n → ⟨ X ⟩) / LabelEquiv tt ⟨ X ⟩ ≃⟨ relEquiv→QuotIdEquiv LabelEquiv≃Permute ⟩
+  (Fin n → ⟨ X ⟩) / _∼permute_ ≃∎
+  where
+
+  open import GpdCont.SetQuotients using (relEquiv→QuotIdEquiv)
+  open Eval (UnorderedTuple n) hiding (⟦_⟧)
+  module _ {v w : Fin n → ⟨ X ⟩} where
+    LabelEquiv≃Permute : LabelEquiv tt ⟨ X ⟩ v w ≃ v ∼permute w
+    LabelEquiv≃Permute = PT.propTrunc≃ (Σ-cong-equiv symm-equiv label-equiv) where
+      symm-equiv : Symm (UnorderedTuple n) tt ≃ (Fin n ≃ Fin n)
+      symm-equiv = Σ-contractSnd λ _ → isContrUnit*
+
+      label-equiv : ((g , _) : Symm (UnorderedTuple n) tt) → (PathP (λ i → ua g i → ⟨ X ⟩) v w) ≃ (v ≡ w ∘ equivFun g)
+      label-equiv (g , _) = ua→⁻ExtEquiv
+
+Id : QCont ℓ-zero
+Id = UnorderedTuple 1
+
+UPair : QCont ℓ-zero
+UPair = UnorderedTuple 2
+
+private
+  swap-two : Fin 2 → Fin 2
+  swap-two fzero = fsuc fzero
+  swap-two (fsuc fzero) = fzero
+
+  invol-swap-two : isInvolution swap-two
+  invol-swap-two fzero = refl
+  invol-swap-two (fsuc fzero) = refl
+
+  swap-≃ : Fin 2 ≃ Fin 2
+  swap-≃ = involEquiv {f = swap-two} invol-swap-two
+
+degenDup : Premorphism Id UPair (id _)
 degenDup .pos-mor _ = const fzero
 degenDup .symm-pres _ g = ∃-intro (φ g) isNaturalFiller-φ where
-  swapPos : Pos (UnorderedTuple 2) _ → Pos (UnorderedTuple 2) _
-  swapPos fzero = fsuc fzero
-  swapPos (fsuc fzero) = fzero
-
-  isInvolutionSwapPos : isInvolution swapPos
-  isInvolutionSwapPos fzero = refl
-  isInvolutionSwapPos (fsuc fzero) = refl
-
-  swap-≃ : Pos (UnorderedTuple 2) _ ≃ Pos (UnorderedTuple 2) _
-  swap-≃ = involEquiv {f = swapPos} isInvolutionSwapPos
-
-  φ : Symm (UnorderedTuple 1) _ → Symm (UnorderedTuple 2) _
+  φ : Symm Id _ → Symm UPair _
   φ = const (swap-≃ , _)
 
-  isNaturalFiller-φ : isNaturalFiller (UnorderedTuple 1) (UnorderedTuple 2) (id _) (λ _ _ → fzero) g (φ g)
+  isNaturalFiller-φ : isNaturalFiller Id UPair (id _) (λ _ _ → fzero) g (φ g)
   isNaturalFiller-φ = isProp→ (isContr→isProp isContrSumFin1) _ _

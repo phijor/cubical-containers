@@ -155,13 +155,14 @@ module 3-ActionContainers where
   open import GpdCont.ActionContainer.Abstract using (ActionContainer)
   open import GpdCont.ActionContainer.Morphism using (Morphism)
   open import GpdCont.ActionContainer.Category using (Act≃FamGroupAction) renaming (Act to ActCont)
+  open import GpdCont.ActionContainer.Examples using (CyclicList)
 
   22-Defintion : Type (ℓ-suc ℓ)
   22-Defintion = ActionContainer _
 
-  -- TODO: Cyclic lists as an action container
-  23-Example : {! !}
-  23-Example = {! !}
+  -- Cyclic lists as an action container, defined in terms of a ℤ-action:
+  23-Example : ActionContainer ℓ-zero
+  23-Example = CyclicList
 
   24-Definition : (F G : ActionContainer ℓ) → Type ℓ
   24-Definition = Morphism

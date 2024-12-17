@@ -11,7 +11,7 @@ open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Categories.Functor.Base
 open import Cubical.Categories.Adjoint.UniversalElements
-open import Cubical.Categories.Presheaf.Representable
+open import Cubical.Categories.Presheaf.Representable using (UniversalElement) public
 
 private
   module C where

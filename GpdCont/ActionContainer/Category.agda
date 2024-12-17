@@ -88,7 +88,7 @@ module _ {ℓ} where
   Act→FamGroupAction .F-seq {x} {y} {z} f g = FamHom≡ ℓ (GroupAction ℓ)
     {X = Act→FamGroupAction .F-ob x} {Y = Act→FamGroupAction .F-ob z}
     refl
-    λ j → GroupActionHom≡ {ℓ} {Act→FamGroupAction .F-ob x .snd j} {Act→FamGroupAction .F-ob z .snd _} refl
+    λ j → GroupActionHom≡ ℓ {Act→FamGroupAction .F-ob x .snd j} {Act→FamGroupAction .F-ob z .snd _} refl
 
 
   FamGroupAction→Act : Functor FamGroupAction Act

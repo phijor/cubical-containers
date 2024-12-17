@@ -4,7 +4,7 @@ open import GpdCont.Prelude
 open import GpdCont.HomotopySet using (_→Set_)
 open import GpdCont.GroupAction.Base
 open import GpdCont.GroupAction.Equivariant
-open import GpdCont.DisplayedCategories using (Fam ; Famᴰ ; constᴰ)
+open import GpdCont.Categories.Family using (Fam ; Famᴰ)
 open import GpdCont.Group.DeloopingCategory using (DeloopingCategory ; ∫DeloopingCategory)
 open import GpdCont.Group.MapConjugator using (Conjugatorsᴰ ; ConjugatorStr)
 

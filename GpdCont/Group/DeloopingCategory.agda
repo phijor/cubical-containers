@@ -1,7 +1,7 @@
 module GpdCont.Group.DeloopingCategory where
 
 open import GpdCont.Prelude
-open import GpdCont.DisplayedCategories using (module DisplayedOverContr)
+open import GpdCont.Categories.DisplayedOverContr using (∫ᶜ)
 
 open import Cubical.Algebra.Group
 open import Cubical.Data.Unit.Properties using (isContrUnit)
@@ -23,4 +23,4 @@ module _ {ℓ} (G : Group ℓ) where
   DeloopingCategory .Category.isSetHom = G.is-set
 
   ∫DeloopingCategory : ∀ {ℓo ℓh} → (D : Categoryᴰ DeloopingCategory ℓo ℓh) → Category ℓo (ℓ-max ℓ ℓh)
-  ∫DeloopingCategory D = DisplayedOverContr.∫ᶜ DeloopingCategory D isContrUnit
+  ∫DeloopingCategory D = ∫ᶜ DeloopingCategory D isContrUnit

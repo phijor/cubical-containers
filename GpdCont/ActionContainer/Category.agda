@@ -3,7 +3,7 @@ module GpdCont.ActionContainer.Category where
 open import GpdCont.Prelude
 open import GpdCont.HomotopySet using (hSet≡)
 open import GpdCont.Univalence using (ua→)
-open import GpdCont.DisplayedCategories using (Fam ; Famᴰ ; constᴰ ; FamHom≡ ; Fam≡)
+open import GpdCont.Categories.Family using (Fam ; Famᴰ ; FamHom≡ ; Fam≡)
 open import GpdCont.GroupAction.Base
 open import GpdCont.GroupAction.Category using (GroupAction ; GroupActionHom≡)
 open import GpdCont.ActionContainer.Abstract

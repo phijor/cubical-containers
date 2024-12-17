@@ -15,38 +15,59 @@ open import Cubical.Categories.Constructions.TotalCategory.Base using (∫C)
 open import Cubical.Categories.Displayed.Base as Disp using (Categoryᴰ)
 open import Cubical.Categories.Presheaf.Representable
 
-private
-  module C = Category C
 
-open Categoryᴰ
+module _ where
+  private
+    module C = Category C
 
-Famᴰ : Categoryᴰ (SET ℓ) (ℓ-max ℓo ℓ) (ℓ-max ℓh ℓ)
-Famᴰ .ob[_] X = ⟨ X ⟩ → C.ob
-Famᴰ .Hom[_][_,_] {x = J} {y = K} f Xⱼ Yₖ = ∀ (j : ⟨ J ⟩) → C.Hom[ (Xⱼ j) , Yₖ (f j) ]
-Famᴰ .idᴰ j = C.id
-Famᴰ ._⋆ᴰ_ {f} φ ψ = λ j → φ j C.⋆ ψ (f j)
-Famᴰ .⋆IdLᴰ φ = funExt λ j → C.⋆IdL (φ j)
-Famᴰ .⋆IdRᴰ φ = funExt λ j → C.⋆IdR (φ j)
-Famᴰ .⋆Assocᴰ φ ψ υ = funExt λ j → C.⋆Assoc (φ j) (ψ _) (υ _)
-Famᴰ .isSetHomᴰ = isSetΠ λ j → C.isSetHom
+  open Categoryᴰ
 
-Fam = ∫C Famᴰ
-{-# INJECTIVE_FOR_INFERENCE Fam #-}
-{-# INJECTIVE_FOR_INFERENCE Famᴰ #-}
+  Famᴰ : Categoryᴰ (SET ℓ) (ℓ-max ℓo ℓ) (ℓ-max ℓh ℓ)
+  Famᴰ .ob[_] X = ⟨ X ⟩ → C.ob
+  Famᴰ .Hom[_][_,_] {x = J} {y = K} f Xⱼ Yₖ = ∀ (j : ⟨ J ⟩) → C.Hom[ (Xⱼ j) , Yₖ (f j) ]
+  Famᴰ .idᴰ j = C.id
+  Famᴰ ._⋆ᴰ_ {f} φ ψ = λ j → φ j C.⋆ ψ (f j)
+  Famᴰ .⋆IdLᴰ φ = funExt λ j → C.⋆IdL (φ j)
+  Famᴰ .⋆IdRᴰ φ = funExt λ j → C.⋆IdR (φ j)
+  Famᴰ .⋆Assocᴰ φ ψ υ = funExt λ j → C.⋆Assoc (φ j) (ψ _) (υ _)
+  Famᴰ .isSetHomᴰ = isSetΠ λ j → C.isSetHom
 
-Fam≡ : ∀ {x@(J , X) y@(K , Y) : Category.ob Fam} → (p : J ≡ K) → (q : PathP (λ i → ⟨ p i ⟩ → C.ob) X Y) → x ≡ y
-Fam≡ p q i .fst = p i
-Fam≡ p q i .snd = q i
+  Fam = ∫C Famᴰ
+  {-# INJECTIVE_FOR_INFERENCE Fam #-}
+  {-# INJECTIVE_FOR_INFERENCE Famᴰ #-}
 
-FamHom≡ : ∀ {X Y} {f×φ@(f , φ) g×ψ@(g , ψ) : Fam [ X , Y ]}
-  → (p : f ≡ g)
-  → (∀ j → PathP (λ i → C [ X .snd j , Y .snd (p i j) ]) (φ j) (ψ j))
-  → f×φ ≡ g×ψ
-FamHom≡ p q i .fst = p i
-FamHom≡ p q i .snd j = q j i
+  Fam≡ : ∀ {x@(J , X) y@(K , Y) : Category.ob Fam} → (p : J ≡ K) → (q : PathP (λ i → ⟨ p i ⟩ → C.ob) X Y) → x ≡ y
+  Fam≡ p q i .fst = p i
+  Fam≡ p q i .snd = q i
+
+  FamHom≡ : ∀ {X Y} {f×φ@(f , φ) g×ψ@(g , ψ) : Fam [ X , Y ]}
+    → (p : f ≡ g)
+    → (∀ j → PathP (λ i → C [ X .snd j , Y .snd (p i j) ]) (φ j) (ψ j))
+    → f×φ ≡ g×ψ
+  FamHom≡ p q i .fst = p i
+  FamHom≡ p q i .snd j = q j i
 
 private
   module Fam = Category Fam
+
+module Notation where
+  private
+    module C = Category C
+
+  Index : Fam.ob → hSet ℓ
+  Index = fst
+
+  El : (x : Fam.ob) → ⟨ Index x ⟩ → C.ob
+  El = snd
+
+  HomIndex : {x y : Fam.ob} → Fam.Hom[ x , y ] → ⟨ Index x ⟩ → ⟨ Index y ⟩
+  HomIndex = fst
+
+  HomEl : {x y : Fam.ob} → (f : Fam.Hom[ x , y ]) → (j : ⟨ Index x ⟩) → C.Hom[ El x j , El y (HomIndex f j) ]
+  HomEl = snd
+
+open Notation
+
 
 module Coproducts where
   open import GpdCont.Categories.Coproducts Fam ℓ as FamCoproduct

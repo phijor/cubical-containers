@@ -72,32 +72,33 @@ open Notation
 module Coproducts where
   open import GpdCont.Categories.Coproducts Fam ℓ as FamCoproduct
 
+  private
+    module C = Category C
+
   module _ (K : hSet ℓ) (c : ⟨ K ⟩ → Fam.ob) where
-    module _ (k : ⟨ K ⟩) where
-      J : hSet ℓ
-      J = c k .fst
+    coprod : Fam.ob
+    coprod .fst = ΣSet K (Index ∘ c)
+    coprod .snd = uncurry (El ∘ c)
 
-      x : ⟨ J ⟩ → C.ob
-      x = c k .snd
+    inj : (k : ⟨ K ⟩) → Σ[ f ∈ (⟨ Index (c k) ⟩ → Σ[ k ∈ ⟨ K ⟩ ] ⟨ Index (c k) ⟩) ] ∀ j → C.Hom[ El (c k) j , El (c (f j .fst)) (f j .snd) ]
+    inj k .fst j = k , j
+    inj k .snd j = C.id {x = El (c k) j}
 
-    cop : Fam.ob
-    cop .fst = ΣSet K J
-    cop .snd = uncurry x
-
-    el : (k : ⟨ K ⟩) → Σ[ f ∈ (⟨ J k ⟩ → Σ[ k ∈ ⟨ K ⟩ ] ⟨ J k ⟩) ] ∀ j → C.Hom[ x k j , x (f j .fst) (f j .snd) ]
-    el k .fst j = k , j
-    el k .snd j = C.id {x = x k j}
-
-    univ : (y : Fam.ob) → isEquiv (λ (f : Fam.Hom[ cop , y ]) → λ (k : ⟨ K ⟩) → Fam._⋆_ {x = c k} (el k) f)
-    univ y = isoToIsEquiv univ-iso where
-      univ-iso : Iso Fam.Hom[ cop , y ] ((k : ⟨ K ⟩) → Fam.Hom[ c k , y ])
-      univ-iso .Iso.fun f = λ k → el k Fam.⋆ f
+    module _ (y : Fam.ob) where
+      univ-iso : Iso Fam.Hom[ coprod , y ] ((k : ⟨ K ⟩) → Fam.Hom[ c k , y ])
+      univ-iso .Iso.fun f = λ k → inj k Fam.⋆ f
       univ-iso .Iso.inv g .fst (k , j) = g k .fst j
       univ-iso .Iso.inv g .snd (k , j) = g k .snd j
       univ-iso .Iso.rightInv g = funExt λ k → FamHom≡ refl (λ j → C.⋆IdL (g k .snd j))
       univ-iso .Iso.leftInv f = FamHom≡ refl λ kj → C.⋆IdL (f .snd kj)
 
+      is-univ : isEquiv (univ-iso .Iso.fun)
+      is-univ = isoToIsEquiv univ-iso
+
     FamCoproduct : Coproduct K c
-    FamCoproduct .UniversalElement.vertex = cop
-    FamCoproduct .UniversalElement.element = el
-    FamCoproduct .UniversalElement.universal = univ
+    FamCoproduct .UniversalElement.vertex = coprod
+    FamCoproduct .UniversalElement.element = inj
+    FamCoproduct .UniversalElement.universal = is-univ
+
+  FamCoproducts : Coproducts
+  FamCoproducts = FamCoproduct

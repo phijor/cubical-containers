@@ -7,6 +7,7 @@ module GpdCont.Categories.Products {ℓo ℓh} (C : Category ℓo ℓh) (ℓ : L
 open import GpdCont.HomotopySet as HSet
 import      GpdCont.Categories.Diagonal as Diagonal
 
+open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Categories.Functor.Base
 open import Cubical.Categories.Adjoint.UniversalElements
@@ -29,6 +30,19 @@ module NotationAt (K : hSet ℓ) (c : ⟨ K ⟩ → C.ob) (ip : Product K c) whe
 
   Π : C.ob
   Π = vertex
+
+  π : (k : ⟨ K ⟩) → C.Hom[ Π , c k ]
+  π = element
+
+  module _ (x : C.ob) where
+    is-universal : isEquiv (λ f k → f C.⋆ π k)
+    is-universal = universal x
+
+    univ-equiv : C.Hom[ x , Π ] ≃ (∀ k → C.Hom[ x , c k ])
+    univ-equiv = _ , is-universal
+
+    univ-iso : Iso C.Hom[ x , Π ] (∀ k → C.Hom[ x , c k ])
+    univ-iso = equivToIso univ-equiv
 
 module Notation (ip : Products) where
   open import Cubical.Data.Bool

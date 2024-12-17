@@ -53,6 +53,10 @@ module _ where
   _≃⟨⟩_ : ∀ {ℓ ℓ'} (A : Type ℓ) {B : Type ℓ'} → A ≃ B → A ≃ B
   A ≃⟨⟩ e = e
 
+  infixr 0 _Iso⟨⟩_
+  _Iso⟨⟩_ : ∀ {ℓ ℓ'} (A : Type ℓ) {B : Type ℓ'} → Iso A B → Iso A B
+  A Iso⟨⟩ i = i
+
 module LevelNumber where
   open import Agda.Primitive using (LevelUniv)
   open import Agda.Builtin.Nat

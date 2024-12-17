@@ -2,33 +2,33 @@ module GpdCont.ActionContainer.Category where
 
 open import GpdCont.Prelude
 open import GpdCont.HomotopySet using (hSet≡)
-open import GpdCont.Univalence using (ua→)
 open import GpdCont.Categories.Family using (Fam ; Famᴰ ; FamHom≡ ; Fam≡)
 open import GpdCont.GroupAction.Base
 open import GpdCont.GroupAction.Category using (GroupAction ; GroupActionHom≡)
 open import GpdCont.ActionContainer.Abstract
 open import GpdCont.ActionContainer.Morphism hiding (mkMorphism-syntax)
-open import GpdCont.ActionContainer.Transformation
+open import GpdCont.QuotientContainer.Base using (QCont)
+open import GpdCont.QuotientContainer.Premorphism using (Premorphism ; isReflPremorphismEquiv)
+open import GpdCont.QuotientContainer.Morphism
+  using (pre-morphism-class ; pre-morphism-eq/)
+  renaming (Morphism to QMorphism ; PremorphismEquiv→Morphism≡ to QMorphism≡)
+open import GpdCont.QuotientContainer.Category renaming (QCONT to Quot)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
-open import Cubical.HITs.PropositionalTruncation as PT using ()
-open import Cubical.Data.Sigma as Sigma using ()
+import      Cubical.Functions.Embedding as Embedding
+import      Cubical.HITs.PropositionalTruncation as PT
 
 open import Cubical.Algebra.Group.Base
-open import Cubical.Algebra.Group.Properties
-open import Cubical.Algebra.Group.Morphisms
-open import Cubical.Algebra.Group.MorphismProperties
-open import Cubical.Algebra.Group.GroupPath using (uaGroup)
+open import Cubical.Algebra.Group.Properties using (isPropIsGroup)
+open import Cubical.Algebra.Group.Morphisms using (GroupHom)
+open import Cubical.Algebra.Group.MorphismProperties using (idGroupHom ; compGroupHom)
 
 open import Cubical.Categories.Category.Base using (Category ; _[_,_])
 open import Cubical.Categories.Functor as FunctorM using (Functor ; _⟅_⟆ ; _⟪_⟫) renaming (𝟙⟨_⟩ to idFunctor ; _∘F_ to _∘ꟳ_)
 open import Cubical.Categories.NaturalTransformation as NT using (_≅ᶜ_ ; NatIso ; NatTrans)
 open import Cubical.Categories.Equivalence using (_≃ᶜ_ ; WeakInverse)
-open import Cubical.Categories.Displayed.Base
-open import Cubical.Categories.Constructions.TotalCategory using (∫C)
-open import Cubical.Categories.Instances.Sets using (SET)
-open import Cubical.Categories.Instances.Terminal using (TerminalCategory)
+open import Cubical.Categories.Constructions.FullSubcategory using (FullSubcategory)
 
 module _ {ℓ} where
   idAct : (C : ActionContainer ℓ) → Morphism C C
@@ -74,18 +74,6 @@ module _ {ℓ} where
   Act .Category.⋆Assoc f g h = Morphism≡ _ _ refl refl refl
   Act .Category.isSetHom = isSetMorphism _ _
 
-
-  module _ (C D : ActionContainer ℓ) where
-    ActLocal : Category _ _
-    ActLocal .Category.ob = Morphism C D
-    ActLocal .Category.Hom[_,_] = TransformationP
-    ActLocal .Category.id = idTransformationP _
-    ActLocal .Category._⋆_ = vcompTransformationP
-    ActLocal .Category.⋆IdL = {! !}
-    ActLocal .Category.⋆IdR = {! !}
-    ActLocal .Category.⋆Assoc = {! !}
-    ActLocal .Category.isSetHom = isSetTransformationP
-
   open Functor
 
   FamGroupAction = Fam ℓ (GroupAction ℓ)
@@ -97,7 +85,11 @@ module _ {ℓ} where
   Act→FamGroupAction .F-hom f = f.shape-map , λ s → (f.symm-hom s , f.pos-map s) , f.is-equivariant-pos-map s where
     module f = Morphism f
   Act→FamGroupAction .F-id = refl
-  Act→FamGroupAction .F-seq f g = FamHom≡ _ _ refl λ j → GroupActionHom≡ refl
+  Act→FamGroupAction .F-seq {x} {y} {z} f g = FamHom≡ ℓ (GroupAction ℓ)
+    {X = Act→FamGroupAction .F-ob x} {Y = Act→FamGroupAction .F-ob z}
+    refl
+    λ j → GroupActionHom≡ {ℓ} {Act→FamGroupAction .F-ob x .snd j} {Act→FamGroupAction .F-ob z .snd _} refl
+
 
   FamGroupAction→Act : Functor FamGroupAction Act
   FamGroupAction→Act .F-ob (S , σ*) = mkActionContainer S P G σ where
@@ -175,3 +167,60 @@ module _ {ℓ} where
     weak-inv .WeakInverse.invFunc = FamGroupAction→Act
     weak-inv .WeakInverse.η = η
     weak-inv .WeakInverse.ε = ε
+
+  isFaithfulActionContainer : ActionContainer ℓ → Type _
+  isFaithfulActionContainer C = (s : Shape) → Embedding.hasPropFibers (action {s}) where
+    open ActionContainer C
+
+  isPropIsFaitfulActionContainer : ∀ C → isProp (isFaithfulActionContainer C)
+  isPropIsFaitfulActionContainer c = isPropΠ λ s → Embedding.hasPropFibersIsProp
+
+  ActFaith : Category _ _
+  ActFaith = FullSubcategory Act isFaithfulActionContainer
+
+  private
+    module ActFaith = Category ActFaith
+    module Quot = Category (Quot ℓ)
+
+  ∣_∣₀ : ActFaith.ob → Quot.ob
+  ∣ (C , is-ff) ∣₀ = goal where
+    open ActionContainer C
+
+    goal : QCont ℓ
+    goal .QCont.Shape = Shape
+    goal .QCont.Pos = Pos
+    goal .QCont.isSymm = fiber action
+    goal .QCont.is-set-shape = is-set-shape
+    goal .QCont.is-set-pos = is-set-pos
+    goal .QCont.is-prop-symm {s} = is-ff s
+    goal .QCont.symm-id s = symm-id , action-pres-1
+    goal .QCont.symm-sym σ = λ { (g , p) → symm-inv g , action-pres-inv g ∙ cong invEquiv p }
+    goal .QCont.symm-comp σ τ = λ { (g , p) (h , q) → g · h , action-pres-· g h ∙ (cong₂ _∙ₑ_ p q) }
+
+  ∣-∣₁-pre : ∀ C D → (F : ActFaith [ C , D ]) → Premorphism ∣ C ∣₀ ∣ D ∣₀ (F .Morphism.shape-map)
+  ∣-∣₁-pre (C , _) (D , _) F = ∣F∣₁-pre where
+    module F = Morphism F
+    module C = ActionContainer C
+    module D = ActionContainer D
+
+    ∣F∣₁-pre : Premorphism _ _ _
+    ∣F∣₁-pre .Premorphism.pos-mor = F.pos-map
+    ∣F∣₁-pre .Premorphism.symm-pres s (p , g , fib-p) =
+      ∃-intro (D.action (F.symm-map s g) , (F.symm-map s g) , refl) $
+        equivFun p ∘ F.pos-map s ≡⟨ cong (λ p → equivFun p ∘ _) (sym fib-p) ⟩
+        equivFun (C.action g) ∘ F.pos-map s ≡⟨ F.is-equivariant-pos-map s g ⟩
+        F.pos-map s ∘ (equivFun $ D.action (F.symm-map s g)) ∎
+
+  ∣_∣₁ : ∀ {C D} → ActFaith [ C , D ] → Quot ℓ [ ∣ C ∣₀ , ∣ D ∣₀ ]
+  ∣_∣₁ {C} {D} F = ∣F∣₁ where
+    module F = Morphism F
+
+    ∣F∣₁ : Quot ℓ [ _ , _ ]
+    ∣F∣₁ .QMorphism.shape-mor = F.shape-map
+    ∣F∣₁ .QMorphism.pos-equiv = pre-morphism-class $ ∣-∣₁-pre C D F
+
+  ActFaith→QCont : Functor ActFaith (Quot ℓ)
+  ActFaith→QCont .F-ob = ∣_∣₀
+  ActFaith→QCont .F-hom = ∣_∣₁
+  ActFaith→QCont .F-id {x = F} = QMorphism≡ $ isReflPremorphismEquiv $ ∣-∣₁-pre F F $ ActFaith.id {x = F}
+  ActFaith→QCont .F-seq {x = F} {y = G} {z = H} f g = QMorphism≡ $ isReflPremorphismEquiv $ ∣-∣₁-pre F H $ ActFaith._⋆_ {x = F} {y = G} {z = H} f g

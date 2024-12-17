@@ -91,6 +91,12 @@ record ActionContainer (ℓ : Level) : Type (ℓ-suc ℓ) where
   action-pres-1 : ∀ {s} → action (GroupStr.1g (symm-group-str s)) ≡ idEquiv (Pos s)
   action-pres-1 = IsGroupHom.pres1 (is-group-hom-action _)
 
+  action-pres-inv : ∀ {s} (g : Symm s) → action (symm-inv g) ≡ invEquiv (action g)
+  action-pres-inv = IsGroupHom.presinv (is-group-hom-action _)
+
+  action-pres-· : ∀ {s} (g h : Symm s) → action (g · h) ≡ action g ∙ₑ action h
+  action-pres-· = IsGroupHom.pres· (is-group-hom-action _)
+
 open ActionContainer
 
 ActionContainer≡ : ∀ {ℓ} {C D : ActionContainer ℓ}

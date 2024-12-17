@@ -59,6 +59,16 @@ pre→mor : ∀ {u : Q .Shape → R .Shape} (f : Premorphism Q R u) → Morphism
 pre→mor {u = u} f .shape-mor = u
 pre→mor {u = u} f .pos-equiv = pre-morphism-class f
 
+Morphism≡ : ∀ {f g : Morphism Q R}
+  → (p : f .shape-mor ≡ g .shape-mor)
+  → (q : PathP (λ i → Premorphism/ Q R (p i)) (f .pos-equiv) (g .pos-equiv))
+  → f ≡ g
+Morphism≡ p q i .shape-mor = p i
+Morphism≡ p q i .pos-equiv = q i
+
+PremorphismEquiv→Morphism≡ : ∀ {u} {f g : Premorphism Q R u} → (PremorphismEquiv f g) → pre→mor f ≡ pre→mor g
+PremorphismEquiv→Morphism≡ r = Morphism≡ refl (pre-morphism-eq/ r)
+
 opaque
   MorphismElimProp : ∀ {ℓP} (P : Morphism Q S → Type ℓP)
     → (∀ α → isProp (P α))

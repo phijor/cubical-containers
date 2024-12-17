@@ -5,10 +5,12 @@ module GpdCont.Categories.Family (ℓ : Level) {ℓo ℓh} (C : Category ℓo �
 
 open import GpdCont.Univalence
 open import GpdCont.HomotopySet
+import      GpdCont.Categories.Products as Pr
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Data.Sigma
 
 open import Cubical.Categories.Instances.Sets using (SET)
 open import Cubical.Categories.Constructions.TotalCategory.Base using (∫C)
@@ -102,3 +104,54 @@ module Coproducts where
 
   FamCoproducts : Coproducts
   FamCoproducts = FamCoproduct
+
+module Products (p : Pr.Products C ℓ) where
+
+  private
+    open module FamProduct = Pr Fam ℓ
+    module C where
+      open Category C public
+      open Pr.Notation C ℓ p public
+
+
+  module _ (K : hSet ℓ) (c : ⟨ K ⟩ → Fam.ob) where
+    private
+      c′ : (φ : ∀ k → ⟨ Index (c k) ⟩) (k : ⟨ K ⟩) → C.ob
+      c′ φ k = El (c k) (φ k)
+
+    prod : Fam.ob
+    prod .fst = ΠSet {S = ⟨ K ⟩} λ k → Index (c k)
+    prod .snd = λ (φ : ∀ k → ⟨ Index (c k) ⟩) → C.Π K (c′ φ)
+
+    proj : (k : ⟨ K ⟩) → Fam.Hom[ prod , c k ]
+    proj k .fst φ = φ k
+    proj k .snd φ = C.π K (c′ φ) k
+
+    univ-iso : ∀ (x : Fam.ob) → Iso Fam.Hom[ x , prod ] ((k : ⟨ K ⟩) → Fam.Hom[ x , c k ])
+    univ-iso x =
+      Fam.Hom[ x , prod ]
+        Iso⟨⟩
+      Σ[ φ ∈ (⟨ Index x ⟩ → (k : ⟨ K ⟩) → ⟨ Index (c k) ⟩) ] ((j : ⟨ Index x ⟩) → C.Hom[ El x j , C.Π K (c′ (φ j)) ])
+        Iso⟨ invIso Σ-Π-Iso ⟩
+      ((j : ⟨ Index x ⟩) → Σ[ φ ∈ ((k : ⟨ K ⟩) → ⟨ Index (c k) ⟩) ] (C.Hom[ El x j , C.Π K (c′ φ) ]))
+        Iso⟨ codomainIsoDep (λ j → Σ-cong-iso-snd λ φ → C.univ-iso K (c′ φ) (El x j)) ⟩
+      ((j : ⟨ Index x ⟩) → Σ[ φ ∈ ((k : ⟨ K ⟩) → ⟨ Index (c k) ⟩) ] ((k : ⟨ K ⟩) → C.Hom[ El x j , c′ φ k ]))
+        Iso⟨ codomainIsoDep (λ j → invIso Σ-Π-Iso) ⟩
+      ((j : ⟨ Index x ⟩) → (k : ⟨ K ⟩) → Σ[ i ∈ ⟨ Index (c k) ⟩ ] (C.Hom[ El x j , El (c k) i ]))
+        Iso⟨ flipIso ⟩
+      ((k : ⟨ K ⟩) → (j : ⟨ Index x ⟩) → Σ[ i ∈ ⟨ Index (c k) ⟩ ] (C.Hom[ El x j , El (c k) i ]))
+        Iso⟨ codomainIsoDep (λ k → Σ-Π-Iso) ⟩
+      ((k : ⟨ K ⟩) → Σ[ φ ∈ ((j : ⟨ Index x ⟩) → ⟨ Index (c k) ⟩) ] (∀ j → C.Hom[ El x j , El (c k) (φ j) ]))
+        Iso⟨⟩
+      ((k : ⟨ K ⟩) → Fam.Hom[ x , c k ]) ∎Iso
+
+    univ : (x : Fam.ob) → isEquiv (univ-iso x .Iso.fun)
+    univ = isoToIsEquiv ∘ univ-iso
+
+    FamProduct : Product K c
+    FamProduct .UniversalElement.vertex = prod
+    FamProduct .UniversalElement.element = proj
+    FamProduct .UniversalElement.universal = univ
+
+  FamProducts : Products
+  FamProducts = FamProduct

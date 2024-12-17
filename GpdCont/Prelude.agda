@@ -4,7 +4,7 @@ open import GpdCont.RecordEquiv public
 
 open import Cubical.Foundations.Prelude public
 open import Cubical.Foundations.Function
-  using (const ; _∘_ ; _$_ ; curry ; uncurry)
+  using (const ; _∘_ ; _$_ ; curry ; uncurry ; flip)
   renaming (idfun to id)
   public
 open import Cubical.Foundations.Structure public using (⟨_⟩ ; str)
@@ -38,6 +38,15 @@ module _ where
 
   refl′ : (x : A) → x ≡ x
   refl′ x i = x
+
+  flipIso : ∀ {C : A → B → Type ℓ} → Iso ((a : A) (b : B) → C a b) ((b : B) (a : A) → C a b)
+  flipIso .Iso.fun = flip
+  flipIso .Iso.inv = flip
+  flipIso .Iso.rightInv _ = refl
+  flipIso .Iso.leftInv _ = refl
+
+  flipEquiv : ∀ {C : A → B → Type ℓ} → ((a : A) (b : B) → C a b) ≃ ((b : B) (a : A) → C a b)
+  flipEquiv {C} = strictIsoToEquiv (flipIso {C = C})
 
 module _ where
   infixr 0 _≃⟨⟩_

@@ -173,7 +173,7 @@ module 3-ActionContainers where
 
   module 3·1-Algebra where
     open import GpdCont.GroupAction.Category using (GroupAction ; GroupActionᴰ)
-    open import GpdCont.DisplayedCategories using (Fam)
+    open import GpdCont.Categories.Family using (Fam)
     open import GpdCont.ActionContainer.Constant using (konst ; konst-exponential)
     open import GpdCont.ActionContainer.DirectProduct using (binProducts)
 

@@ -4,6 +4,8 @@ open import GpdCont.Prelude
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Equiv.Properties using (equivAdjointEquiv)
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Univalence using (pathToEquiv ; EquivJ)
 open import Cubical.Foundations.Transport using (transportComposite)
 open import Cubical.Functions.FunExtEquiv using (funExtEquiv)
@@ -68,3 +70,6 @@ equivΠDomain : ∀ {ℓ ℓ'} {A₀ : Type ℓ} {A₁ : Type ℓ} {B : A₁ →
   → ((a₁ : A₁) → B a₁) ≃ ((a₀ : A₀) → B (equivFun e a₀))
 equivΠDomain {A₀} {A₁} {B} e .fst = _∘ equivFun e
 equivΠDomain {A₀} {A₁} {B} e .snd = EquivJ (λ A₀ e → isEquiv (_∘ equivFun e)) (idIsEquiv ((a₁ : A₁) → B a₁)) e
+
+isSet→section-equivToIso : isSet A → isSet B → section (equivToIso {A = A} {B = B}) isoToEquiv
+isSet→section-equivToIso set-A set-B = retIsEq {f = isoToEquiv} (isSet→isEquiv-isoToPath set-A set-B)

@@ -46,6 +46,14 @@ nix-shell> ./gen-everything.sh
 nix-shell> agda Everything.agda
 ```
 
+To render all source modules included from `README.agda` to static HTML pages, run
+
+```console
+$ nix build '.#default.html'
+```
+
+The directory `./result-html` will contain the rendered pages, with `README.agda` available as `./result-html/README.html`.
+
 ## License
 
 All source code in this repository is licensed under the terms of the MIT License, see [LICENSE](./LICENSE).

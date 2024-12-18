@@ -14,14 +14,28 @@ in
       name = "${name}-source";
       path = lib.sources.cleanSource ./.;
     };
+    outputs = [ "out" "html" ];
     postPatch = ''
       patchShebangs ./gen-everything.sh
     '';
-    preBuild = ''
+    buildPhase = ''
+      runHook preInstall
+
+      echo 'Generating list of modules...'
       ./gen-everything.sh
+
+      echo 'Checking `Everything.agda`...'
+      agda ./Everything.agda
+
+      echo 'Checking `README.agda`...'
+      agda ./README.agda
+
+      echo "Generating HTML docs..."
+      agda --html --html-dir=$html --highlight-occurrences ./README.agda
+
+      runHook postInstall
     '';
     buildInputs = [cubical cubical-categorical-logic];
-    everythingFile = "./Everything.agda";
     meta = {
       description = "An Agda playground 🛝";
       longDescription = ''

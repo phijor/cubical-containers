@@ -1,3 +1,4 @@
+{-# OPTIONS --lossy-unification #-}
 module README where
 
 open import GpdCont.Prelude
@@ -98,7 +99,7 @@ module 2·3-LiftingQuotientContainers where
   open import GpdCont.GroupoidContainer.Base using (GCont)
   open import GpdCont.QuotientContainer.Premorphism using (Premorphism)
   open import GpdCont.GroupoidContainer.Eval using (⟦_⟧)
-  open import GpdCont.QuotientContainer.Examples using (UnorderedTuple ; degenDup)
+  open import GpdCont.QuotientContainer.Examples using (UnorderedTuple ; Id ; UPair ; degenDup)
   open import GpdCont.QuotientContainer.Base using (QCont)
   open import GpdCont.QuotientContainer.Delooping using (QContDelooping ; DeloopingPos ; hasSetFibersDeloopingPos)
   open import GpdCont.QuotientContainer.DeloopingEval using (LiftEvalEquiv ; Tr)
@@ -147,7 +148,7 @@ module 2·3-LiftingQuotientContainers where
   20-Lemma : {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) → ∥ Σ[ x ∈ 𝔹 G ] ⟨ associatedBundle σ x ⟩ ∥₂ ≃ Orbits σ
   20-Lemma = associatedBundleComponents≃Orbits
 
-  21-Example : Premorphism (UnorderedTuple 1) (UnorderedTuple 2) (id _)
+  21-Example : Premorphism Id UPair (id _)
   21-Example = degenDup
 
 {- Section 3: Action Containers -}
@@ -215,7 +216,7 @@ module 3-ActionContainers where
     _ : hSet ℓ → ActionContainer ℓ
     _ = konst
 
-    -- 30-Proposition : ∀ {ℓ} (K : hSet ℓ) (C : ActionContainer ℓ) → Exponential (ActCont {ℓ}) (konst K) C (binProducts konst K))
+    30-Proposition : ∀ {ℓ} (K : hSet ℓ) (C : ActionContainer ℓ) → Exponential (ActCont {ℓ}) (konst K) C (binProducts (konst K))
     30-Proposition = konst-exponential
 
 
@@ -445,7 +446,7 @@ module 4-ActionContainers-2-Category where
       1-locally-ff : isLocallyFullyFaithful AsFamily.Fam𝔹
       1-locally-ff = AsFamily.isLocallyFullyFaithfulFam𝔹
 
-      -- 2-locally-weq : AxiomOfSetChoice ℓ ℓ → isLocallyWeakEquivalence AsFamily.Fam𝔹
+      2-locally-weq : AxiomOfSetChoice ℓ ℓ → isLocallyWeakEquivalence AsFamily.Fam𝔹
       2-locally-weq = AsFamily.isLocallyWeakEquivalenceFam𝔹
 
     49-Definition : LaxFunctor (Fam SetBundle ℓ) SetBundle

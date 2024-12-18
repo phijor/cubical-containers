@@ -16,6 +16,8 @@ This follows from the embedding of a 2-category of groups into the 2-category of
 ## This Repository
 
 This repository contains the Agda mechanization of our development of _action containers_.
+The module [`README.agda`](./README.agda) contains an overwiew of our results.
+An explorable version of the code is hosted [here](https://phijor.github.io/cubical-containers/README.html).
 
 The code depends on the Agda [`cubical`](https://github.com/agda/cubical) library, v0.7,
 and (for now), Max New's [`cubical-categorical-logic`](https://github.com/maxsnew/cubical-categorical-logic).

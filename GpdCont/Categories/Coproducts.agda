@@ -8,10 +8,11 @@ open import GpdCont.HomotopySet as HSet
 import      GpdCont.Categories.Diagonal as Diagonal
 open import GpdCont.Categories.LeftAdjoint using (LeftAdjointAt' ; LeftAdjoint')
 
+open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Categories.Functor.Base
 open import Cubical.Categories.Adjoint.UniversalElements
-open import Cubical.Categories.Presheaf.Representable
+open import Cubical.Categories.Presheaf.Representable using (UniversalElement) public
 
 private
   module C where
@@ -30,6 +31,18 @@ module NotationAt (K : hSet ℓ) (c : ⟨ K ⟩ → C.ob) (p : Coproduct K c) wh
 
   ⨆ : C.ob
   ⨆ = vertex
+
+  ι = element
+
+  module _ (y : C.ob) where
+    is-universal : isEquiv (λ f k → ι k C.⋆ f)
+    is-universal = universal y
+
+    univ-equiv : C.Hom[ ⨆ , y ] ≃ (∀ k → C.Hom[ c k , y ])
+    univ-equiv = _ , is-universal
+
+    univ-iso : Iso C.Hom[ ⨆ , y ] (∀ k → C.Hom[ c k , y ])
+    univ-iso = equivToIso univ-equiv
 
 module Notation (p : Coproducts) where
   open import Cubical.Data.Bool

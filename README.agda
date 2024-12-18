@@ -174,9 +174,12 @@ module 3-ActionContainers where
 
   module 3·1-Algebra where
     open import GpdCont.GroupAction.Category using (GroupAction ; GroupActionᴰ)
-    open import GpdCont.Categories.Family using (Fam)
+    open import GpdCont.GroupAction.Pi using (GroupActionProducts)
+    open import GpdCont.Categories.Family as Fam using (Fam)
     open import GpdCont.ActionContainer.Constant using (konst ; konst-exponential)
     open import GpdCont.ActionContainer.DirectProduct using (binProducts)
+    open import GpdCont.Categories.Products using (Products)
+    open import GpdCont.Categories.Coproducts using (Coproducts)
 
     open import Cubical.Categories.Equivalence using (_≃ᶜ_)
     open import Cubical.Categories.Exponentials using (Exponential)
@@ -205,13 +208,15 @@ module 3-ActionContainers where
     27-Theorem : ActCont {ℓ} ≃ᶜ Fam ℓ (GroupAction ℓ)
     27-Theorem = Act≃FamGroupAction
 
-    -- TODO: GroupAction has all products
-    28-Proposition : {! !}
-    28-Proposition = {! !}
+    -- The category of group actions has all products:
+    28-Proposition : Products (GroupAction ℓ) ℓ
+    28-Proposition = GroupActionProducts
 
-    -- TODO: Action containers are closed under products and coproducts
-    29-Corollary : {! !}
-    29-Corollary = {! !}
+    -- Action containers are closed under products and coproducts:
+    29-Corollary : Products (Fam ℓ (GroupAction ℓ)) ℓ × Coproducts (Fam ℓ (GroupAction ℓ)) ℓ
+    29-Corollary {ℓ} = FamProducts GroupActionProducts , FamCoproducts where
+      open Fam.Products ℓ (GroupAction ℓ)
+      open Fam.Coproducts ℓ (GroupAction ℓ)
 
     _ : hSet ℓ → ActionContainer ℓ
     _ = konst

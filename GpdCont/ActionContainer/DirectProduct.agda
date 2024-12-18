@@ -2,7 +2,7 @@ module GpdCont.ActionContainer.DirectProduct where
 
 open import GpdCont.Prelude hiding (_⋆_)
 open import GpdCont.Univalence
-open import GpdCont.ActionContainer.Abstract
+open import GpdCont.ActionContainer.Base
 open import GpdCont.ActionContainer.Morphism
 open import GpdCont.ActionContainer.Transformation
 open import GpdCont.ActionContainer.Category using (Act)

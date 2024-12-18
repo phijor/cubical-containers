@@ -4,7 +4,7 @@ open import GpdCont.Prelude
 
 module GpdCont.ActionContainer.AsFamily (ℓ : Level) where
 
-open import GpdCont.ActionContainer.Abstract
+open import GpdCont.ActionContainer.Base
 open import GpdCont.ActionContainer.Morphism
 open import GpdCont.Group.MapConjugator using (Conjugator)
 open import GpdCont.GroupAction.Base using (Action ; _⁺_)

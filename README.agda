@@ -153,7 +153,7 @@ module 2·3-LiftingQuotientContainers where
 
 {- Section 3: Action Containers -}
 module 3-ActionContainers where
-  open import GpdCont.ActionContainer.Abstract using (ActionContainer)
+  open import GpdCont.ActionContainer.Base using (ActionContainer)
   open import GpdCont.ActionContainer.Morphism using (Morphism)
   open import GpdCont.ActionContainer.Category using (Act≃FamGroupAction) renaming (Act to ActCont)
   open import GpdCont.ActionContainer.Examples using (CyclicList)
@@ -227,7 +227,7 @@ module 3-ActionContainers where
 
 {- Section 4: The 2-category of Action Containers -}
 module 4-ActionContainers-2-Category where
-  open import GpdCont.ActionContainer.Abstract using (ActionContainer)
+  open import GpdCont.ActionContainer.Base using (ActionContainer)
   open import GpdCont.ActionContainer.Morphism renaming (Morphism to ActionContainerMorphism)
   open import GpdCont.ActionContainer.Delooping using (module Container ; module Morphism) renaming (module Functor to DeloopingFunctor)
   open import GpdCont.ActionContainer.Category renaming (Act to ActContCat)
@@ -387,7 +387,7 @@ module 4-ActionContainers-2-Category where
       3-locally-eso = isLocallyEssentiallySurjectiveFam F ℓ
 
   module 4·3-ActionContainers {ℓ} where
-    open import GpdCont.ActionContainer.Abstract using (ActionContainer)
+    open import GpdCont.ActionContainer.Base using (ActionContainer)
     open import GpdCont.ActionContainer.Morphism using (Morphism)
     open import GpdCont.ActionContainer.AsFamily ℓ as AsFamily using () renaming (FamAction to ActCont ; FamActionᴰ to ActContᴰ)
     open import GpdCont.ActionContainer.AsSymmetricContainer ℓ using (isLocallyFullyFaithfulActToSymmCont)

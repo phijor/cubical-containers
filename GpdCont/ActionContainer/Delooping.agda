@@ -2,7 +2,7 @@
 module GpdCont.ActionContainer.Delooping where
 
 open import GpdCont.Prelude
-open import GpdCont.ActionContainer.Abstract using (ActionContainer)
+open import GpdCont.ActionContainer.Base using (ActionContainer)
 import      GpdCont.ActionContainer.Morphism as ActionContainerMorphism
 open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleMap)
 open import GpdCont.GroupoidContainer.Base using (GCont ; mkGCont)

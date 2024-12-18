@@ -1,6 +1,6 @@
 {-# OPTIONS --lossy-unification #-}
 open import GpdCont.Prelude
-open import GpdCont.ActionContainer.Abstract
+open import GpdCont.ActionContainer.Base
 import GpdCont.ActionContainer.Morphism as ActionContainerMorphism
 
 open import Cubical.Foundations.Equiv

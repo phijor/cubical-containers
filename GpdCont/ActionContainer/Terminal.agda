@@ -1,6 +1,6 @@
 open import GpdCont.Prelude
 open import GpdCont.Univalence using (ua→)
-open import GpdCont.ActionContainer.Abstract
+open import GpdCont.ActionContainer.Base
 open import GpdCont.ActionContainer.Morphism hiding (mkMorphism-syntax)
 open import GpdCont.ActionContainer.Transformation
 open import GpdCont.HomotopySet using (UnitSet ; EmptySet)

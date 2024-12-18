@@ -2,7 +2,7 @@ module GpdCont.ActionContainer.SingleShape where
 
 open import GpdCont.Prelude
 open import GpdCont.GroupAction.Base
-open import GpdCont.ActionContainer.Abstract
+open import GpdCont.ActionContainer.Base
 
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Unit

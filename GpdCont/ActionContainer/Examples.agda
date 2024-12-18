@@ -2,7 +2,7 @@
 module GpdCont.ActionContainer.Examples where
 
 open import GpdCont.Prelude
-open import GpdCont.ActionContainer.Abstract
+open import GpdCont.ActionContainer.Base
 open import GpdCont.Group.SymmetricGroup
 open import GpdCont.GroupAction.Base using (Action ; _⁺_)
 open import GpdCont.GroupAction.Integer using (ℤ ; 1ℤ ; ℤ-action)

@@ -7,7 +7,7 @@ open import GpdCont.Group.DirProd using (module DirProd) renaming (DirProd to _�
 open import GpdCont.GroupAction.Base using (Action)
 open import GpdCont.GroupAction.Trivial using (trivialAction)
 open import GpdCont.GroupAction.Pi using (ΠActionΣ)
-open import GpdCont.ActionContainer.Abstract
+open import GpdCont.ActionContainer.Base
 open import GpdCont.ActionContainer.Morphism
 open import GpdCont.ActionContainer.Category
 open import GpdCont.ActionContainer.DirectProduct using (_⊗_ ; binProducts)

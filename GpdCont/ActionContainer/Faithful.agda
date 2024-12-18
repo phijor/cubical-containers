@@ -2,7 +2,7 @@ module GpdCont.ActionContainer.Faithful where
 
 open import GpdCont.Prelude
 
-open import GpdCont.ActionContainer.Abstract
+open import GpdCont.ActionContainer.Base
 open import GpdCont.ActionContainer.Category
 open import GpdCont.GroupAction.Faithful using (isFaithful)
 

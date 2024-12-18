@@ -1,5 +1,5 @@
 open import GpdCont.Prelude
-open import GpdCont.ActionContainer.Abstract
+open import GpdCont.ActionContainer.Base
 open import GpdCont.ActionContainer.Morphism as ActionContainerMorphism hiding (mkMorphism-syntax)
 open import GpdCont.ActionContainer.Transformation as Transformation
 open import GpdCont.HomotopySet using (EmptySet)

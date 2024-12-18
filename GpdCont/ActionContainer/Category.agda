@@ -5,7 +5,7 @@ open import GpdCont.HomotopySet using (hSet≡)
 open import GpdCont.Categories.Family using (Fam ; Famᴰ ; FamHom≡ ; Fam≡)
 open import GpdCont.GroupAction.Base
 open import GpdCont.GroupAction.Category using (GroupAction ; GroupActionHom≡)
-open import GpdCont.ActionContainer.Abstract
+open import GpdCont.ActionContainer.Base
 open import GpdCont.ActionContainer.Morphism hiding (mkMorphism-syntax)
 open import GpdCont.QuotientContainer.Base using (QCont)
 open import GpdCont.QuotientContainer.Premorphism using (Premorphism ; isReflPremorphismEquiv)

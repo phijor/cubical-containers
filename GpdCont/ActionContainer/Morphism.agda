@@ -1,5 +1,5 @@
 open import GpdCont.Prelude
-open import GpdCont.ActionContainer.Abstract
+open import GpdCont.ActionContainer.Base
 open import GpdCont.GroupAction.Equivariant using (isEquivariantMap[_][_,_])
 
 open import Cubical.Foundations.Equiv

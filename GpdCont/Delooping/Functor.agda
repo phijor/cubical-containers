@@ -189,7 +189,7 @@ module TwoFunc (ℓ : Level) where
       → (h : Conjugator φ₁ φ₂)
       → (k : Conjugator ψ₁ ψ₂)
       → ((𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ 𝔹-trans-lax φ₂ ψ₂) ≡ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k))
-    𝔹-trans-lax-natural {G} {H} {K} {φ₁} {φ₂} {ψ₁} {ψ₂} h k = funExtSquare _ _ _ _ lax where
+    𝔹-trans-lax-natural {G} {H} {K} {φ₁} {φ₂} {ψ₁} {ψ₂} h k = funExtSquare lax where
       module K = GroupStr (str K)
       module 𝔹G = Delooping G
       module 𝔹H = Delooping H
@@ -228,7 +228,7 @@ module TwoFunc (ℓ : Level) where
         ((refl′ (𝔹-hom φ) hGpdCat.∙ₕ 𝔹-trans-lax ψ ρ) ∙ 𝔹-trans-lax φ (ψ TwoGroup.∙₁ ρ))
         (refl′ ((𝔹-hom φ hGpdCat.∙₁ 𝔹-hom ψ) hGpdCat.∙₁ 𝔹-hom ρ))
         (cong 𝔹-hom (TwoGroup.comp-hom-assoc φ ψ ρ))
-    𝔹-assoc {G} {H} {L} φ ψ ρ = funExtSquare _ _ _ _ assoc-ext where
+    𝔹-assoc {G} {H} {L} φ ψ ρ = funExtSquare assoc-ext where
       module 𝔹G = Delooping G
       module 𝔹L = Delooping L
 
@@ -256,7 +256,7 @@ module TwoFunc (ℓ : Level) where
       (refl′ (𝔹-hom φ))
       (hGpdCat.comp-hom-unit-left (𝔹-hom φ))
       (cong 𝔹-hom (TwoGroup.comp-hom-unit-left φ))
-    𝔹-unit-left {G} {H} φ = funExtSquare _ _ _ _ $ 𝔹G.elimProp (λ _ → 𝔹H.isPropDeloopingSquare) unit-left⋆ where
+    𝔹-unit-left {G} {H} φ = funExtSquare $ 𝔹G.elimProp (λ _ → 𝔹H.isPropDeloopingSquare) unit-left⋆ where
       module 𝔹G = Delooping G
       module 𝔹H = Delooping H
 
@@ -274,7 +274,7 @@ module TwoFunc (ℓ : Level) where
       (refl′ (𝔹-hom φ))
       (hGpdCat.comp-hom-unit-right (𝔹-hom φ))
       (cong 𝔹-hom (TwoGroup.comp-hom-unit-right φ))
-    𝔹-unit-right {G} {H} φ = funExtSquare _ _ _ _ $ 𝔹G.elimProp (λ _ → 𝔹H.isPropDeloopingSquare) unit-right⋆ where
+    𝔹-unit-right {G} {H} φ = funExtSquare $ 𝔹G.elimProp (λ _ → 𝔹H.isPropDeloopingSquare) unit-right⋆ where
       module 𝔹G = Delooping G
       module 𝔹H = Delooping H
 

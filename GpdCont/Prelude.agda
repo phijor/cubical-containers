@@ -345,18 +345,21 @@ module _ {ℓA ℓB ℓC} {A : Type ℓA} {B : Type ℓB} {C : Type ℓC}
       → cong₂ _□_ (p₁ ∙ q₁) (p₂ ∙ q₂) ≡ cong₂ _□_ p₁ p₂ ∙ cong₂ _□_ q₁ q₂
     cong₂-∙ p₁ q₁ p₂ q₂ = cong₂-∙∙ refl p₁ q₁ refl p₂ q₂
 
-funExtSquare : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → (i j : I) → Type ℓB}
-  → {f₀₀ : ∀ a → B a i0 i0}
-  → {f₀₁ : ∀ a → B a i0 i1}
-  → (f₀₋ : PathP (λ j → ∀ a → B a i0 j) f₀₀ f₀₁)
-  → {f₁₀ : ∀ a → B a i1 i0}
-  → {f₁₁ : ∀ a → B a i1 i1}
-  → (f₁₋ : PathP (λ j → ∀ a → B a i1 j) f₁₀ f₁₁)
-  → (f₋₀ : PathP (λ i → ∀ a → B a i i0) f₀₀ f₁₀)
-  → (f₋₁ : PathP (λ i → ∀ a → B a i i1) f₀₁ f₁₁)
-  → (f : (a : A) → SquareP (B a) (λ j → f₀₋ j a) (λ j → f₁₋ j a) (λ i → f₋₀ i a) (λ i → f₋₁ i a))
-  → SquareP (λ i j → (a : A) → B a i j) f₀₋ f₁₋ f₋₀ f₋₁
-funExtSquare _ _ _ _ f i j a = f a i j
+module _
+  {ℓA ℓB} {A : Type ℓA} {B : A → (i j : I) → Type ℓB}
+  {f₀₀ : ∀ a → B a i0 i0}
+  {f₀₁ : ∀ a → B a i0 i1}
+  {f₀₋ : PathP (λ j → ∀ a → B a i0 j) f₀₀ f₀₁}
+  {f₁₀ : ∀ a → B a i1 i0}
+  {f₁₁ : ∀ a → B a i1 i1}
+  {f₁₋ : PathP (λ j → ∀ a → B a i1 j) f₁₀ f₁₁}
+  {f₋₀ : PathP (λ i → ∀ a → B a i i0) f₀₀ f₁₀}
+  {f₋₁ : PathP (λ i → ∀ a → B a i i1) f₀₁ f₁₁} where
+
+  funExtSquare :
+      (f : (a : A) → SquareP (B a) (λ j → f₀₋ j a) (λ j → f₁₋ j a) (λ i → f₋₀ i a) (λ i → f₋₁ i a))
+    → SquareP (λ i j → (a : A) → B a i j) f₀₋ f₁₋ f₋₀ f₋₁
+  funExtSquare f i j a = f a i j
 
 isGroupoid→isPropSquare : ∀ {ℓA} {A : Type ℓA} (_ : isGroupoid A)
   {a₀₀ a₀₁ : A} {a₀₋ : a₀₀ ≡ a₀₁}

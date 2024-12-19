@@ -361,6 +361,17 @@ module _
     → SquareP (λ i j → (a : A) → B a i j) f₀₋ f₁₋ f₋₀ f₋₁
   funExtSquare f i j a = f a i j
 
+  funExtSquare⁻ :
+      (sq : SquareP (λ i j → (a : A) → B a i j) f₀₋ f₁₋ f₋₀ f₋₁)
+    → ((a : A) → SquareP (B a) (λ j → f₀₋ j a) (λ j → f₁₋ j a) (λ i → f₋₀ i a) (λ i → f₋₁ i a))
+  funExtSquare⁻ sq a i j = sq i j a
+
+  funExtSquareEquiv :
+    ((a : A) → SquareP (B a) (λ j → f₀₋ j a) (λ j → f₁₋ j a) (λ i → f₋₀ i a) (λ i → f₋₁ i a))
+      ≃
+    (SquareP (λ i j → (a : A) → B a i j) f₀₋ f₁₋ f₋₀ f₋₁)
+  unquoteDef funExtSquareEquiv = defStrictEquiv funExtSquareEquiv funExtSquare funExtSquare⁻
+
 isGroupoid→isPropSquare : ∀ {ℓA} {A : Type ℓA} (_ : isGroupoid A)
   {a₀₀ a₀₁ : A} {a₀₋ : a₀₀ ≡ a₀₁}
   {a₁₀ a₁₁ : A} {a₁₋ : a₁₀ ≡ a₁₁}

@@ -104,7 +104,7 @@ PointedStrᴰ .TwoCategoryStrᴰ.comp-relᴰ = Pointed₂-comp
 
 isLocallyThinOverPointedStr : IsLocallyThinOver (hGpdCat ℓ) ℓ ℓ ℓ _ _ _ PointedStrᴰ
 isLocallyThinOverPointedStr .IsLocallyThinOver.is-prop-relᴰ {s} = isProp-Pointed₂ s
-isLocallyThinOverPointedStr .IsLocallyThinOver.comp-hom-assocᴰ f⋆ g⋆ h⋆ = funExtSquare _ _ _ _ (ST.elim {! !} λ x → the (_ ≡ _) {! !})
+isLocallyThinOverPointedStr .IsLocallyThinOver.comp-hom-assocᴰ f⋆ g⋆ h⋆ = funExtSquare (ST.elim {! !} λ x → the (_ ≡ _) {! !})
 isLocallyThinOverPointedStr .IsLocallyThinOver.comp-hom-unit-leftᴰ = {! !}
 isLocallyThinOverPointedStr .IsLocallyThinOver.comp-hom-unit-rightᴰ = {! !}
 

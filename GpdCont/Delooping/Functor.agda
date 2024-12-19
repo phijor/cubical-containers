@@ -189,7 +189,7 @@ module TwoFunc (ℓ : Level) where
       → (h : Conjugator φ₁ φ₂)
       → (k : Conjugator ψ₁ ψ₂)
       → ((𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ 𝔹-trans-lax φ₂ ψ₂) ≡ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k))
-    𝔹-trans-lax-natural {G} {H} {K} {φ₁} {φ₂} {ψ₁} {ψ₂} h k = funExtSquare _ _ _ _ lax where
+    𝔹-trans-lax-natural {G} {H} {K} {φ₁} {φ₂} {ψ₁} {ψ₂} h k = funExtSquare lax where
       module K = GroupStr (str K)
       𝔹G = Delooping.𝔹 ⟨ G ⟩ (str G)
       𝔹H = Delooping.𝔹 ⟨ H ⟩ (str H)
@@ -231,7 +231,7 @@ module TwoFunc (ℓ : Level) where
         ((refl′ (𝔹-hom φ) hGpdCat.∙ₕ 𝔹-trans-lax ψ ρ) ∙ 𝔹-trans-lax φ (ψ TwoGroup.∙₁ ρ))
         (refl′ ((𝔹-hom φ hGpdCat.∙₁ 𝔹-hom ψ) hGpdCat.∙₁ 𝔹-hom ρ))
         (cong 𝔹-hom (TwoGroup.comp-hom-assoc φ ψ ρ))
-    𝔹-assoc {G} {H} {L} φ ψ ρ = funExtSquare _ _ _ _ assoc-ext where
+    𝔹-assoc {G} {H} {L} φ ψ ρ = funExtSquare assoc-ext where
       𝔹G = Delooping.𝔹 ⟨ G ⟩ (str G)
       𝔹L = Delooping.𝔹 ⟨ L ⟩ (str L)
       module 𝔹G = Delooping ⟨ G ⟩ (str G)

@@ -99,7 +99,7 @@ private
   ΣFst₂-rel-trans : ∀ {X Y} {f g h : FamSetBundle.hom X Y}
     → (r : FamSetBundle.rel f g) (s : FamSetBundle.rel {y = Y} g h)
     → ΣFst₂ (r FamSetBundle.∙ᵥ s) ≡ ΣFst₂ r hGpdCat.∙ᵥ (ΣFst₂ s)
-  ΣFst₂-rel-trans {X = J , X} {Y = K , Y} {f = φ , f} {g = ψ , g} {h = ρ , h} (Eq.refl , rᴰ) (Eq.refl , sᴰ) = funExtSquare _ _ _ _ $ uncurry goal where
+  ΣFst₂-rel-trans {X = J , X} {Y = K , Y} {f = φ , f} {g = ψ , g} {h = ρ , h} (Eq.refl , rᴰ) (Eq.refl , sᴰ) = funExtSquare (uncurry goal) where
     module _ (j : ⟨ J ⟩) (b : ⟨ SetBundle.Base (X j) ⟩) where
       goal :
         (congS (λ - → φ j , - b) (rᴰ j .fst ∙ sᴰ j .fst))

@@ -168,6 +168,29 @@ module TwoFunc (ℓ : Level) where
     𝔹-hom : {G H : Group ℓ} → GroupHom G H → ⟨ 𝔹-ob G ⟩ → ⟨ 𝔹-ob H ⟩
     𝔹-hom φ = Map.map φ
 
+    module _ {G H : Group ℓ}
+      {φ₀₀ φ₀₁ φ₁₀ φ₁₁ : ⟨ 𝔹-ob G ⟩ → ⟨ 𝔹-ob H ⟩}
+      {𝔹φ₀₋ : φ₀₀ ≡ φ₀₁}
+      {𝔹φ₁₋ : φ₁₀ ≡ φ₁₁}
+      {𝔹φ₋₀ : φ₀₀ ≡ φ₁₀}
+      {𝔹φ₋₁ : φ₀₁ ≡ φ₁₁}
+      where
+
+      private
+        module 𝔹G = Delooping ⟨ G ⟩ (str G)
+        module 𝔹H = Delooping ⟨ H ⟩ (str H)
+
+      -- Squares in 𝔹H are propositions, so squares of functions 𝔹G → 𝔹H
+      -- are exactly exactly squares in 𝔹H of the functions evaluated at 𝔹G.⋆.
+      𝔹-hom-SquareEquiv :
+        Square (𝔹φ₀₋ ≡$ 𝔹G.⋆) (𝔹φ₁₋ ≡$ 𝔹G.⋆)  (𝔹φ₋₀ ≡$ 𝔹G.⋆) (𝔹φ₋₁ ≡$ 𝔹G.⋆) ≃ Square 𝔹φ₀₋ 𝔹φ₁₋ 𝔹φ₋₀ 𝔹φ₋₁
+      𝔹-hom-SquareEquiv = 𝔹G.elimPropEquiv (λ x → 𝔹H.isPropDeloopingSquare) ∙ₑ funExtSquareEquiv
+
+      𝔹-hom-Square :
+        (sq : Square (𝔹φ₀₋ ≡$ 𝔹G.⋆) (𝔹φ₁₋ ≡$ 𝔹G.⋆)  (𝔹φ₋₀ ≡$ 𝔹G.⋆) (𝔹φ₋₁ ≡$ 𝔹G.⋆))
+        → Square 𝔹φ₀₋ 𝔹φ₁₋ 𝔹φ₋₀ 𝔹φ₋₁
+      𝔹-hom-Square = equivFun 𝔹-hom-SquareEquiv
+
     𝔹-rel : {G H : Group ℓ} {φ ψ : GroupHom G H} → Conjugator φ ψ → 𝔹-hom φ ≡ 𝔹-hom ψ
     𝔹-rel {φ} {ψ} = map≡ φ ψ
 
@@ -261,7 +284,7 @@ module TwoFunc (ℓ : Level) where
       (refl′ (𝔹-hom φ))
       (hGpdCat.comp-hom-unit-left (𝔹-hom φ))
       (cong 𝔹-hom (TwoGroup.comp-hom-unit-left φ))
-    𝔹-unit-left {G} {H} φ = funExtSquare _ _ _ _ $ 𝔹G.elimProp (λ _ → 𝔹H.isPropDeloopingSquare) unit-left⋆ where
+    𝔹-unit-left {G} {H} φ = 𝔹-hom-Square unit-left⋆ where
       module 𝔹G = Delooping ⟨ G ⟩ (str G)
       module 𝔹H = Delooping ⟨ H ⟩ (str H)
 
@@ -279,7 +302,7 @@ module TwoFunc (ℓ : Level) where
       (refl′ (𝔹-hom φ))
       (hGpdCat.comp-hom-unit-right (𝔹-hom φ))
       (cong 𝔹-hom (TwoGroup.comp-hom-unit-right φ))
-    𝔹-unit-right {G} {H} φ = funExtSquare _ _ _ _ $ 𝔹G.elimProp (λ _ → 𝔹H.isPropDeloopingSquare) unit-right⋆ where
+    𝔹-unit-right {G} {H} φ = 𝔹-hom-Square unit-right⋆ where
       module 𝔹G = Delooping ⟨ G ⟩ (str G)
       module 𝔹H = Delooping ⟨ H ⟩ (str H)
 

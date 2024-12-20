@@ -8,6 +8,7 @@ open import GpdCont.Group.TwoCategory using (TwoGroup)
 
 open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.LaxFunctor
+open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor)
 open import GpdCont.TwoCategory.Pseudofunctor
 open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat ; isLocallyGroupoidalHGpdCat)
 open import GpdCont.TwoCategory.LocalCategory using (LocalCategory)
@@ -352,3 +353,78 @@ module TwoFunc (ℓ : Level) where
   isLocallyWeakEquivalenceDelooping : LocalFunctor.isLocallyWeakEquivalence TwoDelooping
   isLocallyWeakEquivalenceDelooping G H .isWeakEquivalence.fullfaith = isLocallyFullyFaithfulDelooping G H
   isLocallyWeakEquivalenceDelooping G H .isWeakEquivalence.esssurj = isLocallyEssentiallySurjectiveDelooping G H
+
+  private
+    𝔹-hom-id : (G : TwoGroup.ob) → hGpdCat.id-hom (𝔹-ob G) ≡ 𝔹-hom (TwoGroup.id-hom G)
+    𝔹-hom-id G = sym (Map.map-id G)
+
+    𝔹-hom-comp : {G H K : TwoGroup.ob} (φ : TwoGroup.hom G H) (ψ : TwoGroup.hom H K)
+      → (𝔹-hom φ hGpdCat.∙₁ 𝔹-hom ψ) ≡ 𝔹-hom (φ TwoGroup.∙₁ ψ)
+    𝔹-hom-comp φ ψ = sym (Map.map-comp φ ψ)
+
+    module 𝔹-assoc {G H K L : TwoGroup.ob} (φ* @ (φ , _) : TwoGroup.hom G H) (ψ* @ (ψ , _) : TwoGroup.hom H K) (ρ* @ (ρ , _) : TwoGroup.hom K L) where
+      module 𝔹G = Delooping _ (str G)
+      module 𝔹L = Delooping _ (str L)
+      assoc-hom : (𝔹-hom φ* ⋆ 𝔹-hom ψ*) ⋆ 𝔹-hom ρ* ≡ 𝔹-hom ((φ* TwoGroup.∙₁ ψ*) TwoGroup.∙₁ ρ*)
+      assoc-hom = funExt (𝔹G.elimSet (λ _ → str (𝔹-ob L) _ _) refl λ g j i → 𝔹L.loop (ρ (ψ (φ g))) j)
+
+      filler-left : PathCompFiller (cong (λ - → hGpdCat._∙₁_ {x = 𝔹-ob G} - (𝔹-hom ρ*)) (sym (Map.map-comp φ* ψ*))) (sym (Map.map-comp (φ* TwoGroup.∙₁ ψ*) ρ*))
+      filler-left .fst = funExt (𝔹G.elimSet (λ _ → str (𝔹-ob L) _ _) refl λ g j i → 𝔹L.loop (ρ (ψ (φ g))) j)
+      filler-left .snd = 𝔹-hom-Square λ i j → 𝔹L.⋆
+      {-# INJECTIVE_FOR_INFERENCE filler-left #-}
+
+      filler-right : PathCompFiller (cong (λ - → hGpdCat._∙₁_ {z = 𝔹-ob L} (𝔹-hom φ*) -) (sym (Map.map-comp ψ* ρ*))) (sym (Map.map-comp φ* (ψ* TwoGroup.∙₁ ρ*)))
+      filler-right .fst = funExt (𝔹G.elimSet (λ _ → str (𝔹-ob L) _ _) refl λ g j i → 𝔹L.loop (ρ (ψ (φ g))) j)
+      filler-right .snd = 𝔹-hom-Square λ i j → 𝔹L.⋆
+      {-# INJECTIVE_FOR_INFERENCE filler-right #-}
+
+      assoc : PathP
+        (λ i → hGpdCat.comp-hom-assoc (𝔹-hom φ*) (𝔹-hom ψ*) (𝔹-hom ρ*) i ≡ 𝔹-hom (TwoGroup.comp-hom-assoc φ* ψ* ρ* i))
+        (filler-left .fst)
+        (filler-right .fst)
+      assoc = 𝔹-hom-Square λ i j → 𝔹L.⋆
+      {-# INJECTIVE_FOR_INFERENCE assoc #-}
+
+    module 𝔹-unit-left {G H : TwoGroup.ob} (φ : TwoGroup.hom G H) where
+      module 𝔹G = Delooping _ (str G)
+      module 𝔹H = Delooping _ (str H)
+
+      filler : PathCompFiller (cong (λ - → hGpdCat._∙₁_ {x = 𝔹-ob G} - (𝔹-hom φ)) (sym (Map.map-id G))) (sym (Map.map-comp (TwoGroup.id-hom G) φ))
+      filler .fst = cong 𝔹-hom (sym $ TwoGroup.comp-hom-unit-left φ)
+      filler .snd = 𝔹-hom-Square λ i j → 𝔹H.⋆
+      {-# INJECTIVE_FOR_INFERENCE filler #-}
+
+      unit-left : PathP (λ i → hGpdCat.comp-hom-unit-left (𝔹-hom φ) i ≡ 𝔹-hom (TwoGroup.comp-hom-unit-left φ i))
+        (filler .fst)
+        (refl′ (𝔹-hom φ))
+      unit-left = 𝔹-hom-Square λ i j → 𝔹H.⋆
+
+    module 𝔹-unit-right {G H : TwoGroup.ob} (φ : TwoGroup.hom G H) where
+      module 𝔹G = Delooping _ (str G)
+      module 𝔹H = Delooping _ (str H)
+      filler : PathCompFiller (cong ((𝔹-hom φ) hGpdCat.∙₁_) (𝔹-hom-id H)) (𝔹-hom-comp φ (TwoGroup.id-hom H))
+      filler .fst = cong 𝔹-hom (sym $ TwoGroup.comp-hom-unit-right φ)
+      filler .snd = 𝔹-hom-Square λ i j → 𝔹H.⋆
+      {-# INJECTIVE_FOR_INFERENCE filler #-}
+
+      unit-right : PathP (λ i → hGpdCat.comp-hom-unit-right (𝔹-hom φ) i ≡ 𝔹-hom (TwoGroup.comp-hom-unit-right φ i))
+        (filler .fst)
+        (refl′ (𝔹-hom φ))
+      unit-right = 𝔹-hom-Square λ i j → 𝔹H.⋆
+
+
+  TwoDeloopingˢ : StrictFunctor (TwoGroup ℓ) (hGpdCat ℓ)
+  TwoDeloopingˢ .StrictFunctor.F-ob = 𝔹-ob
+  TwoDeloopingˢ .StrictFunctor.F-hom = 𝔹-hom
+  TwoDeloopingˢ .StrictFunctor.F-rel = 𝔹-rel
+  TwoDeloopingˢ .StrictFunctor.F-rel-id = 𝔹-rel-id
+  TwoDeloopingˢ .StrictFunctor.F-rel-trans = 𝔹-rel-trans
+  TwoDeloopingˢ .StrictFunctor.F-hom-comp = 𝔹-hom-comp
+  TwoDeloopingˢ .StrictFunctor.F-hom-id = 𝔹-hom-id
+  TwoDeloopingˢ .StrictFunctor.F-assoc-filler-left = 𝔹-assoc.filler-left
+  TwoDeloopingˢ .StrictFunctor.F-assoc-filler-right = 𝔹-assoc.filler-right
+  TwoDeloopingˢ .StrictFunctor.F-assoc = 𝔹-assoc.assoc
+  TwoDeloopingˢ .StrictFunctor.F-unit-left-filler = 𝔹-unit-left.filler
+  TwoDeloopingˢ .StrictFunctor.F-unit-left = 𝔹-unit-left.unit-left
+  TwoDeloopingˢ .StrictFunctor.F-unit-right-filler = 𝔹-unit-right.filler
+  TwoDeloopingˢ .StrictFunctor.F-unit-right = 𝔹-unit-right.unit-right

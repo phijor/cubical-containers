@@ -21,18 +21,18 @@ open WildCat hiding (_⋆_)
 module _ (ℓ : Level) where
   GContCat : WildCat (ℓ-suc ℓ) ℓ
   GContCat .ob = SymmetricContainer ℓ
-  GContCat .Hom[_,_] = GContMorphism
-  GContCat .id = GContId _
-  GContCat .WildCat._⋆_ = compGContMorphism
-  GContCat .⋆IdL = compGContMorphismIdL
-  GContCat .⋆IdR = compGContMorphismIdR
-  GContCat .⋆Assoc = compGContMorphismAssoc
+  GContCat .Hom[_,_] = Morphism
+  GContCat .id = idMorphism _
+  GContCat .WildCat._⋆_ = compMorphism
+  GContCat .⋆IdL = compMorphismIdL
+  GContCat .⋆IdR = compMorphismIdR
+  GContCat .⋆Assoc = compMorphismAssoc
 
   TruncGContCat : Category _ _
   TruncGContCat = ho GContCat
 
   GContLocal : (C D : SymmetricContainer ℓ) → Category _ _
-  GContLocal C D = DiscreteCategory (GContMorphism C D , isGroupoidGContMorphism)
+  GContLocal C D = DiscreteCategory (Morphism C D , isGroupoidMorphism)
 
 private
   variable
@@ -49,21 +49,21 @@ module EvalFunctor where
     variable
       G H : SymmetricContainer ℓ
 
-  on-hom : (α : GContMorphism G H) → WildNatTrans _ _ (Eval G) (Eval H)
+  on-hom : (α : Morphism G H) → WildNatTrans _ _ (Eval G) (Eval H)
   on-hom α .WildNatTrans.N-ob = Hom⟦ α ⟧₀
   on-hom α .WildNatTrans.N-hom {x} {y} = Hom⟦ α ⟧₀-natural x y
 
-  on-hom-id-ob : ∀ (X : hGroupoidCat ℓ .ob) → Hom⟦ GContId G ⟧₀ X ≡ id (hGroupoidCat ℓ) {x = ⟦ G ⟧ X}
+  on-hom-id-ob : ∀ (X : hGroupoidCat ℓ .ob) → Hom⟦ idMorphism G ⟧₀ X ≡ id (hGroupoidCat ℓ) {x = ⟦ G ⟧ X}
   on-hom-id-ob {G} X = funExt $ Hom⟦_⟧₀-id {G = G} X
 
-  on-hom-id : on-hom (GContId G) ≡ hGroupoidEndo ℓ .id {x = Eval G}
+  on-hom-id : on-hom (idMorphism G) ≡ hGroupoidEndo ℓ .id {x = Eval G}
   on-hom-id = WildNatTransPath
     on-hom-id-ob
     λ f i → refl
 
-  open GContMorphism
+  open Morphism
 
-  module _ {G H K : SymmetricContainer ℓ} (α : GContMorphism G H) (β : GContMorphism H K) where
+  module _ {G H K : SymmetricContainer ℓ} (α : Morphism G H) (β : Morphism H K) where
     on-hom-seq-ob : (X : hGroupoidCat ℓ .ob) → Hom⟦ α ⋆⟨ GContCat ℓ ⟩ β ⟧₀ X ≡ Hom⟦ β ⟧₀ X ∘fun Hom⟦ α ⟧₀ X
     on-hom-seq-ob X = refl
 
@@ -77,7 +77,7 @@ module EvalFunctor where
         p i = ⟦ G ⟧-map x y f ⋆⟨hGpd[ ⟦ G ⟧ x , ⟦ G ⟧ y , ⟦ K ⟧ y ]⟩ (on-hom-seq-ob y (~ i))
 
         q : Path _ _ _
-        q = Hom⟦ compGContMorphism α β ⟧₀-natural x y f
+        q = Hom⟦ α ⋆Mor β ⟧₀-natural x y f
 
         r : Path _
           (⟦ K ⟧-map x y f ∘fun Hom⟦ α ⋆⟨ GContCat ℓ ⟩ β ⟧₀ x)

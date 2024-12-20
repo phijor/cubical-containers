@@ -57,7 +57,7 @@ module 2·1-QuotientContainers where
 
 module 2·1-SymmetricContainers where
   open import GpdCont.SymmetricContainer.Base using (SymmetricContainer)
-  open import GpdCont.SymmetricContainer.Morphism using () renaming (GContMorphism to Morphism)
+  open import GpdCont.SymmetricContainer.Morphism using (Morphism)
   open import GpdCont.SymmetricContainer.TwoCategory using (GroupoidContainerCat ; ⟦-⟧)
   open import GpdCont.SymmetricContainer.Eval using (⟦_⟧)
   open import GpdCont.SymmetricContainer.Examples using (CyclicList)
@@ -231,7 +231,7 @@ module 4-ActionContainers-2-Category where
   open import GpdCont.ActionContainer.Delooping using (module Container ; module Morphism) renaming (module Functor to DeloopingFunctor)
   open import GpdCont.ActionContainer.Category renaming (Act to ActContCat)
   open import GpdCont.SymmetricContainer.Base using (SymmetricContainer)
-  open import GpdCont.SymmetricContainer.Morphism using (GContMorphism)
+  open import GpdCont.SymmetricContainer.Morphism using () renaming (Morphism to SymmMorphism)
   open import GpdCont.SymmetricContainer.WildCat using (GContCat)
   open import GpdCont.WildCat.HomotopyCategory using (ho)
 
@@ -240,7 +240,7 @@ module 4-ActionContainers-2-Category where
   31-Proposition-1 : ActionContainer ℓ → SymmetricContainer ℓ
   31-Proposition-1 = Container.Delooping
 
-  31-Proposition-2 : ∀ {F G : ActionContainer ℓ} → ActionContainerMorphism F G → GContMorphism (Container.Delooping F) (Container.Delooping G)
+  31-Proposition-2 : ∀ {F G : ActionContainer ℓ} → ActionContainerMorphism F G → SymmMorphism (Container.Delooping F) (Container.Delooping G)
   31-Proposition-2 = Morphism.Delooping
 
   -- Allthough symmetric containers do not form a category,

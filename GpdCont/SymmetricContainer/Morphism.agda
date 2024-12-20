@@ -12,39 +12,39 @@ private
     ℓ : Level
     G H K L : SymmetricContainer ℓ
 
-record GContMorphism {ℓ} (G H : SymmetricContainer ℓ) : Type ℓ where
+record Morphism {ℓ} (G H : SymmetricContainer ℓ) : Type ℓ where
   private
     module G = SymmetricContainer G
     module H = SymmetricContainer H
 
   field
-    shape-mor : G.Shape → H.Shape
-    pos-path : ∀ (s : G.Shape) → H.Pos (shape-mor s) → G.Pos s
+    shape-map : G.Shape → H.Shape
+    pos-map : ∀ (s : G.Shape) → H.Pos (shape-map s) → G.Pos s
 
 open SymmetricContainer
-open GContMorphism
+open Morphism
 
-unquoteDecl GContMorphismIsoΣ = declareRecordIsoΣ GContMorphismIsoΣ (quote GContMorphism)
+unquoteDecl MorphismIsoΣ = declareRecordIsoΣ MorphismIsoΣ (quote Morphism)
 
 instance
-  GContMorphismToΣ : ∀ {G H : SymmetricContainer ℓ} → RecordToΣ (GContMorphism G H)
-  GContMorphismToΣ {G} {H} = toΣ (GContMorphismIsoΣ {G = G} {H = H})
+  MorphismToΣ : ∀ {G H : SymmetricContainer ℓ} → RecordToΣ (Morphism G H)
+  MorphismToΣ {G} {H} = toΣ (MorphismIsoΣ {G = G} {H = H})
 
-GContMorphism≡ : {α β : GContMorphism G H}
-  → (p : α .shape-mor ≡ β .shape-mor)
-  → (q : ∀ s → PathP (λ i → H .Pos (p i s) → G .Pos s) (α .pos-path s) (β .pos-path s))
+Morphism≡ : {α β : Morphism G H}
+  → (p : α .shape-map ≡ β .shape-map)
+  → (q : ∀ s → PathP (λ i → H .Pos (p i s) → G .Pos s) (α .pos-map s) (β .pos-map s))
   → α ≡ β
-GContMorphism≡ p q i .GContMorphism.shape-mor s = p i s
-GContMorphism≡ p q i .GContMorphism.pos-path s = q s i
+Morphism≡ p q i .Morphism.shape-map s = p i s
+Morphism≡ p q i .Morphism.pos-map s = q s i
 
-GContMorphismSquare : {α β γ δ : GContMorphism G H}
+MorphismSquare : {α β γ δ : Morphism G H}
   → {p : α ≡ β}
   → {q : β ≡ δ}
   → {r : γ ≡ δ}
   → {s : α ≡ γ}
-  → (shape-square : Square (cong shape-mor p) (cong shape-mor r) (cong shape-mor s) (cong shape-mor q))
+  → (shape-square : Square (cong shape-map p) (cong shape-map r) (cong shape-map s) (cong shape-map q))
   → Square p r s q
-GContMorphismSquare {G} {H} {α} {β} {γ} {δ} {p} {q} {r} {s} sq = mor-square where
+MorphismSquare {G} {H} {α} {β} {γ} {δ} {p} {q} {r} {s} sq = mor-square where
   module G = SymmetricContainer G
   module H = SymmetricContainer H
 
@@ -57,53 +57,53 @@ GContMorphismSquare {G} {H} {α} {β} {γ} {δ} {p} {q} {r} {s} sq = mor-square 
 
 
 private
-  _≡Mor_ : (α β : GContMorphism G H) → Type _
-  _≡Mor_ {G} {H} α β = Σ[ p ∈ α .shape-mor ≡ β .shape-mor ] (∀ s → PathP (λ i → H .Pos (p i s) → G .Pos s) (α .pos-path s) (β .pos-path s))
+  _≡Mor_ : (α β : Morphism G H) → Type _
+  _≡Mor_ {G} {H} α β = Σ[ p ∈ α .shape-map ≡ β .shape-map ] (∀ s → PathP (λ i → H .Pos (p i s) → G .Pos s) (α .pos-map s) (β .pos-map s))
 
-module _ {α β : GContMorphism G H} where
-  GContMorphism≡Iso : Iso (α ≡Mor β) (α ≡ β)
-  GContMorphism≡Iso .Iso.fun = uncurry GContMorphism≡
-  GContMorphism≡Iso .Iso.inv p .fst i = p i .shape-mor
-  GContMorphism≡Iso .Iso.inv p .snd s i = p i .pos-path s
-  GContMorphism≡Iso .Iso.rightInv p i j .shape-mor = p j .shape-mor
-  GContMorphism≡Iso .Iso.rightInv p i j .pos-path = p j .pos-path
-  GContMorphism≡Iso .Iso.leftInv p i .fst j = p .fst j
-  GContMorphism≡Iso .Iso.leftInv p i .snd s = p .snd s
+module _ {α β : Morphism G H} where
+  Morphism≡Iso : Iso (α ≡Mor β) (α ≡ β)
+  Morphism≡Iso .Iso.fun = uncurry Morphism≡
+  Morphism≡Iso .Iso.inv p .fst i = p i .shape-map
+  Morphism≡Iso .Iso.inv p .snd s i = p i .pos-map s
+  Morphism≡Iso .Iso.rightInv p i j .shape-map = p j .shape-map
+  Morphism≡Iso .Iso.rightInv p i j .pos-map = p j .pos-map
+  Morphism≡Iso .Iso.leftInv p i .fst j = p .fst j
+  Morphism≡Iso .Iso.leftInv p i .snd s = p .snd s
 
-  GContMorphism≡Equiv : (α ≡Mor β) ≃ (α ≡ β)
-  GContMorphism≡Equiv = isoToEquiv GContMorphism≡Iso
+  Morphism≡Equiv : (α ≡Mor β) ≃ (α ≡ β)
+  Morphism≡Equiv = isoToEquiv Morphism≡Iso
 
-isGroupoidGContMorphism : isGroupoid (GContMorphism G H)
-isGroupoidGContMorphism {G} {H} = recordIsOfHLevel 3 $
+isGroupoidMorphism : isGroupoid (Morphism G H)
+isGroupoidMorphism {G} {H} = recordIsOfHLevel 3 $
   isGroupoidΣ
     (isGroupoidΠ λ _ → H .is-groupoid-shape)
     λ u → isSet→isGroupoid (isSetΠ2 λ s _ → G .is-set-pos s)
 
-GContId : (G : SymmetricContainer ℓ) → GContMorphism G G
-GContId G .GContMorphism.shape-mor = id $ G .Shape
-GContId G .GContMorphism.pos-path s = id $ G .Pos s
+idMorphism : (G : SymmetricContainer ℓ) → Morphism G G
+idMorphism G .Morphism.shape-map = id $ G .Shape
+idMorphism G .Morphism.pos-map s = id $ G .Pos s
 
-compGContMorphism : (α : GContMorphism G H) (β : GContMorphism H K) → GContMorphism G K
-compGContMorphism {G} {H} {K} α β = composite where
-  module α = GContMorphism α
-  module β = GContMorphism β
+compMorphism : (α : Morphism G H) (β : Morphism H K) → Morphism G K
+compMorphism {G} {H} {K} α β = composite where
+  module α = Morphism α
+  module β = Morphism β
 
-  composite : GContMorphism G K
-  composite .shape-mor = β.shape-mor ∘ α.shape-mor
-  composite .pos-path s = α.pos-path s ∘ β.pos-path (α .shape-mor s)
+  composite : Morphism G K
+  composite .shape-map = β.shape-map ∘ α.shape-map
+  composite .pos-map s = α.pos-map s ∘ β.pos-map (α .shape-map s)
 
-infixl 15 _⋆GCont_
-_⋆GCont_ : (α : GContMorphism G H) (β : GContMorphism H K) → GContMorphism G K
-_⋆GCont_ = compGContMorphism
+infixl 15 _⋆Mor_
+_⋆Mor_ : (α : Morphism G H) (β : Morphism H K) → Morphism G K
+_⋆Mor_ = compMorphism
 
-compGContMorphismIdL : (α : GContMorphism G H) → GContId G ⋆GCont α ≡ α
-compGContMorphismIdL α = refl
+compMorphismIdL : (α : Morphism G H) → idMorphism G ⋆Mor α ≡ α
+compMorphismIdL α = refl
 
-compGContMorphismIdR : (α : GContMorphism G H) → α ⋆GCont GContId H ≡ α
-compGContMorphismIdR α = refl
+compMorphismIdR : (α : Morphism G H) → α ⋆Mor idMorphism H ≡ α
+compMorphismIdR α = refl
 
-compGContMorphismAssoc : (α : GContMorphism G H) (β : GContMorphism H K) (γ : GContMorphism K L) → (α ⋆GCont β) ⋆GCont γ ≡ α ⋆GCont (β ⋆GCont γ)
-compGContMorphismAssoc α β γ = refl
+compMorphismAssoc : (α : Morphism G H) (β : Morphism H K) (γ : Morphism K L) → (α ⋆Mor β) ⋆Mor γ ≡ α ⋆Mor (β ⋆Mor γ)
+compMorphismAssoc α β γ = refl
 
 private
   open import Cubical.Data.Unit
@@ -156,9 +156,9 @@ private
   Id .is-groupoid-shape = isOfHLevelUnit 3
   Id .is-set-pos _ = isOfHLevelUnit 2
 
-  proj-right : GContMorphism (G ⊗ H) H
-  proj-right .shape-mor = snd
-  proj-right .pos-path _ = inr
+  proj-right : Morphism (G ⊗ H) H
+  proj-right .shape-map = snd
+  proj-right .pos-map _ = inr
 
-  π₁ : GContMorphism (Id ⊗ UPair) UPair
+  π₁ : Morphism (Id ⊗ UPair) UPair
   π₁ = proj-right {G = Id} {H = UPair}

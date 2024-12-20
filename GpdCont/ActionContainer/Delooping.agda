@@ -6,7 +6,7 @@ open import GpdCont.ActionContainer.Base using (ActionContainer)
 import      GpdCont.ActionContainer.Morphism as ActionContainerMorphism
 open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleMap)
 open import GpdCont.SymmetricContainer.Base using (SymmetricContainer ; mkSymmetricContainer)
-open import GpdCont.SymmetricContainer.Morphism using (GContMorphism ; GContMorphism≡Equiv)
+import      GpdCont.SymmetricContainer.Morphism as Symm
 import      GpdCont.Delooping
 
 open import Cubical.Foundations.HLevels
@@ -56,13 +56,12 @@ module Morphism {ℓ} {F G : ActionContainer ℓ} (α : ActionContainerMorphism.
     (α.pos-map s)
     (α.is-equivariant-pos-map' s)
 
-  Delooping : GContMorphism (Container.Delooping F) (Container.Delooping G)
-  Delooping .GContMorphism.shape-mor = shape-mor
-  Delooping .GContMorphism.pos-path = pos-mor
+  Delooping : Symm.Morphism (Container.Delooping F) (Container.Delooping G)
+  Delooping .Symm.Morphism.shape-map = shape-mor
+  Delooping .Symm.Morphism.pos-map = pos-mor
 
 module Functor (ℓ : Level) where
   open import GpdCont.ActionContainer.Category using (Act)
-  open import GpdCont.SymmetricContainer.Morphism using (GContMorphism≡)
   open import GpdCont.SymmetricContainer.WildCat renaming (GContCat to SymmCont)
   open import GpdCont.WildCat.HomotopyCategory using (ho) renaming (module Notation to HoNotation)
   
@@ -91,7 +90,7 @@ module Functor (ℓ : Level) where
   Delooping : Functor (Act {ℓ}) hoSymmCont
   Delooping .Functor.F-ob = Delooping₀
   Delooping .Functor.F-hom = Delooping₁
-  Delooping .Functor.F-id {x = F} = hoSymmCont.trunc-path (GContMorphism≡ {G = Delooping₀ F} {H = Delooping₀ F} shape-id pos-id) where
+  Delooping .Functor.F-id {x = F} = hoSymmCont.trunc-path (Symm.Morphism≡ {G = Delooping₀ F} {H = Delooping₀ F} shape-id pos-id) where
     module F = ActionContainer F
     module 𝔹F = Container F
 
@@ -108,14 +107,14 @@ module Functor (ℓ : Level) where
     pos-id = uncurry pos-id-ext where
       pos-id-ext : (s : F.Shape) (x : 𝔹F.𝔹Symm s) → PathP (λ i → ⟨ 𝔹F.DeloopingPos (shape-id i (s , x)) ⟩ → ⟨ 𝔹F.DeloopingPos (s , x) ⟩) _ _
       pos-id-ext s = 𝔹F.elimProp (λ x → isOfHLevelPathP' 1 (isSetΠ λ _ → str (𝔹F.DeloopingPos (s , x))) _ _) refl
-  Delooping .Functor.F-seq {x = F} {y = G} {z = H} f g = hoSymmCont.trunc-path (GContMorphism≡ {G = Delooping₀ F} {H = Delooping₀ H} shape-seq pos-seq) where
+  Delooping .Functor.F-seq {x = F} {y = G} {z = H} f g = hoSymmCont.trunc-path (Symm.Morphism≡ {G = Delooping₀ F} {H = Delooping₀ H} shape-seq pos-seq) where
     module F = ActionContainer F
     module H = ActionContainer H
     module 𝔹F = Container F
     module 𝔹H = Container H
     module f⋆g = ActionContainerMorphism.Morphism (f Act.⋆ g)
 
-    shape-seq : Morphism.shape-mor (f Act.⋆ g) ≡ GContMorphism.shape-mor (Morphism.Delooping f SymmCont.⋆ Morphism.Delooping g)
+    shape-seq : Morphism.shape-mor (f Act.⋆ g) ≡ Symm.Morphism.shape-map (Morphism.Delooping f SymmCont.⋆ Morphism.Delooping g)
     shape-seq = funExt $ uncurry λ s → 𝔹F.elimSet (λ _ → str 𝔹H.DeloopingShape _ _) refl λ g i j → f⋆g.shape-map s , 𝔹H.loop (f⋆g.symm-map s g) i
 
     pos-seq : (s* : ⟨ 𝔹F.DeloopingShape ⟩) → PathP _ _ _

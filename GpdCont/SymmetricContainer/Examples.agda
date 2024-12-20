@@ -3,7 +3,7 @@ module GpdCont.SymmetricContainer.Examples where
 open import GpdCont.Prelude
 open import GpdCont.SymmetricContainer.Base
 open import GpdCont.SymmetricContainer.Eval
-open import GpdCont.SymmetricContainer.Morphism using () renaming (GContMorphism to Morphism)
+open import GpdCont.SymmetricContainer.Morphism using (Morphism)
 open import GpdCont.Polynomial as Poly using (Polynomial ; poly⟨_,_⟩)
 open import GpdCont.Modulo as Modulo using (Fin ; isSetFin ; shiftPath)
 
@@ -246,8 +246,8 @@ module ModList where
     --   base* .snd = refl
 
     def : Morphism _ _
-    def .Morphism.shape-mor = Sigma.map-snd μ-shape
-    def .Morphism.pos-path = {! !}
+    def .Morphism.shape-map = Sigma.map-snd μ-shape
+    def .Morphism.pos-map = {! !}
 
 
 -- module MVP (A : Type) where

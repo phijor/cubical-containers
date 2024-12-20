@@ -2,7 +2,7 @@ module GpdCont.SymmetricContainer.TwoCategory where
 
 open import GpdCont.Prelude
 open import GpdCont.SymmetricContainer.Base
-open import GpdCont.SymmetricContainer.Morphism using (GContId)
+open import GpdCont.SymmetricContainer.Morphism using (idMorphism ; isGroupoidMorphism)
 open import GpdCont.SymmetricContainer.WildCat using (Eval ; EvalFunctor ; module EvalFunctor) renaming (GContCat to GContWildCat)
 open import GpdCont.SymmetricContainer.Eval using (⟦-⟧-Path ; ⟦-⟧ᵗ-Path)
 open import GpdCont.TwoCategory.Base
@@ -12,7 +12,6 @@ open import GpdCont.TwoCategory.GroupoidEndo using (Endo)
 open import GpdCont.WildCat.NatTrans using (WildNatTransPath)
 open import GpdCont.WildCat.TypeOfHLevel using (idNat ; _⊛_)
 
-open import GpdCont.SymmetricContainer.Morphism using (isGroupoidGContMorphism)
 open import GpdCont.Polynomial using (poly⟨_,_⟩ ; Polynomial)
 
 import      Cubical.Foundations.GroupoidLaws as GL
@@ -20,11 +19,11 @@ open import Cubical.WildCat.Base using (WildCat)
 open import Cubical.WildCat.Functor using (WildFunctor ; WildNatTrans)
 
 GroupoidContainerCat : (ℓ : Level) → TwoCategory (ℓ-suc ℓ) ℓ ℓ
-GroupoidContainerCat ℓ = TwoDiscrete (GContWildCat ℓ) λ _ _ → isGroupoidGContMorphism
+GroupoidContainerCat ℓ = TwoDiscrete (GContWildCat ℓ) λ _ _ → isGroupoidMorphism
 
 private
   module GContWildCat {ℓ} = WildCat (GContWildCat ℓ)
-  ⟦-⟧-id-lax : ∀ {ℓ} (C : SymmetricContainer ℓ) → idNat ℓ (Eval C) ≡ EvalFunctor.on-hom (GContId C)
+  ⟦-⟧-id-lax : ∀ {ℓ} (C : SymmetricContainer ℓ) → idNat ℓ (Eval C) ≡ EvalFunctor.on-hom (idMorphism C)
   ⟦-⟧-id-lax C = WildNatTransPath (λ X → funExt λ x → ⟦-⟧ᵗ-Path C refl refl) λ { v i j x → poly⟨ Polynomial.shape x , v ∘ Polynomial.label x ⟩  }
 
   ⟦-⟧-trans-lax : ∀ {ℓ} {F G H : SymmetricContainer ℓ} (f : GContWildCat.Hom[ F , G ]) (g : GContWildCat.Hom[ G , H ])

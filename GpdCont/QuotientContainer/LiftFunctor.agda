@@ -12,7 +12,6 @@ import GpdCont.QuotientContainer.Lift as Lift
 
 open import GpdCont.Coffin.GroupoidContainerInclusion using (Coffin→GroupoidContainer)
 open import GpdCont.SymmetricContainer.Base
-open import GpdCont.SymmetricContainer.Morphism
 open import GpdCont.Delooping.Map renaming (map to 𝔹-map ; map-id to 𝔹-map-id)
 
 open import Cubical.Foundations.HLevels
@@ -97,8 +96,8 @@ private
 
 
 ↑-map : {Q R : QCONT ℓ .ob} → (α : QCONT ℓ [ Q , R ]) → GContMorphism (↑ Q) (↑ R)
-↑-map {Q} {R} α .GContMorphism.shape-mor = ↑-map.↑-shape-mor Q R α
-↑-map {Q} {R} α .GContMorphism.pos-path = ↑-map.↑-pos-path Q R α
+↑-map {Q} {R} α .GContMorphism.shape-map = ↑-map.↑-shape-mor Q R α
+↑-map {Q} {R} α .GContMorphism.pos-map = ↑-map.↑-pos-path Q R α
 
 ↑-map-id : (Q : QCont ℓ) → ↑-map (QMor.idQCont {Q = Q}) ≡ GContId (↑ Q)
 ↑-map-id Q = GContMorphism≡ (funExt (Lift.↑Shape-uncurry Q λ s σ i → s , goal s i σ)) {! !} where

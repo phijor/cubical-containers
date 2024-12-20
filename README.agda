@@ -58,7 +58,7 @@ module 2·1-QuotientContainers where
 module 2·1-SymmetricContainers where
   open import GpdCont.SymmetricContainer.Base using (SymmetricContainer)
   open import GpdCont.SymmetricContainer.Morphism using (Morphism)
-  open import GpdCont.SymmetricContainer.TwoCategory using (GroupoidContainerCat ; ⟦-⟧)
+  open import GpdCont.SymmetricContainer.TwoCategory using (SymmContCat ; ⟦-⟧)
   open import GpdCont.SymmetricContainer.Eval using (⟦_⟧)
   open import GpdCont.SymmetricContainer.Examples using (CyclicList)
 
@@ -74,12 +74,12 @@ module 2·1-SymmetricContainers where
   09-Definition = Morphism
 
   10-Definition : TwoCategory (ℓ-suc ℓ) ℓ ℓ
-  10-Definition = GroupoidContainerCat _
+  10-Definition = SymmContCat _
 
   11-Defintion : (G : SymmetricContainer ℓ) → (hGroupoid ℓ → hGroupoid ℓ)
   11-Defintion = ⟦_⟧
 
-  _ : LaxFunctor (GroupoidContainerCat ℓ) (Endo ℓ)
+  _ : LaxFunctor (SymmContCat ℓ) (Endo ℓ)
   _ = ⟦-⟧
 
   12-Example : SymmetricContainer ℓ-zero
@@ -232,7 +232,7 @@ module 4-ActionContainers-2-Category where
   open import GpdCont.ActionContainer.Category renaming (Act to ActContCat)
   open import GpdCont.SymmetricContainer.Base using (SymmetricContainer)
   open import GpdCont.SymmetricContainer.Morphism using () renaming (Morphism to SymmMorphism)
-  open import GpdCont.SymmetricContainer.WildCat using (GContCat)
+  open import GpdCont.SymmetricContainer.WildCat using (hoSymmCont)
   open import GpdCont.WildCat.HomotopyCategory using (ho)
 
   open import Cubical.Categories.Functor.Base using (Functor)
@@ -247,7 +247,7 @@ module 4-ActionContainers-2-Category where
   -- we can consider its "homotopy category", i.e. the category obtained
   -- by set-truncating the type of container morphisms.
   -- In this case, delooping of containers *does* behave functorially:
-  _ : Functor (ActContCat {ℓ}) (ho (GContCat ℓ))
+  _ : Functor (ActContCat {ℓ}) (hoSymmCont ℓ)
   _ = DeloopingFunctor.Delooping _
 
   module 4·1-Groups where

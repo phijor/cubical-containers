@@ -62,7 +62,7 @@ module Morphism {ℓ} {F G : ActionContainer ℓ} (α : ActionContainerMorphism.
 
 module Functor (ℓ : Level) where
   open import GpdCont.ActionContainer.Category using (Act)
-  open import GpdCont.SymmetricContainer.WildCat renaming (GContCat to SymmCont)
+  open import GpdCont.SymmetricContainer.WildCat using (SymmContWildCat ; hoSymmCont)
   open import GpdCont.WildCat.HomotopyCategory using (ho) renaming (module Notation to HoNotation)
   
   open import Cubical.Categories.Category.Base
@@ -70,24 +70,24 @@ module Functor (ℓ : Level) where
   open import Cubical.WildCat.Base hiding (_[_,_])
 
   private
-    module SymmCont = WildCat (SymmCont ℓ)
-    hoSymmCont = ho (SymmCont ℓ)
-    module hoSymmCont where
-      open Category hoSymmCont public
-      open HoNotation (SymmCont ℓ) using (trunc-hom) public
+    module SymmContWild = WildCat (SymmContWildCat ℓ)
 
-      trunc-path : ∀ {F G} {f g : SymmCont.Hom[ F , G ]} → f ≡ g → trunc-hom f ≡ trunc-hom g
+    module hoSymmCont where
+      open Category (hoSymmCont ℓ) public
+      open HoNotation (SymmContWildCat ℓ) using (trunc-hom) public
+
+      trunc-path : ∀ {F G} {f g : SymmContWild.Hom[ F , G ]} → f ≡ g → trunc-hom f ≡ trunc-hom g
       trunc-path = cong trunc-hom
 
     module Act = Category (Act {ℓ})
 
   Delooping₀ = Container.Delooping
 
-  Delooping₁ : ∀ {F G : ActionContainer ℓ} → ActionContainerMorphism.Morphism F G → ho (SymmCont ℓ) [ Container.Delooping F , Container.Delooping G ]
+  Delooping₁ : ∀ {F G : ActionContainer ℓ} → ActionContainerMorphism.Morphism F G → (hoSymmCont ℓ) [ Container.Delooping F , Container.Delooping G ]
   Delooping₁ = hoSymmCont.trunc-hom ∘ Morphism.Delooping
 
 
-  Delooping : Functor (Act {ℓ}) hoSymmCont
+  Delooping : Functor (Act {ℓ}) (hoSymmCont ℓ)
   Delooping .Functor.F-ob = Delooping₀
   Delooping .Functor.F-hom = Delooping₁
   Delooping .Functor.F-id {x = F} = hoSymmCont.trunc-path (Symm.Morphism≡ {G = Delooping₀ F} {H = Delooping₀ F} shape-id pos-id) where
@@ -114,7 +114,7 @@ module Functor (ℓ : Level) where
     module 𝔹H = Container H
     module f⋆g = ActionContainerMorphism.Morphism (f Act.⋆ g)
 
-    shape-seq : Morphism.shape-mor (f Act.⋆ g) ≡ Symm.Morphism.shape-map (Morphism.Delooping f SymmCont.⋆ Morphism.Delooping g)
+    shape-seq : Morphism.shape-mor (f Act.⋆ g) ≡ Symm.Morphism.shape-map (Morphism.Delooping f SymmContWild.⋆ Morphism.Delooping g)
     shape-seq = funExt $ uncurry λ s → 𝔹F.elimSet (λ _ → str 𝔹H.DeloopingShape _ _) refl λ g i j → f⋆g.shape-map s , 𝔹H.loop (f⋆g.symm-map s g) i
 
     pos-seq : (s* : ⟨ 𝔹F.DeloopingShape ⟩) → PathP _ _ _

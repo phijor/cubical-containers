@@ -3,7 +3,7 @@ module GpdCont.SymmetricContainer.TwoCategory where
 open import GpdCont.Prelude
 open import GpdCont.SymmetricContainer.Base
 open import GpdCont.SymmetricContainer.Morphism using (idMorphism ; isGroupoidMorphism)
-open import GpdCont.SymmetricContainer.WildCat using (Eval ; EvalFunctor ; module EvalFunctor) renaming (GContCat to GContWildCat)
+open import GpdCont.SymmetricContainer.WildCat using (Eval ; EvalFunctor ; module EvalFunctor ; SymmContWildCat)
 open import GpdCont.SymmetricContainer.Eval using (⟦-⟧-Path ; ⟦-⟧ᵗ-Path)
 open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.TwoDiscrete using (TwoDiscrete)
@@ -18,19 +18,19 @@ import      Cubical.Foundations.GroupoidLaws as GL
 open import Cubical.WildCat.Base using (WildCat)
 open import Cubical.WildCat.Functor using (WildFunctor ; WildNatTrans)
 
-GroupoidContainerCat : (ℓ : Level) → TwoCategory (ℓ-suc ℓ) ℓ ℓ
-GroupoidContainerCat ℓ = TwoDiscrete (GContWildCat ℓ) λ _ _ → isGroupoidMorphism
+SymmContCat : (ℓ : Level) → TwoCategory (ℓ-suc ℓ) ℓ ℓ
+SymmContCat ℓ = TwoDiscrete (SymmContWildCat ℓ) λ _ _ → isGroupoidMorphism
 
 private
-  module GContWildCat {ℓ} = WildCat (GContWildCat ℓ)
+  module SymmContWildCat {ℓ} = WildCat (SymmContWildCat ℓ)
   ⟦-⟧-id-lax : ∀ {ℓ} (C : SymmetricContainer ℓ) → idNat ℓ (Eval C) ≡ EvalFunctor.on-hom (idMorphism C)
   ⟦-⟧-id-lax C = WildNatTransPath (λ X → funExt λ x → ⟦-⟧ᵗ-Path C refl refl) λ { v i j x → poly⟨ Polynomial.shape x , v ∘ Polynomial.label x ⟩  }
 
-  ⟦-⟧-trans-lax : ∀ {ℓ} {F G H : SymmetricContainer ℓ} (f : GContWildCat.Hom[ F , G ]) (g : GContWildCat.Hom[ G , H ])
-    → _⊛_ ℓ (EvalFunctor.on-hom f) (EvalFunctor.on-hom g) ≡ EvalFunctor.on-hom (f GContWildCat.⋆ g)
+  ⟦-⟧-trans-lax : ∀ {ℓ} {F G H : SymmetricContainer ℓ} (f : SymmContWildCat.Hom[ F , G ]) (g : SymmContWildCat.Hom[ G , H ])
+    → _⊛_ ℓ (EvalFunctor.on-hom f) (EvalFunctor.on-hom g) ≡ EvalFunctor.on-hom (f SymmContWildCat.⋆ g)
   ⟦-⟧-trans-lax {H} f g = WildNatTransPath (λ X → funExt λ x → ⟦-⟧ᵗ-Path H refl refl) λ { v i j x → poly⟨ {!_ !} , {! !} ⟩ }
 
-⟦-⟧ : ∀ {ℓ} → LaxFunctor (GroupoidContainerCat ℓ) (Endo ℓ)
+⟦-⟧ : ∀ {ℓ} → LaxFunctor (SymmContCat ℓ) (Endo ℓ)
 ⟦-⟧ .LaxFunctor.F-ob = Eval
 ⟦-⟧ .LaxFunctor.F-hom = EvalFunctor.on-hom
 ⟦-⟧ .LaxFunctor.F-rel = cong EvalFunctor.on-hom

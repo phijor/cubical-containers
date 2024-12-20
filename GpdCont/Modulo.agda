@@ -71,3 +71,6 @@ shiftEquiv k = isoToEquiv $ shiftIso k
 
 shiftPath : ∀ k → Fin k ≡ Fin k
 shiftPath k = ua $ shiftEquiv k
+
+shiftPathβ : ∀ k → transport (shiftPath k) ≡ shift {k = k}
+shiftPathβ k i x = uaβ (shiftEquiv k) x i

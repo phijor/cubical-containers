@@ -199,3 +199,80 @@ konst-exponential K C = K⇒C where
   K⇒C .UniversalElement.vertex = [konst K , C ]
   K⇒C .UniversalElement.element = eval {K = K} {C = C}
   K⇒C .UniversalElement.universal = universal
+
+{-
+{-
+gonst : (K : hSet ℓ) (H : ⟨ K ⟩ → Group ℓ) → ActionContainer ℓ
+gonst {ℓ} K H = mkActionContainer K 𝟘 H triv where
+  𝟘 : ⟨ K ⟩ → hSet ℓ
+  𝟘 _ = EmptySet ℓ
+
+  triv : ∀ s → Action (H s) (EmptySet _)
+  triv s = trivialAction _ _
+
+[gonst⟨_×_⟩,_] : (K : hSet ℓ) (H : ⟨ K ⟩ → Group ℓ) → (C : ActionContainer ℓ) → ActionContainer ℓ
+[gonst⟨ K × H ⟩, C ] using (S , P , G , σ) ← unbundleContainer C
+  = mkActionContainer S* P* G* σ* where
+
+  S* : hSet _
+  S* = K →Set S
+
+  P* : ⟨ S* ⟩ → hSet _
+  P* f = ΣSet K (P ∘ f)
+
+  G* : ⟨ S* ⟩ → Group _
+  G* f = ΠGroup $ λ k → pointwise ⟨ K ⟩ (G $ f k)
+
+  σ* : ∀ f → Action (G* f) (P* f)
+  σ* f = ΠActionΣ K (P ∘ f) {! !} -- (σ ∘ f)
+
+module _ (K : hSet ℓ) (G : ⟨ K ⟩ → Group ℓ) (C Z : ActionContainer ℓ) where
+  private
+    module C = ActionContainer C
+    module Z = ActionContainer Z
+    module G k = GroupStr (str (G k))
+
+    open Morphism
+    open Morphismᴰ
+
+  gonst-curry : Morphism (gonst K G ⊗ Z) C → Morphism Z [gonst⟨ K × G ⟩, C ]
+  gonst-curry f = mkMorphismBundled Z [gonst⟨ K × G ⟩, C ] curry-shape curry-hom {! !} where
+    module f = Morphism f
+
+    curry-shape : Z.Shape → ⟨ K ⟩ → C.Shape
+    curry-shape = flip $ curry f.shape-map
+
+    -- f′-symm-hom : ∀ z k → GroupHom (Z.SymmGroup z) (C.SymmGroup $ f.shape-map $ k , z)
+    -- f′-symm-hom z k = lUnitInv (Z.SymmGroup z) ⋆Group f.symm-hom (k , z)
+
+    -- inj-hom : ∀ z k → GroupHom (C.SymmGroup $ f.shape-map $ k , z) (ΠGroup $ C.SymmGroup ∘ curry-shape z)
+    -- inj-hom z k .fst σ k′ = {!σ !}
+    -- inj-hom z k .snd = {! !}
+
+    curry-hom' : ∀ z → GroupHom (Z.SymmGroup z) (ΠGroup λ k → C.SymmGroup (curry-shape z k))
+    curry-hom' z .fst g k = f.symm-hom (k , z) .fst (G.1g k , g)
+    curry-hom' z .snd = makeIsGroupHom λ gᶻ hᶻ → funExt λ k → {! !} ∙ f.is-group-hom-symm-map (k , z) .IsGroupHom.pres· (G.1g k , gᶻ) (G.1g k , hᶻ)
+
+    curry-hom : ∀ z → GroupHom (Z.SymmGroup z) (ΠGroup λ k → pointwise ⟨ K ⟩ $ C.SymmGroup (curry-shape z k))
+    curry-hom z .fst gᶻ k k′ = f.symm-hom (k , z) .fst ({! !} , gᶻ)
+    curry-hom z .snd = {!f.symm-hom !}
+
+
+module _ (C D : ActionContainer ℓ) where
+  private
+    module C = ActionContainer C
+    module D = ActionContainer D
+
+    open Morphism
+    open Morphismᴰ
+
+    Shape[-,-] : hSet ℓ
+    Shape[-,-] = C.ShapeSet →Set D.ShapeSet
+
+    Symm[-,-] : ∀ (f : ⟨ Shape[-,-] ⟩) → Group _
+    Symm[-,-] f = ΠGroup λ c → pointwise (C.Symm c) (D.SymmGroup $ f c)
+
+  [_,_] : ActionContainer ℓ
+  [_,_] = mkActionContainer Shape[-,-] {! !} Symm[-,-] {! !}
+  -}
+-}

@@ -155,3 +155,147 @@ module Products (p : Pr.Products C ℓ) where
 
   FamProducts : Products
   FamProducts = FamProduct
+
+module ConstantExponentials (p : Pr.Products C ℓ) where
+  open import GpdCont.Bool
+  open import Cubical.Categories.Exponentials using (Exponential)
+
+  private
+    open module FamProduct = Pr Fam ℓ
+    module C where
+      open Category C public
+      open Pr.Notation C ℓ p public
+
+    famBinProducts = Pr.Products→BinProducts Fam ℓ (Products.FamProducts p)
+    module ΠFam = FamProduct.Notation (Products.FamProducts p)
+
+  konst : hSet ℓ → Fam.ob
+  konst K .fst = K
+  konst K .snd = const C.terminal
+
+  [konst_,_]' : (K : hSet ℓ) (c : Fam.ob) → Fam.ob
+  [konst K , c ]' = ΠFam.Π K (const c)
+
+  [konst_,_] : (K : hSet ℓ) (c : Fam.ob) → Fam.ob
+  [konst K , c ] .fst = K →Set (Index c)
+  [konst K , c ] .snd f = C.Π K (El c ∘ f)
+
+  module _ (K : hSet ℓ) (c : Fam.ob) where
+    ap-idx : ⟨ Index (konst K ΠFam.× [konst K , c ]) ⟩ → ⟨ Index c ⟩
+    ap-idx = ap ∘ bool-unelim where
+      ap : ⟨ K ⟩ × ⟨ K →Set (Index c) ⟩ → ⟨ Index c ⟩
+      ap (k , f) = f k
+
+    eval₀ : Fam.Hom[ (konst K) ΠFam.× [konst K , c ] , [konst K , c ] ]
+    eval₀ = ΠFam.π₂
+
+    eval-El : ∀ (f : ⟨ K ⟩ → ⟨ Index c ⟩) k → C.Hom[ El [konst K , c ] f , El c (f k) ]
+    eval-El f = C.π K (El c ∘ f)
+
+    module eval' (k : ⟨ K ⟩) (f : ⟨ K ⟩ → ⟨ Index c ⟩) where
+      index : ⟨ Index c ⟩
+      index = f k
+
+      el' : C.Hom[ C._×_ ? ? , El c index ]
+      el' = ?
+
+      el : C.Hom[ El (konst K ΠFam.× [konst K , c ]') (bool-elim k f) , El c index ]
+      el = {! !} C.⋆ eval-El f k
+
+      -- hom : Σ[ j ∈ ⟨ Index c ⟩ ] C.Hom[ El (konst K ΠFam.× [konst K , c ]') (bool-elim k f) , El c j ]
+      -- hom .fst = index
+      -- hom .snd = el
+
+    module eval (idx : ⟨ Index ((konst K) ΠFam.× [konst K , c ]') ⟩) where
+      open Σ (bool-unelim idx) renaming (fst to k ; snd to f)
+
+      index : ⟨ Index c ⟩
+      index = f k
+
+      el' : C.Hom[ {! !} C.× {! !}, El c index ]
+      el' = ?
+      el : C.Hom[ El (konst K ΠFam.× [konst K , c ]') idx , El c index ]
+      el = {! !} C.⋆ eval-El f k
+
+      hom : Σ[ j ∈ ⟨ Index c ⟩ ] C.Hom[ El (konst K ΠFam.× [konst K , c ]') idx , El c j ]
+      hom .fst = index
+      hom .snd = el
+
+    eval' : Fam.Hom[ (konst K) ΠFam.× [konst K , c ]' , c ]
+    eval' = Iso.fun Σ-Π-Iso eval.hom
+
+    eval : Fam.Hom[ (konst K) ΠFam.× [konst K , c ] , c ]
+    eval .fst = ap-idx
+    eval .snd idx using (k , f) ← bool-unelim idx = goal where
+      goal : C.Hom[ El (konst K ΠFam.× [konst K , c ]) idx , El c (f k) ]
+      goal = HomEl eval₀ idx C.⋆ eval-El f k
+
+    univ-iso' : ∀ x → Iso (Fam [ x , [konst K , c ] ]) (Fam [ konst K ΠFam.× x , c ])
+    univ-iso' x =
+      Σ[ f ∈ (⟨ Index x ⟩ → ⟨ K ⟩ → ⟨ Index c ⟩) ] (∀ idx → C.Hom[ El x idx , {! !} ]) Iso⟨ {! !} ⟩
+      Fam [ konst K ΠFam.× x , c ] Iso∎
+
+    univ-iso : ∀ x → Iso (Fam [ x , [konst K , c ] ]) (Fam [ konst K ΠFam.× x , c ])
+    univ-iso x .Iso.fun = λ f → (Fam.id {x = konst K} ΠFam.×p f) Fam.⋆ eval
+    univ-iso x .Iso.inv g .fst = the (⟨ Index x ⟩ → ⟨ K ⟩ → ⟨ Index c ⟩) λ idx k → HomIndex g (bool-elim k idx)
+    univ-iso x .Iso.inv g .snd idx = the
+      (C.Hom[ El x idx , C.Π K (El c ∘ HomIndex g ∘ λ k → bool-elim k idx) ])
+      {! !}
+    univ-iso x .Iso.rightInv = {! !}
+    univ-iso x .Iso.leftInv = {! !}
+
+    univ-equiv : ∀ x → Fam [ x , [konst K , c ] ] ≃ Fam [ konst K ΠFam.× x , c ]
+    univ-equiv x .fst = λ f → (Fam.id {x = konst K} ΠFam.×p f) Fam.⋆ eval
+    univ-equiv x .snd = {! !}
+
+    ConstantExponential : Exponential Fam (konst K) c (famBinProducts (konst K))
+    ConstantExponential .UniversalElement.vertex = [konst K , c ]
+    ConstantExponential .UniversalElement.element = eval
+    ConstantExponential .UniversalElement.universal x = subst isEquiv {! !} (equivIsEquiv (univ-equiv x))
+
+{-
+
+-- NOTE: C needs to have arbitrary products!
+module FamExponentials {ℓ} (C : Category ℓ ℓ) (bp : BinProducts C) (exp : Exponentials C bp) where
+  private
+    module C where
+      open Category C public
+      open BP.Notation C bp public
+      open Exp.ExpNotation C bp exp public
+
+    ΠC = Fam ℓ C
+
+    module Πbp = FamBinProducts C bp
+
+    module ΠC where
+      open Category ΠC public
+      open BP.Notation ΠC Πbp.FamBinProducts public
+
+  open import Cubical.Categories.Presheaf.Representable using (UniversalElement)
+  open HSet using (_×Set_ ; _→Set_)
+
+  _⇒Π_ : (x y : ΠC.ob) → ΠC.ob
+  ((J , Xⱼ) ⇒Π (K , Yₖ)) .fst = J →Set K
+  ((J , Xⱼ) ⇒Π (K , Yₖ)) .snd f = {! !} -- λ (j , k) → Xⱼ j C.⇒ Yₖ k
+
+  FamExponentialIso : ∀ {x y z} → Iso (ΠC.Hom[ x ΠC.× y , z ]) (ΠC.Hom[ x , y ⇒Π z ])
+  FamExponentialIso {x@(I , X)} {y@(J , Y)} {z@(K , Z)} =
+    (ΠC.Hom[ x ΠC.× y , z ]) Iso⟨ Iso.idIso ⟩
+    (Σ[ f ∈ (⟨ I ⟩ × ⟨ J ⟩ → ⟨ K ⟩) ] (∀ i,j → C.Hom[ (X (i,j .fst)) C.× (Y (i,j .snd)) , (Z (f i,j)) ])) Iso⟨ Σ-cong-iso-snd {! !} ⟩
+    (Σ[ f ∈ (⟨ I ⟩ × ⟨ J ⟩ → ⟨ K ⟩) ] (∀ i,j → C.Hom[ (X (i,j .fst)) , (Y (i,j .snd)) C.⇒ (Z (f i,j)) ])) Iso⟨ {! !} ⟩
+    (∀ i,j → Σ[ k ∈ ⟨ K ⟩ ] (C.Hom[ X (i,j .fst) , Y (i,j .snd) C.⇒ Z k ])) Iso⟨ {! !} ⟩
+    (∀ i j → Σ[ k ∈ ⟨ K ⟩ ] (C.Hom[ X i , Y j C.⇒ Z k ])) Iso⟨ {! !} ⟩
+
+    (∀ i → Σ[ f ∈ (⟨ J ⟩ → ⟨ K ⟩) ] (∀ j → C.Hom[ X i , Y j C.⇒ Z (f j) ])) Iso⟨ {! !} ⟩
+    (∀ i → Σ[ f ∈ (⟨ J ⟩ → ⟨ K ⟩) ] (C.Hom[ X i , ((J , Y) ⇒Π (K , Z)) .snd f ])) Iso⟨ {! !} ⟩
+
+    (Σ[ f ∈ (⟨ I ⟩ → ⟨ J ⟩ → ⟨ K ⟩) ] (∀ i → C.Hom[ X i , ((J , Y) ⇒Π (K , Z)) .snd (f i) ])) Iso⟨ Iso.idIso ⟩
+    (ΠC.Hom[ x , y ⇒Π z ]) Iso∎
+
+  FamExponentials : Exponentials (Fam ℓ C) Πbp.FamBinProducts
+  FamExponentials (x , y) = ue where
+    ue : UniversalElement _ _
+    ue .UniversalElement.vertex = x ⇒Π y
+    ue .UniversalElement.element = (λ { x₁ → {! !} }) , {! !}
+    ue .UniversalElement.universal = {! !}
+    -}

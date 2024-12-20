@@ -37,6 +37,25 @@ GContMorphism≡ : {α β : GContMorphism G H}
 GContMorphism≡ p q i .GContMorphism.shape-mor s = p i s
 GContMorphism≡ p q i .GContMorphism.pos-path s = q s i
 
+GContMorphismSquare : {α β γ δ : GContMorphism G H}
+  → {p : α ≡ β}
+  → {q : β ≡ δ}
+  → {r : γ ≡ δ}
+  → {s : α ≡ γ}
+  → (shape-square : Square (cong shape-mor p) (cong shape-mor r) (cong shape-mor s) (cong shape-mor q))
+  → Square p r s q
+GContMorphismSquare {G} {H} {α} {β} {γ} {δ} {p} {q} {r} {s} sq = mor-square where
+  module G = GCont G
+  module H = GCont H
+
+  isSetPosMap : (u : G.Shape → H.Shape) → isSet (∀ s → H.Pos (u s) → G.Pos s)
+  isSetPosMap u = isSetΠ λ s → isSet→ (G.is-set-pos s)
+
+  -- Mhhhh, casting soup!
+  mor-square : Square p r s q
+  mor-square i j = cast←Σ $ ΣSquareSet isSetPosMap {p = cong cast→Σ p} {q = cong cast→Σ q} {r = cong cast→Σ r} {s = cong cast→Σ s} sq i j
+
+
 private
   _≡Mor_ : (α β : GContMorphism G H) → Type _
   _≡Mor_ {G} {H} α β = Σ[ p ∈ α .shape-mor ≡ β .shape-mor ] (∀ s → PathP (λ i → H .Pos (p i s) → G .Pos s) (α .pos-path s) (β .pos-path s))

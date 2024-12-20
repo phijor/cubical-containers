@@ -3,7 +3,7 @@ module GpdCont.Equiv where
 open import GpdCont.Prelude
 
 open import Cubical.Foundations.Equiv
-open import Cubical.Foundations.Equiv.Properties using (equivAdjointEquiv)
+open import Cubical.Foundations.Equiv.Properties using (equivAdjointEquiv ; domIsoDep)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Univalence using (pathToEquiv ; EquivJ)
@@ -65,11 +65,10 @@ secEquiv {B} e = lineEquiv (λ φ b → secEq e b φ) (equivIsEquiv (invEquiv e 
 retEquiv : (e : A ≃ B) → ∀ (φ : I) → A ≃ A
 retEquiv {A} e = lineEquiv (λ φ a → retEq e a φ) (equivIsEquiv (e ∙ₑ invEquiv e)) (idIsEquiv A)
 
-equivΠDomain : ∀ {ℓ ℓ'} {A₀ : Type ℓ} {A₁ : Type ℓ} {B : A₁ → Type ℓ'}
+equivΠDomain : ∀ {ℓ₀ ℓ₁ ℓB} {A₀ : Type ℓ₀} {A₁ : Type ℓ₁} {B : A₁ → Type ℓB}
   → (e : A₀ ≃ A₁)
   → ((a₁ : A₁) → B a₁) ≃ ((a₀ : A₀) → B (equivFun e a₀))
-equivΠDomain {A₀} {A₁} {B} e .fst = _∘ equivFun e
-equivΠDomain {A₀} {A₁} {B} e .snd = EquivJ (λ A₀ e → isEquiv (_∘ equivFun e)) (idIsEquiv ((a₁ : A₁) → B a₁)) e
+equivΠDomain e = isoToEquiv (domIsoDep (equivToIso e))
 
 isSet→section-equivToIso : isSet A → isSet B → section (equivToIso {A = A} {B = B}) isoToEquiv
 isSet→section-equivToIso set-A set-B = retIsEq {f = isoToEquiv} (isSet→isEquiv-isoToPath set-A set-B)

@@ -1,4 +1,3 @@
--- {-# OPTIONS --lossy-unification #-}
 module GpdCont.Group.TwoCategory where
 
 open import GpdCont.Prelude
@@ -14,7 +13,13 @@ open import Cubical.Algebra.Group.MorphismProperties as GroupHom using (compGrou
 
 module _ (ℓ : Level) where
   {-# INJECTIVE_FOR_INFERENCE isConjugator #-}
-  {-# INJECTIVE_FOR_INFERENCE Conjugator #-}
+
+  private
+    module _ (G : Group ℓ) where
+      private open module G = GroupStr (str G) using (_·_)
+
+      group-assoc-brace : ∀ {g h k l} → g · ((h · k) · l) ≡ (g · h) · (k · l)
+      group-assoc-brace {g} {h} {k} {l} = sym (cong (g ·_) (G.·Assoc h k l)) ∙ G.·Assoc g h (k · l)
 
   hcompConjugator : ∀ {G H K : Group ℓ} {φ₁ φ₂ : GroupHom G H} {ψ₁ ψ₂ : GroupHom H K}
     → Conjugator φ₁ φ₂
@@ -51,11 +56,12 @@ module _ (ℓ : Level) where
     inv-conj : Conjugator _ _
     inv-conj .fst = inv h
     inv-conj .snd g =
-      ψ g · inv h               ≡⟨ sym (·IdL _) ∙ cong (_· (ψ g · inv h)) (sym $ ·InvL h) ⟩
-      (inv h · h) · ψ g · inv h ≡⟨ {! !} ⟩
-      inv h · (h · ψ g) · inv h ≡[ i ]⟨ inv h · h-conj g (~ i) · (inv h) ⟩
-      inv h · (φ g · h) · inv h ≡⟨ {! !} ⟩
-      (inv h · φ g) · (h · inv h) ≡⟨ {! !} ⟩
+      ψ g · inv h                 ≡⟨ sym (·IdL _) ∙ cong (_· (ψ g · inv h)) (sym $ ·InvL h) ⟩
+      (inv h · h) · (ψ g · inv h) ≡⟨ sym $ group-assoc-brace H ⟩
+      (inv h · (h · ψ g) · inv h) ≡[ i ]⟨ inv h · h-conj g (~ i) · (inv h) ⟩
+      (inv h · (φ g · h) · inv h) ≡⟨ group-assoc-brace H ⟩
+      (inv h · φ g) · (h · inv h) ≡[ i ]⟨ (inv h · φ g) · ·InvR h i ⟩
+      (inv h · φ g) · 1g          ≡⟨ ·IdR _ ⟩
       (inv h) · φ g ∎
 
   twoGroupStr : TwoCategoryStr (Group ℓ) GroupHom Conjugator
@@ -75,13 +81,39 @@ module _ (ℓ : Level) where
     module K = GroupStr (str K)
     goal : K.1g K.· ψ H.1g ≡ K.1g
     goal = cong (K.1g K.·_) (ψ-hom .IsGroupHom.pres1) ∙ (K.·IdR K.1g)
-  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-trans {z = K} s t u v = Conjugator≡ {! !} where
+  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-trans {y = H} {z = K}
+    {g₂ = (ψ₂ , ψ₂-hom)} {g₃ = (ψ₃ , _)}
+    (s , _) (t , _) (u , _) (v , v-conj)
+    = Conjugator≡ goal where
+    module H = GroupStr (str H)
     module K = GroupStr (str K)
+
+    goal : (u K.· v) K.· (ψ₃ (s H.· t)) ≡ (u K.· (ψ₂ s)) K.· (v K.· (ψ₃ t))
+    goal =
+      (u K.· v) K.· (ψ₃ (s H.· t))      ≡⟨ sym (K.·Assoc _ _ _) ⟩
+      u K.· (v K.· (ψ₃ (s H.· t)))      ≡[ i ]⟨ u K.· v-conj (s H.· t) (~ i) ⟩
+      u K.· (ψ₂ (s H.· t)) K.· v        ≡[ i ]⟨ u K.· ψ₂-hom .IsGroupHom.pres· s t i K.· v ⟩
+      u K.· ((ψ₂ s) K.· ψ₂ t) K.· v     ≡⟨ group-assoc-brace K ⟩
+      (u K.· (ψ₂ s)) K.· (ψ₂ t K.· v)   ≡[ i ]⟨ (u K.· (ψ₂ s)) K.· v-conj t i ⟩
+      (u K.· (ψ₂ s)) K.· (v K.· (ψ₃ t)) ∎
 
   isTwoCategoryTwoGroupStr .IsTwoCategory.comp-hom-assoc = GroupHom.compGroupHomAssoc
   isTwoCategoryTwoGroupStr .IsTwoCategory.comp-hom-unit-left _ = GroupHom.GroupHom≡ refl
   isTwoCategoryTwoGroupStr .IsTwoCategory.comp-hom-unit-right = GroupHom.compGroupHomId
-  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-assoc {w = L} (s , s-conj) (t , t-conj) (u , u-conj) = ConjugatorPathP {! !}
+  isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-assoc
+    {z = K} {w = L}
+    {g₂ = ψ₂ , _} {k₂ = ρ₂ , ρ₂-hom}
+    (s , _) (t , _) (u , _)
+    = ConjugatorPathP goal where
+    module K = GroupStr (str K)
+    module L = GroupStr (str L)
+
+    goal : u L.· (ρ₂ (t K.· ψ₂ s)) ≡ (u L.· ρ₂ t) L.· (ρ₂ (ψ₂ s))
+    goal =
+      u L.· (ρ₂ (t K.· ψ₂ s))      ≡⟨ cong (u L.·_) (ρ₂-hom .IsGroupHom.pres· _ _) ⟩
+      u L.· (ρ₂ t) L.· (ρ₂ (ψ₂ s)) ≡⟨ L.·Assoc u (ρ₂ t) (ρ₂ (ψ₂ s)) ⟩
+      (u L.· ρ₂ t) L.· (ρ₂ (ψ₂ s)) ∎
+
   isTwoCategoryTwoGroupStr .IsTwoCategory.comp-rel-unit-left {x = G} {y = H} {g = ψ , ψ-hom} (s , s-conj) = ConjugatorPathP goal where
     module G = GroupStr (str G)
     module H = GroupStr (str H)

@@ -6,8 +6,8 @@ module GpdCont.Coffin.GroupoidContainerInclusion {ℓ} (C : Coffin ℓ) where
 private
   module C = Coffin C
 
-Coffin→GroupoidContainer : GCont ℓ
-Coffin→GroupoidContainer .GCont.Shape = C.Shape
-Coffin→GroupoidContainer .GCont.Pos = C.Pos
-Coffin→GroupoidContainer .GCont.is-groupoid-shape = C.is-groupoid-shape
-Coffin→GroupoidContainer .GCont.is-set-pos = C.isSetPos
+Coffin→GroupoidContainer : SymmetricContainer ℓ
+Coffin→GroupoidContainer .SymmetricContainer.Shape = C.Shape
+Coffin→GroupoidContainer .SymmetricContainer.Pos = C.Pos
+Coffin→GroupoidContainer .SymmetricContainer.is-groupoid-shape = C.is-groupoid-shape
+Coffin→GroupoidContainer .SymmetricContainer.is-set-pos = C.isSetPos

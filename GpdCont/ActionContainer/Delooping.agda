@@ -5,7 +5,7 @@ open import GpdCont.Prelude
 open import GpdCont.ActionContainer.Base using (ActionContainer)
 import      GpdCont.ActionContainer.Morphism as ActionContainerMorphism
 open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleMap)
-open import GpdCont.SymmetricContainer.Base using (GCont ; mkGCont)
+open import GpdCont.SymmetricContainer.Base using (SymmetricContainer ; mkSymmetricContainer)
 open import GpdCont.SymmetricContainer.Morphism using (GContMorphism ; GContMorphism≡Equiv)
 import      GpdCont.Delooping
 
@@ -33,8 +33,8 @@ module Container {ℓ} (F : ActionContainer ℓ) where
   DeloopingPos : ⟨ DeloopingShape ⟩ → hSet ℓ
   DeloopingPos = uncurry λ s → associatedBundle (F.symmAction s)
 
-  Delooping : GCont ℓ
-  Delooping = mkGCont DeloopingShape DeloopingPos
+  Delooping : SymmetricContainer ℓ
+  Delooping = mkSymmetricContainer DeloopingShape DeloopingPos
 
 module Morphism {ℓ} {F G : ActionContainer ℓ} (α : ActionContainerMorphism.Morphism F G) where
   open import GpdCont.Delooping.Map using (map)

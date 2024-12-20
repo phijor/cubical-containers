@@ -3,7 +3,7 @@ module GpdCont.SymmetricContainer.Base where
 open import GpdCont.Prelude
 open import Cubical.Foundations.HLevels
 
-record GCont (ℓ : Level) : Type (ℓ-suc ℓ) where
+record SymmetricContainer (ℓ : Level) : Type (ℓ-suc ℓ) where
   field
     Shape : Type ℓ
     Pos : Shape → Type ℓ
@@ -21,13 +21,13 @@ record GCont (ℓ : Level) : Type (ℓ-suc ℓ) where
     PosSet s .fst = Pos s
     PosSet s .snd = is-set-pos s
 
-mkGCont : ∀ {ℓ} → (S : hGroupoid ℓ) (P : ⟨ S ⟩ → hSet ℓ) → GCont ℓ
-mkGCont S P .GCont.Shape = ⟨ S ⟩
-mkGCont S P .GCont.Pos = ⟨_⟩ ∘ P
-mkGCont S P .GCont.is-groupoid-shape = str S
-mkGCont S P .GCont.is-set-pos = str ∘ P
+mkSymmetricContainer : ∀ {ℓ} → (S : hGroupoid ℓ) (P : ⟨ S ⟩ → hSet ℓ) → SymmetricContainer ℓ
+mkSymmetricContainer S P .SymmetricContainer.Shape = ⟨ S ⟩
+mkSymmetricContainer S P .SymmetricContainer.Pos = ⟨_⟩ ∘ P
+mkSymmetricContainer S P .SymmetricContainer.is-groupoid-shape = str S
+mkSymmetricContainer S P .SymmetricContainer.is-set-pos = str ∘ P
 
-syntax mkGCont S (λ s → P) = [ s ∈ S ◁ P ]
+syntax mkSymmetricContainer S (λ s → P) = [ s ∈ S ◁ P ]
 
 private module _ where
   open import Cubical.HITs.Susp as Susp using (Susp)

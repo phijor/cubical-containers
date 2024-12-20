@@ -104,11 +104,11 @@ module CyclicList where
   isSetModPos = uncurry λ k → uncurry $ uncurry (S1.elimProp (λ _ → isPropΠ2 λ _ _ → isPropIsSet) λ _ _ → isSetFin)
 
 
-CyclicList : GCont ℓ-zero
-CyclicList .GCont.Shape = CyclicList.Shape
-CyclicList .GCont.Pos = CyclicList.Pos
-CyclicList .GCont.is-groupoid-shape = CyclicList.isGroupoidShape
-CyclicList .GCont.is-set-pos = CyclicList.isSetPos
+CyclicList : SymmetricContainer ℓ-zero
+CyclicList .SymmetricContainer.Shape = CyclicList.Shape
+CyclicList .SymmetricContainer.Pos = CyclicList.Pos
+CyclicList .SymmetricContainer.is-groupoid-shape = CyclicList.isGroupoidShape
+CyclicList .SymmetricContainer.is-set-pos = CyclicList.isSetPos
 
 private
   variable
@@ -227,11 +227,11 @@ example-path' = invEq (mkCycPath≃intShift {A = ℕ} {xs = cyc3.vec 1 2 3} {ys 
     cyc3.vec 3 1 2 ∘ transport (refl ∙ Modulo.shiftPath 3) ∎
 
 module ModList where
-  ModCyc : GCont _
-  ModCyc .GCont.Shape = Σ ℕ CyclicList.Mod
-  ModCyc .GCont.Pos = CyclicList.ModPos
-  ModCyc .GCont.is-groupoid-shape = isGroupoidΣ (isSet→isGroupoid Nat.isSetℕ) CyclicList.isGroupoidMod
-  ModCyc .GCont.is-set-pos = CyclicList.isSetModPos
+  ModCyc : SymmetricContainer _
+  ModCyc .SymmetricContainer.Shape = Σ ℕ CyclicList.Mod
+  ModCyc .SymmetricContainer.Pos = CyclicList.ModPos
+  ModCyc .SymmetricContainer.is-groupoid-shape = isGroupoidΣ (isSet→isGroupoid Nat.isSetℕ) CyclicList.isGroupoidMod
+  ModCyc .SymmetricContainer.is-set-pos = CyclicList.isSetModPos
 
   μ : Morphism CyclicList ModCyc
   μ = def where

@@ -1,6 +1,6 @@
 open import GpdCont.SymmetricContainer.Base
 
-module GpdCont.SymmetricContainer.Eval {ℓ} (G : GCont ℓ) where
+module GpdCont.SymmetricContainer.Eval {ℓ} (G : SymmetricContainer ℓ) where
 
 open import GpdCont.Prelude
 open import GpdCont.Polynomial as Poly using (Polynomial)
@@ -8,7 +8,7 @@ open import GpdCont.Polynomial as Poly using (Polynomial)
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Sigma.Properties as Sigma using (map-snd)
 
-open GCont G
+open SymmetricContainer G
 
 ⟦_⟧ᵗ : Type ℓ → Type ℓ
 ⟦_⟧ᵗ = Polynomial Shape Pos

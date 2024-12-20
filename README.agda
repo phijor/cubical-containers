@@ -56,7 +56,7 @@ module 2·1-QuotientContainers where
   07-Definition = QCONT _
 
 module 2·1-SymmetricContainers where
-  open import GpdCont.SymmetricContainer.Base using (GCont)
+  open import GpdCont.SymmetricContainer.Base using (SymmetricContainer)
   open import GpdCont.SymmetricContainer.Morphism using () renaming (GContMorphism to Morphism)
   open import GpdCont.SymmetricContainer.TwoCategory using (GroupoidContainerCat ; ⟦-⟧)
   open import GpdCont.SymmetricContainer.Eval using (⟦_⟧)
@@ -68,21 +68,21 @@ module 2·1-SymmetricContainers where
 
 
   08-Definition : Type (ℓ-suc ℓ)
-  08-Definition = GCont _
+  08-Definition = SymmetricContainer _
 
-  09-Definition : (F G : GCont ℓ) → Type ℓ
+  09-Definition : (F G : SymmetricContainer ℓ) → Type ℓ
   09-Definition = Morphism
 
   10-Definition : TwoCategory (ℓ-suc ℓ) ℓ ℓ
   10-Definition = GroupoidContainerCat _
 
-  11-Defintion : (G : GCont ℓ) → (hGroupoid ℓ → hGroupoid ℓ)
+  11-Defintion : (G : SymmetricContainer ℓ) → (hGroupoid ℓ → hGroupoid ℓ)
   11-Defintion = ⟦_⟧
 
   _ : LaxFunctor (GroupoidContainerCat ℓ) (Endo ℓ)
   _ = ⟦-⟧
 
-  12-Example : GCont ℓ-zero
+  12-Example : SymmetricContainer ℓ-zero
   12-Example = CyclicList
 
 module 2·3-LiftingQuotientContainers where
@@ -95,7 +95,7 @@ module 2·3-LiftingQuotientContainers where
   open import GpdCont.GroupAction.Faithful using (isFaithful ; isFaithful→isSetTruncAssociatedBundle)
   open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleComponents≃Orbits ; Orbits)
   open import GpdCont.Delooping.Map using () renaming (map to 𝔹-map)
-  open import GpdCont.SymmetricContainer.Base using (GCont)
+  open import GpdCont.SymmetricContainer.Base using (SymmetricContainer)
   open import GpdCont.QuotientContainer.Premorphism using (Premorphism)
   open import GpdCont.SymmetricContainer.Eval using (⟦_⟧)
   open import GpdCont.QuotientContainer.Examples using (UnorderedTuple ; Id ; UPair ; degenDup)
@@ -133,7 +133,7 @@ module 2·3-LiftingQuotientContainers where
   16-Proposition {σ} = isFaithful→isSetTruncAssociatedBundle {σ = σ}
 
   -- Any quotient container defines a symmetric container.
-  17-Definition : QCont ℓ → GCont ℓ
+  17-Definition : QCont ℓ → SymmetricContainer ℓ
   17-Definition = QContDelooping
 
   -- Bundles associated to quotient containers are set-truncated.
@@ -230,14 +230,14 @@ module 4-ActionContainers-2-Category where
   open import GpdCont.ActionContainer.Morphism renaming (Morphism to ActionContainerMorphism)
   open import GpdCont.ActionContainer.Delooping using (module Container ; module Morphism) renaming (module Functor to DeloopingFunctor)
   open import GpdCont.ActionContainer.Category renaming (Act to ActContCat)
-  open import GpdCont.SymmetricContainer.Base using (GCont)
+  open import GpdCont.SymmetricContainer.Base using (SymmetricContainer)
   open import GpdCont.SymmetricContainer.Morphism using (GContMorphism)
   open import GpdCont.SymmetricContainer.WildCat using (GContCat)
   open import GpdCont.WildCat.HomotopyCategory using (ho)
 
   open import Cubical.Categories.Functor.Base using (Functor)
 
-  31-Proposition-1 : ActionContainer ℓ → GCont ℓ
+  31-Proposition-1 : ActionContainer ℓ → SymmetricContainer ℓ
   31-Proposition-1 = Container.Delooping
 
   31-Proposition-2 : ∀ {F G : ActionContainer ℓ} → ActionContainerMorphism F G → GContMorphism (Container.Delooping F) (Container.Delooping G)

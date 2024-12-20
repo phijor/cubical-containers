@@ -20,7 +20,7 @@ open WildCat hiding (_⋆_)
 
 module _ (ℓ : Level) where
   GContCat : WildCat (ℓ-suc ℓ) ℓ
-  GContCat .ob = GCont ℓ
+  GContCat .ob = SymmetricContainer ℓ
   GContCat .Hom[_,_] = GContMorphism
   GContCat .id = GContId _
   GContCat .WildCat._⋆_ = compGContMorphism
@@ -31,14 +31,14 @@ module _ (ℓ : Level) where
   TruncGContCat : Category _ _
   TruncGContCat = ho GContCat
 
-  GContLocal : (C D : GCont ℓ) → Category _ _
+  GContLocal : (C D : SymmetricContainer ℓ) → Category _ _
   GContLocal C D = DiscreteCategory (GContMorphism C D , isGroupoidGContMorphism)
 
 private
   variable
     ℓ : Level
 
-Eval : (G : GCont ℓ) → WildFunctor (hGroupoidCat ℓ) (hGroupoidCat ℓ)
+Eval : (G : SymmetricContainer ℓ) → WildFunctor (hGroupoidCat ℓ) (hGroupoidCat ℓ)
 Eval G .WildFunctor.F-ob = ⟦ G ⟧
 Eval G .WildFunctor.F-hom {x} {y} = ⟦ G ⟧-map x y
 Eval G .WildFunctor.F-id {x} = ⟦ G ⟧-map-id x
@@ -47,7 +47,7 @@ Eval G .WildFunctor.F-seq {x} {y} {z} = ⟦ G ⟧-map-comp x y z
 module EvalFunctor where
   private
     variable
-      G H : GCont ℓ
+      G H : SymmetricContainer ℓ
 
   on-hom : (α : GContMorphism G H) → WildNatTrans _ _ (Eval G) (Eval H)
   on-hom α .WildNatTrans.N-ob = Hom⟦ α ⟧₀
@@ -63,7 +63,7 @@ module EvalFunctor where
 
   open GContMorphism
 
-  module _ {G H K : GCont ℓ} (α : GContMorphism G H) (β : GContMorphism H K) where
+  module _ {G H K : SymmetricContainer ℓ} (α : GContMorphism G H) (β : GContMorphism H K) where
     on-hom-seq-ob : (X : hGroupoidCat ℓ .ob) → Hom⟦ α ⋆⟨ GContCat ℓ ⟩ β ⟧₀ X ≡ Hom⟦ β ⟧₀ X ∘fun Hom⟦ α ⟧₀ X
     on-hom-seq-ob X = refl
 

@@ -26,7 +26,7 @@ private
   variable
     ℓ : Level
 
-  ↑ : (Q : QCont ℓ) → GCont ℓ
+  ↑ : (Q : QCont ℓ) → SymmetricContainer ℓ
   ↑ Q = Coffin→GroupoidContainer (Lift.↑ Q)
 
 open Category hiding (id)
@@ -38,8 +38,8 @@ private
   module ↑-map (Q R : QCont ℓ) where
     module Q = QCont Q
     module R = QCont R
-    module ↑Q = GCont (↑ Q)
-    module ↑R = GCont (↑ R)
+    module ↑Q = SymmetricContainer (↑ Q)
+    module ↑R = SymmetricContainer (↑ R)
 
     module _ (s) (u : Q.Shape → R.Shape) (f : Premorphism Q R u) where
       module f = Premorphism f

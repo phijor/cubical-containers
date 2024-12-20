@@ -10,24 +10,24 @@ open import Cubical.Foundations.Isomorphism
 private
   variable
     ℓ : Level
-    G H K L : GCont ℓ
+    G H K L : SymmetricContainer ℓ
 
-record GContMorphism {ℓ} (G H : GCont ℓ) : Type ℓ where
+record GContMorphism {ℓ} (G H : SymmetricContainer ℓ) : Type ℓ where
   private
-    module G = GCont G
-    module H = GCont H
+    module G = SymmetricContainer G
+    module H = SymmetricContainer H
 
   field
     shape-mor : G.Shape → H.Shape
     pos-path : ∀ (s : G.Shape) → H.Pos (shape-mor s) → G.Pos s
 
-open GCont
+open SymmetricContainer
 open GContMorphism
 
 unquoteDecl GContMorphismIsoΣ = declareRecordIsoΣ GContMorphismIsoΣ (quote GContMorphism)
 
 instance
-  GContMorphismToΣ : ∀ {G H : GCont ℓ} → RecordToΣ (GContMorphism G H)
+  GContMorphismToΣ : ∀ {G H : SymmetricContainer ℓ} → RecordToΣ (GContMorphism G H)
   GContMorphismToΣ {G} {H} = toΣ (GContMorphismIsoΣ {G = G} {H = H})
 
 GContMorphism≡ : {α β : GContMorphism G H}
@@ -45,8 +45,8 @@ GContMorphismSquare : {α β γ δ : GContMorphism G H}
   → (shape-square : Square (cong shape-mor p) (cong shape-mor r) (cong shape-mor s) (cong shape-mor q))
   → Square p r s q
 GContMorphismSquare {G} {H} {α} {β} {γ} {δ} {p} {q} {r} {s} sq = mor-square where
-  module G = GCont G
-  module H = GCont H
+  module G = SymmetricContainer G
+  module H = SymmetricContainer H
 
   isSetPosMap : (u : G.Shape → H.Shape) → isSet (∀ s → H.Pos (u s) → G.Pos s)
   isSetPosMap u = isSetΠ λ s → isSet→ (G.is-set-pos s)
@@ -79,7 +79,7 @@ isGroupoidGContMorphism {G} {H} = recordIsOfHLevel 3 $
     (isGroupoidΠ λ _ → H .is-groupoid-shape)
     λ u → isSet→isGroupoid (isSetΠ2 λ s _ → G .is-set-pos s)
 
-GContId : (G : GCont ℓ) → GContMorphism G G
+GContId : (G : SymmetricContainer ℓ) → GContMorphism G G
 GContId G .GContMorphism.shape-mor = id $ G .Shape
 GContId G .GContMorphism.pos-path s = id $ G .Pos s
 
@@ -136,13 +136,13 @@ private
   UPairPos : UPairShape → hSet _
   UPairPos = upair-rec isGroupoidHSet (Bool , isSetBool) (TypeOfHLevel≡ 2 notEq) (ΣSquareSet (λ X → isProp→isSet isPropIsSet) (involPathComp notnot))
 
-  UPair : GCont ℓ-zero
+  UPair : SymmetricContainer ℓ-zero
   UPair .Shape = UPairShape
   UPair .Pos = ⟨_⟩ ∘ UPairPos
   UPair .is-groupoid-shape = trunc𝔹2
   UPair .is-set-pos = str ∘ UPairPos
 
-  _⊗_ : GCont ℓ → GCont ℓ → GCont ℓ
+  _⊗_ : SymmetricContainer ℓ → SymmetricContainer ℓ → SymmetricContainer ℓ
   G ⊗ H = record
     { Shape = G .Shape × H .Shape
     ; Pos = λ { (g , h) → G .Pos g ⊎ H .Pos h }
@@ -150,7 +150,7 @@ private
     ; is-set-pos = λ { (g , h) → isSet⊎ (G .is-set-pos g) (H .is-set-pos h) }
     }
 
-  Id : GCont ℓ-zero
+  Id : SymmetricContainer ℓ-zero
   Id .Shape = Unit
   Id .Pos _ = Unit
   Id .is-groupoid-shape = isOfHLevelUnit 3

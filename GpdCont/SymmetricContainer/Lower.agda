@@ -3,7 +3,7 @@ module GpdCont.SymmetricContainer.Lower where
 open import GpdCont.Prelude
 
 open import GpdCont.QuotientContainer.Base as QC using (QCont)
-open import GpdCont.SymmetricContainer.Base as GC using (GCont)
+open import GpdCont.SymmetricContainer.Base as GC using (SymmetricContainer)
 open import GpdCont.Skeleton using (Skeleton)
 import GpdCont.Image
 
@@ -49,14 +49,14 @@ module BoolExample where
   Pos : 𝔹2 → Type
   Pos = ⟨_⟩ ∘ PosSet
 
-  𝔹 : GCont _
-  𝔹 .GCont.Shape = 𝔹2
-  𝔹 .GCont.Pos = Pos
-  𝔹 .GCont.is-groupoid-shape = trunc𝔹2
-  𝔹 .GCont.is-set-pos = str ∘ PosSet
+  𝔹 : SymmetricContainer _
+  𝔹 .SymmetricContainer.Shape = 𝔹2
+  𝔹 .SymmetricContainer.Pos = Pos
+  𝔹 .SymmetricContainer.is-groupoid-shape = trunc𝔹2
+  𝔹 .SymmetricContainer.is-set-pos = str ∘ PosSet
 
--- module Lower {ℓ} (G : GCont ℓ) (injPos : ∀ s t → G .GCont.Pos s ≡ G .GCont.Pos t → s ≡ t) where
---   open module G = GCont G using (Shape ; is-groupoid-shape ; Pos ; is-set-pos)
+-- module Lower {ℓ} (G : SymmetricContainer ℓ) (injPos : ∀ s t → G .SymmetricContainer.Pos s ≡ G .SymmetricContainer.Pos t → s ≡ t) where
+--   open module G = SymmetricContainer G using (Shape ; is-groupoid-shape ; Pos ; is-set-pos)
 
 --   opaque
 --     ↓Shape : Type ℓ

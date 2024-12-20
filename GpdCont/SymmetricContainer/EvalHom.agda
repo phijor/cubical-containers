@@ -11,7 +11,7 @@ open import Cubical.Foundations.HLevels
 private
   variable
     ℓ : Level
-    G H : GCont ℓ
+    G H : SymmetricContainer ℓ
 
 open Eval using (⟦_⟧ᵗ ; ⟦_⟧ ; ⟦_⟧-map ; ⟦-⟧ᵗ-Path ; shape ; label)
 

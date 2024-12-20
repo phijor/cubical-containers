@@ -56,12 +56,11 @@ module 2·1-QuotientContainers where
   07-Definition = QCONT _
 
 module 2·1-SymmetricContainers where
-  {- TODO: Rename modules and definitions to symmetric container -}
-  open import GpdCont.GroupoidContainer.Base using (GCont)
-  open import GpdCont.GroupoidContainer.Morphism using () renaming (GContMorphism to Morphism)
-  open import GpdCont.GroupoidContainer.TwoCategory using (GroupoidContainerCat ; ⟦-⟧)
-  open import GpdCont.GroupoidContainer.Eval using (⟦_⟧)
-  open import GpdCont.GroupoidContainer.Examples using (CyclicList)
+  open import GpdCont.SymmetricContainer.Base using (GCont)
+  open import GpdCont.SymmetricContainer.Morphism using () renaming (GContMorphism to Morphism)
+  open import GpdCont.SymmetricContainer.TwoCategory using (GroupoidContainerCat ; ⟦-⟧)
+  open import GpdCont.SymmetricContainer.Eval using (⟦_⟧)
+  open import GpdCont.SymmetricContainer.Examples using (CyclicList)
 
   open import GpdCont.TwoCategory.Base using (TwoCategory)
   open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
@@ -96,9 +95,9 @@ module 2·3-LiftingQuotientContainers where
   open import GpdCont.GroupAction.Faithful using (isFaithful ; isFaithful→isSetTruncAssociatedBundle)
   open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleComponents≃Orbits ; Orbits)
   open import GpdCont.Delooping.Map using () renaming (map to 𝔹-map)
-  open import GpdCont.GroupoidContainer.Base using (GCont)
+  open import GpdCont.SymmetricContainer.Base using (GCont)
   open import GpdCont.QuotientContainer.Premorphism using (Premorphism)
-  open import GpdCont.GroupoidContainer.Eval using (⟦_⟧)
+  open import GpdCont.SymmetricContainer.Eval using (⟦_⟧)
   open import GpdCont.QuotientContainer.Examples using (UnorderedTuple ; Id ; UPair ; degenDup)
   open import GpdCont.QuotientContainer.Base using (QCont)
   open import GpdCont.QuotientContainer.Delooping using (QContDelooping ; DeloopingPos ; hasSetFibersDeloopingPos)
@@ -231,9 +230,9 @@ module 4-ActionContainers-2-Category where
   open import GpdCont.ActionContainer.Morphism renaming (Morphism to ActionContainerMorphism)
   open import GpdCont.ActionContainer.Delooping using (module Container ; module Morphism) renaming (module Functor to DeloopingFunctor)
   open import GpdCont.ActionContainer.Category renaming (Act to ActContCat)
-  open import GpdCont.GroupoidContainer.Base using (GCont)
-  open import GpdCont.GroupoidContainer.Morphism using (GContMorphism)
-  open import GpdCont.GroupoidContainer.WildCat using (GContCat)
+  open import GpdCont.SymmetricContainer.Base using (GCont)
+  open import GpdCont.SymmetricContainer.Morphism using (GContMorphism)
+  open import GpdCont.SymmetricContainer.WildCat using (GContCat)
   open import GpdCont.WildCat.HomotopyCategory using (ho)
 
   open import Cubical.Categories.Functor.Base using (Functor)

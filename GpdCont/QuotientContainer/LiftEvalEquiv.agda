@@ -29,7 +29,7 @@ isSetTr : ∀ {ℓ} (F : hGroupoid ℓ → hGroupoid ℓ) → ∀ X → isSet �
 isSetTr F X = str $ Tr F X
 
 module EvalLiftLoop {ℓ} (Q : QCont ℓ) where
-  import GpdCont.GroupoidContainer.Eval
+  import GpdCont.SymmetricContainer.Eval
 
   open module Q = QCont Q using (Shape ; Pos ; isSymm ; Symm ; PosSet)
   open module ⟦Q⟧ = QCEval Q using (_∼*_) renaming (⟦_⟧ to ⟦Q⟧ ; ⟦_⟧ᵗ to ⟦Q⟧ᵗ)

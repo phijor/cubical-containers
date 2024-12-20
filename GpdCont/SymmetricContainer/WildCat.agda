@@ -1,10 +1,10 @@
-module GpdCont.GroupoidContainer.WildCat where
+module GpdCont.SymmetricContainer.WildCat where
 
 open import GpdCont.Prelude hiding (id) renaming (_∘_ to _∘fun_)
-open import GpdCont.GroupoidContainer.Base
-open import GpdCont.GroupoidContainer.Morphism
-open import GpdCont.GroupoidContainer.Eval
-open import GpdCont.GroupoidContainer.EvalHom
+open import GpdCont.SymmetricContainer.Base
+open import GpdCont.SymmetricContainer.Morphism
+open import GpdCont.SymmetricContainer.Eval
+open import GpdCont.SymmetricContainer.EvalHom
 open import GpdCont.WildCat.NatTrans using (WildNatTransPath)
 open import GpdCont.WildCat.TypeOfHLevel
 open import GpdCont.WildCat.HomotopyCategory using (ho)

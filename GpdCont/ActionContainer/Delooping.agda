@@ -5,8 +5,8 @@ open import GpdCont.Prelude
 open import GpdCont.ActionContainer.Base using (ActionContainer)
 import      GpdCont.ActionContainer.Morphism as ActionContainerMorphism
 open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleMap)
-open import GpdCont.GroupoidContainer.Base using (GCont ; mkGCont)
-open import GpdCont.GroupoidContainer.Morphism using (GContMorphism ; GContMorphism≡Equiv)
+open import GpdCont.SymmetricContainer.Base using (GCont ; mkGCont)
+open import GpdCont.SymmetricContainer.Morphism using (GContMorphism ; GContMorphism≡Equiv)
 import      GpdCont.Delooping
 
 open import Cubical.Foundations.HLevels
@@ -62,8 +62,8 @@ module Morphism {ℓ} {F G : ActionContainer ℓ} (α : ActionContainerMorphism.
 
 module Functor (ℓ : Level) where
   open import GpdCont.ActionContainer.Category using (Act)
-  open import GpdCont.GroupoidContainer.Morphism using (GContMorphism≡)
-  open import GpdCont.GroupoidContainer.WildCat renaming (GContCat to SymmCont)
+  open import GpdCont.SymmetricContainer.Morphism using (GContMorphism≡)
+  open import GpdCont.SymmetricContainer.WildCat renaming (GContCat to SymmCont)
   open import GpdCont.WildCat.HomotopyCategory using (ho) renaming (module Notation to HoNotation)
   
   open import Cubical.Categories.Category.Base

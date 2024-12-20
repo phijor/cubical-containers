@@ -11,8 +11,8 @@ import GpdCont.QuotientContainer.Morphism as QMor
 import GpdCont.QuotientContainer.Lift as Lift
 
 open import GpdCont.Coffin.GroupoidContainerInclusion using (Coffin→GroupoidContainer)
-open import GpdCont.GroupoidContainer.Base
-open import GpdCont.GroupoidContainer.Morphism
+open import GpdCont.SymmetricContainer.Base
+open import GpdCont.SymmetricContainer.Morphism
 open import GpdCont.Delooping.Map renaming (map to 𝔹-map ; map-id to 𝔹-map-id)
 
 open import Cubical.Foundations.HLevels

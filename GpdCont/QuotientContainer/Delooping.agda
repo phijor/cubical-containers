@@ -4,7 +4,7 @@ open import GpdCont.QuotientContainer.Base as QC using (QCont)
 module GpdCont.QuotientContainer.Delooping {ℓ} (Q : QCont ℓ) where
 
 open import GpdCont.Prelude hiding (Lift)
-open import GpdCont.GroupoidContainer.Base using (GCont ; mkGCont)
+open import GpdCont.SymmetricContainer.Base using (GCont ; mkGCont)
 open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle)
 open import GpdCont.GroupAction.Faithful using (isFaithful→isSetTruncAssociatedBundle)
 import      GpdCont.Delooping

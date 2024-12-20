@@ -1,4 +1,4 @@
-module GpdCont.GroupoidContainer.Base where
+module GpdCont.SymmetricContainer.Base where
 
 open import GpdCont.Prelude
 open import Cubical.Foundations.HLevels

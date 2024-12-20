@@ -33,8 +33,8 @@ module _ {ℓ} (Q : QCont ℓ) where
   open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; _∼_ ; Orbits ; associatedBundleComponents≃Orbits)
   open import GpdCont.QuotientContainer.Delooping using () renaming (QContDelooping to 𝔹)
   open import GpdCont.QuotientContainer.Eval using (⟦_⟧-to-Σ ; LabelEquiv) renaming (⟦_⟧ to ⟦_⟧/ ; ⟦_⟧ᵗ to ⟦_⟧/ᵗ)
-  open import GpdCont.GroupoidContainer.Base using (GCont)
-  open import GpdCont.GroupoidContainer.Eval using (⟦_⟧)
+  open import GpdCont.SymmetricContainer.Base using (GCont)
+  open import GpdCont.SymmetricContainer.Eval using (⟦_⟧)
 
   private
     module Q = QCont Q

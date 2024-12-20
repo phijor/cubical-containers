@@ -1,11 +1,11 @@
-open import GpdCont.GroupoidContainer.Base
+open import GpdCont.SymmetricContainer.Base
 
-module GpdCont.GroupoidContainer.EvalHom where
+module GpdCont.SymmetricContainer.EvalHom where
 
 open import GpdCont.Prelude
-open import GpdCont.GroupoidContainer.Morphism
+open import GpdCont.SymmetricContainer.Morphism
 
-import GpdCont.GroupoidContainer.Eval as Eval
+import GpdCont.SymmetricContainer.Eval as Eval
 
 open import Cubical.Foundations.HLevels
 private

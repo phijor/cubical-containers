@@ -1,6 +1,6 @@
-open import GpdCont.GroupoidContainer.Base
+open import GpdCont.SymmetricContainer.Base
 
-module GpdCont.GroupoidContainer.Eval {ℓ} (G : GCont ℓ) where
+module GpdCont.SymmetricContainer.Eval {ℓ} (G : GCont ℓ) where
 
 open import GpdCont.Prelude
 open import GpdCont.Polynomial as Poly using (Polynomial)

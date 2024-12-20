@@ -1,7 +1,7 @@
-module GpdCont.GroupoidContainer.Morphism where
+module GpdCont.SymmetricContainer.Morphism where
 
 open import GpdCont.Prelude
-open import GpdCont.GroupoidContainer.Base
+open import GpdCont.SymmetricContainer.Base
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels

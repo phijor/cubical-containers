@@ -1,9 +1,9 @@
-module GpdCont.GroupoidContainer.Examples where
+module GpdCont.SymmetricContainer.Examples where
 
 open import GpdCont.Prelude
-open import GpdCont.GroupoidContainer.Base
-open import GpdCont.GroupoidContainer.Eval
-open import GpdCont.GroupoidContainer.Morphism using () renaming (GContMorphism to Morphism)
+open import GpdCont.SymmetricContainer.Base
+open import GpdCont.SymmetricContainer.Eval
+open import GpdCont.SymmetricContainer.Morphism using () renaming (GContMorphism to Morphism)
 open import GpdCont.Polynomial as Poly using (Polynomial ; poly⟨_,_⟩)
 open import GpdCont.Modulo as Modulo using (Fin ; isSetFin ; shiftPath)
 

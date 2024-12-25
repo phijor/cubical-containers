@@ -2,6 +2,7 @@
 
 open import GpdCont.Prelude
 open import Cubical.Algebra.Group.Base as AbsGroup renaming (GroupStr to AbsGroupStr ; Group to AbsGroup)
+open import Cubical.Algebra.Group.Properties using (module GroupTheory)
 open import Cubical.Algebra.Group.Morphisms using (GroupHom ; IsGroupHom ; GroupEquiv)
 open import Cubical.Algebra.Group.MorphismProperties using (isPropIsGroupHom ; makeIsGroupHom ; invGroupEquiv ; GroupEquiv→GroupHom)
 open import Cubical.Algebra.Group.GroupPath using (uaGroup)
@@ -13,6 +14,7 @@ private
 
 open import GpdCont.Groups.Base
 open import GpdCont.Delooping.Base G as Delooping using (𝔹)
+open import GpdCont.Groups.Solve using (solveGroup)
 open import GpdCont.Connectivity using (isPathConnected ; isPathConnected→merePath)
 open import GpdCont.Univalence using (ua→)
 
@@ -95,13 +97,19 @@ private
     ua (conjugateEquiv $ g · h) ∎
     where
       shuffle : ∀ x → inv h · (inv g · x · g) · h ≡ inv (g · h) · x · g · h
-      shuffle = {! !}
+      shuffle x =
+        inv h · (inv g · x · g) · h ≡⟨ lemma₁ (inv h) (inv g) x g h ⟩
+        (inv h · inv g) · x · g · h ≡⟨ cong (λ - → - · x · g · h) (sym $ GroupTheory.invDistr G g h) ⟩
+        inv (g · h) · x · g · h ∎
+        where
+          lemma₁ : (h⁻¹ g⁻¹ x g h : ⟨ G ⟩) → h⁻¹ · (g⁻¹ · x · g) · h ≡ (h⁻¹ · g⁻¹) · x · g · h
+          lemma₁ = solveGroup G
 
   mulRightIso : (g : ⟨ G ⟩) → Iso ⟨ G ⟩ ⟨ G ⟩
   mulRightIso g .Iso.fun = _· g
   mulRightIso g .Iso.inv = _· (inv g)
-  mulRightIso g .Iso.rightInv = {! !}
-  mulRightIso g .Iso.leftInv = {! !}
+  mulRightIso g .Iso.rightInv h = sym (G.·Assoc h (inv g) g) ∙ cong (h ·_) (G.·InvL g) ∙ G.·IdR h
+  mulRightIso g .Iso.leftInv h = sym (G.·Assoc h g (inv g)) ∙ cong (h ·_) (G.·InvR g) ∙ G.·IdR h
 
   mulRightEquiv : (g : ⟨ G ⟩) → ⟨ G ⟩ ≃ ⟨ G ⟩
   mulRightEquiv g = isoToEquiv $ mulRightIso g

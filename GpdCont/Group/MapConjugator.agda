@@ -1,6 +1,5 @@
 open import GpdCont.Prelude
 open import GpdCont.Group.DeloopingCategory
-import GpdCont.Delooping as Delooping
 
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Equiv
@@ -24,12 +23,6 @@ open import Cubical.Categories.Displayed.Constructions.StructureOver
 module GpdCont.Group.MapConjugator {ℓ} {G H : Group ℓ} where
   private
     open module H = GroupStr (str H) using (_·_)
-
-    𝔹G = Delooping.𝔹 G
-    𝔹H = Delooping.𝔹 H
-
-    module 𝔹G = Delooping G
-    module 𝔹H = Delooping H
 
     variable
       φ ψ : GroupHom G H

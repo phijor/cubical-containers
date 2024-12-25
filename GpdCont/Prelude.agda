@@ -106,6 +106,9 @@ module _ where
     p ∙ (q ∙ (r ∙ s)) ≡⟨ assoc p q (r ∙ s) ⟩
     (p ∙ q) ∙ (r ∙ s) ∎
 
+  reflSquare : (x : A) → Square (refl′ x) (refl′ x) (refl′ x) (refl′ x)
+  reflSquare x = λ i j → x
+
   compSquareFiller : (p : x ≡ y) (q : y ≡ z) (p∙q : x ≡ z) → Type _
   compSquareFiller {x} p q p∙q = Square p p∙q refl q
 

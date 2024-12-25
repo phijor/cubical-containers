@@ -63,7 +63,7 @@ module 2·1-SymmetricContainers where
   open import GpdCont.SymmetricContainer.Examples using (CyclicList)
 
   open import GpdCont.TwoCategory.Base using (TwoCategory)
-  open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
+  open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor)
   open import GpdCont.TwoCategory.GroupoidEndo using (Endo)
 
 
@@ -79,7 +79,7 @@ module 2·1-SymmetricContainers where
   11-Defintion : (G : SymmetricContainer ℓ) → (hGroupoid ℓ → hGroupoid ℓ)
   11-Defintion = ⟦_⟧
 
-  _ : LaxFunctor (SymmContCat ℓ) (Endo ℓ)
+  _ : StrictFunctor (SymmContCat ℓ) (Endo ℓ)
   _ = ⟦-⟧
 
   12-Example : SymmetricContainer ℓ-zero

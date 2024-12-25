@@ -5,6 +5,7 @@ open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.Isomorphism
 open import GpdCont.TwoCategory.TwoDiscrete using (TwoDiscrete)
 open import GpdCont.WildCat.TypeOfHLevel using (hGroupoidEndo ; isGroupoidEndoNatTrans)
+open import GpdCont.WildCat.NatTrans using (WildNatTransPath ; isGroupoidHom→WildNatTransSquare)
 
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.GroupoidLaws

@@ -22,8 +22,6 @@ jobs:
         with:
           name: phijor
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Getting nix version
-        run: nix-instantiate --eval -E '(import <nixpkgs> {}).lib.version'
       - name: Render Agda code to HTML
         run: nix build --print-build-logs '.#default.html'
       # XXX: https://github.com/actions/deploy-pages/issues/58

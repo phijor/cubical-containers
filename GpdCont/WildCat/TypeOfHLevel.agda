@@ -101,10 +101,11 @@ module _ (ℓ : Level) where
   hGroupoidEndo .⋆IdR = idNatTransᵣ
   hGroupoidEndo .⋆Assoc = assocNatTrans
 
+  open WildFunctor
+  open WildNatTrans
+
   isGroupoidEndoNatTrans : ∀ F G → isGroupoid (hGroupoidEndo [ F , G ])
   isGroupoidEndoNatTrans F G = isGroupoidRetract {B = NatTrans′} toNatTrans′ fromNatTrans′ retr isGroupoidNatTrans′ where
-    open WildFunctor
-    open WildNatTrans
     NatTrans′ = Σ[ α ∈ (∀ X → ⟨ F .F-ob X ⟩ → ⟨ G .F-ob X ⟩) ] ∀ X Y (H : ⟨ X ⟩ → ⟨ Y ⟩) → F .F-hom H ⋆ α Y ≡ α X ⋆ G .F-hom H
 
     isGroupoidNatTrans′ : isGroupoid NatTrans′
@@ -123,6 +124,23 @@ module _ (ℓ : Level) where
     retr : ∀ α → fromNatTrans′ (toNatTrans′ α) ≡ α
     retr α i .N-ob = α .N-ob
     retr α i .N-hom = α .N-hom
+
+  hGroupoidNatTransPath : ∀ {F G} {α β : hGroupoidEndo [ F , G ]}
+    → (ob-path : ∀ X → α .N-ob X ≡ β .N-ob X)
+    → (∀ {x} {y} (f : hGroupoidCat [ x , y ]) → PathP (λ i → F .F-hom f ⋆ (ob-path y i) ≡ (ob-path x i) ⋆ G .F-hom f) _ _)
+    → α ≡ β
+  hGroupoidNatTransPath = WildNatTransPath
+
+  hGroupoidNatTransSquare : ∀ {F G}
+    → {α₀₀ α₀₁ : hGroupoidEndo [ F , G ]}
+    → {α₀₋ : α₀₀ ≡ α₀₁}
+    → {α₁₀ α₁₁ : hGroupoidEndo [ F , G ]}
+    → {α₁₋ : α₁₀ ≡ α₁₁}
+    → {α₋₀ : α₀₀ ≡ α₁₀}
+    → {α₋₁ : α₀₁ ≡ α₁₁}
+    → (ob-square : ∀ X → Square (cong N-ob α₀₋ ≡$ X) (cong N-ob α₁₋ ≡$ X) (cong N-ob α₋₀ ≡$ X) (cong N-ob α₋₁ ≡$ X))
+    → Square α₀₋ α₁₋ α₋₀ α₋₁
+  hGroupoidNatTransSquare = isGroupoidHom→WildNatTransSquare (λ {x} {y} → isGroupoidΠ λ _ → str y)
 
 open WildCat hiding (_⋆_)
 hseq' : ∀ {ℓ} (x y z : hGroupoidCat ℓ .ob) (f : hGroupoidCat ℓ [ x , y ]) (g : hGroupoidCat ℓ [ y , z ]) → hGroupoidCat ℓ [ x , z ]

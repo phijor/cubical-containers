@@ -42,7 +42,7 @@ isFaithful→isGroupHomMono ff = ff
 module _ {G : Group ℓ} {X : hSet ℓ} {σ : Action G X} (ff : isFaithful σ) where
   open Action σ using (action)
   private
-    module 𝔹G = GpdCont.Delooping _ (str G)
+    module 𝔹G = GpdCont.Delooping G
     module G = GroupStr (str G)
     module 𝔖 = GroupStr (str $ 𝔖 X)
 

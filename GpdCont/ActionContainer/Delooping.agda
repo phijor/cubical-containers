@@ -16,15 +16,10 @@ module Container {ℓ} (F : ActionContainer ℓ) where
   private
     module F = ActionContainer F
 
-    𝔹 : (G : Group ℓ) → Type ℓ
-    𝔹  = uncurry GpdCont.Delooping.𝔹
-
-  module 𝔹 {s : F.Shape} = GpdCont.Delooping (F.Symm s) (F.symm-group-str s)
-
-  open 𝔹 hiding (𝔹) public
+  open module 𝔹 {s : F.Shape} = GpdCont.Delooping (F.SymmGroup s) hiding (𝔹) public
 
   𝔹Symm : (s : F.Shape) → Type ℓ
-  𝔹Symm s = 𝔹 (F.SymmGroup s)
+  𝔹Symm s = 𝔹.𝔹 {s = s}
 
   DeloopingShape : hGroupoid ℓ
   DeloopingShape .fst = Σ[ s ∈ F.Shape ] 𝔹Symm s

@@ -101,7 +101,7 @@ module _ (ℓ : Level) where
       {fᴰ : SetBundleᴰ.hom[ f ] (𝔹₀ Xᴳ) yᴰ}
       {gᴰ : SetBundleᴰ.hom[ g ] (𝔹₀ Xᴳ) yᴰ}
       where
-      open Delooping ⟨ G ⟩ (str G) using (elimPropEquiv)
+      open Delooping G using (elimPropEquiv)
       isProp𝔹₁PathP : ∀ x → isProp (PathP (λ i → ⟨ yᴰ (r i x) ⟩ → ⟨ 𝔹₀ Xᴳ x ⟩) (fᴰ x) (gᴰ x))
       isProp𝔹₁PathP x = isOfHLevelPathP' 1 (isSet→ is-set-𝔹₀) _ _ where
         is-set-𝔹₀ : isSet ⟨ 𝔹₀ Xᴳ x ⟩
@@ -187,7 +187,7 @@ module _ (ℓ : Level) where
   open SetBundleNotation ℓ using (Base)
 
   isConnectedDeloopingBase : (σ : GroupAction.ob) → isPathConnected ⟨ Base (𝔹Act.₀ σ) ⟩
-  isConnectedDeloopingBase (G , (X , σ)) = Delooping.isConnectedDelooping ⟨ G ⟩ (str G)
+  isConnectedDeloopingBase (G , (X , σ)) = Delooping.isConnectedDelooping G
 
   isLocallyFullyFaithfulDelooping : 𝔹Act.isLocallyFullyFaithful
   isLocallyFullyFaithfulDelooping σ τ f@(φ , _) g@(ψ , _) = goal where

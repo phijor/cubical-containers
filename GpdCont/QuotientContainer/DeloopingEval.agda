@@ -41,9 +41,9 @@ module _ {ℓ} (Q : QCont ℓ) where
     module 𝔹Q = SymmetricContainer (𝔹 Q)
 
     𝔹Symm : (s : Q.Shape) → Type _
-    𝔹Symm s = Delooping.𝔹 _ (Q.SymmGroupStr s)
+    𝔹Symm s = Delooping.𝔹 (Q.SymmGroup s)
 
-    module 𝔹Symm {s} = Delooping _ (Q.SymmGroupStr s)
+    module 𝔹Symm {s} = Delooping (Q.SymmGroup s)
 
   LiftEvalEquiv : (X : hSet ℓ) → ⟨ Tr ⟦ 𝔹 Q ⟧ X ⟩ ≃ ⟨ ⟦ Q ⟧/ X ⟩
   LiftEvalEquiv X =

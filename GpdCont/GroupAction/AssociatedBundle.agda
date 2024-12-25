@@ -20,10 +20,10 @@ open import Cubical.HITs.SetQuotients as SQ using (_/_)
 
 module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
   private
-    module 𝔹G = GpdCont.Delooping ⟨ G ⟩ (str G)
+    module 𝔹G = GpdCont.Delooping G
     module σ = Action σ
 
-  associatedBundle : 𝔹 ⟨ G ⟩ (str G) → hSet ℓ
+  associatedBundle : 𝔹 G → hSet ℓ
   associatedBundle = 𝔹G.rec→hSet X σ.action σ.pres·
 
   {- (Judgemental) computation rules for associated bundles. -}
@@ -38,10 +38,10 @@ module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
 
 module _ {ℓ} {G H : Group ℓ} {X Y : hSet ℓ} where
   private
-    module 𝔹G = GpdCont.Delooping ⟨ G ⟩ (str G)
+    module 𝔹G = GpdCont.Delooping G
 
   module _ (σ : Action G X) (τ : Action H Y) (φ : GroupHom G H) where
-    BundleMaps : 𝔹G.𝔹 → Type _
+    BundleMaps : 𝔹 G → Type _
     BundleMaps x = ⟨ associatedBundle τ (map φ x) ⟩ → ⟨ associatedBundle σ x ⟩
 
     isSetBundleMaps : ∀ x → isSet (BundleMaps x)
@@ -57,10 +57,10 @@ module _ {ℓ} {G H : Group ℓ} {X Y : hSet ℓ} where
     associatedBundleMapEquiv :
       (Σ[ f ∈ (⟨ Y ⟩ → ⟨ X ⟩) ] isEquivariantMap[ φ , f ][ σ , τ ])
         ≃
-      ((x : 𝔹 ⟨ G ⟩ (str G)) → ⟨ associatedBundle τ (map φ x) ⟩ → ⟨ associatedBundle σ x ⟩)
+      ((x : 𝔹 G) → ⟨ associatedBundle τ (map φ x) ⟩ → ⟨ associatedBundle σ x ⟩)
     associatedBundleMapEquiv = Σ-cong-equiv-snd isEquivariantMap≃BundleMapsPathP ∙ₑ 𝔹G.elimSetEquiv isSetBundleMaps
 
-    associatedBundleMap : (f : ⟨ Y ⟩ → ⟨ X ⟩) → isEquivariantMap[ φ , f ][ σ , τ ] → (x : 𝔹 ⟨ G ⟩ (str G)) → ⟨ associatedBundle τ (map φ x) ⟩ → ⟨ associatedBundle σ x ⟩
+    associatedBundleMap : (f : ⟨ Y ⟩ → ⟨ X ⟩) → isEquivariantMap[ φ , f ][ σ , τ ] → (x : 𝔹 G) → ⟨ associatedBundle τ (map φ x) ⟩ → ⟨ associatedBundle σ x ⟩
     associatedBundleMap f is-eqva = equivFun associatedBundleMapEquiv (f , is-eqva)
 
     {- (Judgemental) computation rules for associated bundle map -}
@@ -81,8 +81,8 @@ module _ {ℓ} {G H : Group ℓ} {X Y : hSet ℓ} where
 module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
   private
     module G = GroupStr (str G)
-    𝔹G = GpdCont.Delooping.𝔹 ⟨ G ⟩ (str G)
-    module 𝔹G = GpdCont.Delooping ⟨ G ⟩ (str G)
+    𝔹G = GpdCont.Delooping.𝔹 G
+    module 𝔹G = GpdCont.Delooping G
     open module σ = Action σ using (_▷_)
 
     -- Total space of the associated bundle (Symmetry 4.7.13)

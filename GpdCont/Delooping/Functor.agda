@@ -38,11 +38,11 @@ module LocalInverse {ℓ} {G H : Group ℓ} where
     open module H = GroupStr (str H) using (_·_)
     module G = GroupStr (str G)
 
-    𝔹G = Delooping.𝔹 ⟨ G ⟩ (str G)
-    𝔹H = Delooping.𝔹 ⟨ H ⟩ (str H)
+    𝔹G = Delooping.𝔹 G
+    𝔹H = Delooping.𝔹 H
 
-    module 𝔹G = Delooping ⟨ G ⟩ (str G)
-    module 𝔹H = Delooping ⟨ H ⟩ (str H)
+    module 𝔹G = Delooping G
+    module 𝔹H = Delooping H
 
   -- Any map (f : 𝔹G → 𝔹H) is uniquely determined by the choice of
   -- a point (y : 𝔹H) and a group homomorphism (φ : G → π₁(𝔹H, y)).
@@ -163,7 +163,7 @@ module TwoFunc (ℓ : Level) where
     module hGpdCat = TwoCategory (hGpdCat ℓ)
 
     𝔹-ob : Group ℓ → hGroupoid ℓ
-    𝔹-ob (G , G-str) = Delooping.𝔹 G G-str , Delooping.isGroupoid𝔹
+    𝔹-ob G = Delooping.𝔹 G , Delooping.isGroupoid𝔹
 
     𝔹-hom : {G H : Group ℓ} → GroupHom G H → ⟨ 𝔹-ob G ⟩ → ⟨ 𝔹-ob H ⟩
     𝔹-hom φ = Map.map φ
@@ -178,11 +178,11 @@ module TwoFunc (ℓ : Level) where
     𝔹-rel-trans {φ} {ψ} {ρ} = Map.map≡-comp-∙ φ ψ ρ
 
     𝔹-trans-lax : (φ : GroupHom G H) (ψ : GroupHom H K) → (𝔹-hom φ hGpdCat.∙₁ 𝔹-hom ψ) ≡ 𝔹-hom (φ TwoGroup.∙₁ ψ)
-    𝔹-trans-lax {G} {H} {K} φ ψ = funExt (Delooping.elimSet ⟨ G ⟩ (str G) isSetMotive refl λ g i j → 𝔹K.loop ((φ TwoGroup.∙₁ ψ) .fst g) i) where
-      module 𝔹G = Delooping.𝔹 ⟨ G ⟩ (str G)
-      module 𝔹K = Delooping.𝔹 ⟨ K ⟩ (str K)
+    𝔹-trans-lax {G} {H} {K} φ ψ = funExt (𝔹G.elimSet isSetMotive refl λ g i j → 𝔹K.loop ((φ TwoGroup.∙₁ ψ) .fst g) i) where
+      module 𝔹G = Delooping G
+      module 𝔹K = Delooping K
 
-      isSetMotive : (x : Delooping.𝔹 ⟨ G ⟩ (str G)) → isSet ((𝔹-hom ψ $ 𝔹-hom φ x) ≡ (𝔹-hom (φ TwoGroup.∙₁ ψ) x))
+      isSetMotive : (x : Delooping.𝔹 G) → isSet ((𝔹-hom ψ $ 𝔹-hom φ x) ≡ (𝔹-hom (φ TwoGroup.∙₁ ψ) x))
       isSetMotive x = 𝔹K.isGroupoid𝔹 _ _
 
     𝔹-trans-lax-natural : {φ₁ φ₂ : GroupHom G H} {ψ₁ ψ₂ : GroupHom H K}
@@ -191,12 +191,9 @@ module TwoFunc (ℓ : Level) where
       → ((𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ 𝔹-trans-lax φ₂ ψ₂) ≡ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k))
     𝔹-trans-lax-natural {G} {H} {K} {φ₁} {φ₂} {ψ₁} {ψ₂} h k = funExtSquare _ _ _ _ lax where
       module K = GroupStr (str K)
-      𝔹G = Delooping.𝔹 ⟨ G ⟩ (str G)
-      𝔹H = Delooping.𝔹 ⟨ H ⟩ (str H)
-      𝔹K = Delooping.𝔹 ⟨ K ⟩ (str K)
-      module 𝔹G = Delooping ⟨ G ⟩ (str G)
-      module 𝔹H = Delooping ⟨ H ⟩ (str H)
-      module 𝔹K = Delooping ⟨ K ⟩ (str K)
+      module 𝔹G = Delooping G
+      module 𝔹H = Delooping H
+      module 𝔹K = Delooping K
 
       open 𝔹G using (cong⋆ ; cong⋆-∙)
 
@@ -219,7 +216,7 @@ module TwoFunc (ℓ : Level) where
         cong⋆ (𝔹-trans-lax φ₁ ψ₁) ∙ cong⋆ (𝔹-rel (h TwoGroup.∙ₕ k))     ≡⟨ sym $ cong⋆-∙ (𝔹-trans-lax φ₁ ψ₁) (𝔹-rel (h TwoGroup.∙ₕ k)) ⟩
         cong⋆ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k)) ∎
 
-      lax : (x : 𝔹G) → (((𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ 𝔹-trans-lax φ₂ ψ₂) ≡$S x) ≡ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k) ≡$S x)
+      lax : (x : 𝔹G.𝔹) → (((𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ 𝔹-trans-lax φ₂ ψ₂) ≡$S x) ≡ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k) ≡$S x)
       lax = 𝔹G.elimProp (λ x → 𝔹K.isGroupoid𝔹 _ _ _ _) lax⋆
 
     𝔹-id-lax : (G : Group ℓ) → id ⟨ 𝔹-ob G ⟩ ≡ 𝔹-hom (idGroupHom {G = G})
@@ -232,14 +229,12 @@ module TwoFunc (ℓ : Level) where
         (refl′ ((𝔹-hom φ hGpdCat.∙₁ 𝔹-hom ψ) hGpdCat.∙₁ 𝔹-hom ρ))
         (cong 𝔹-hom (TwoGroup.comp-hom-assoc φ ψ ρ))
     𝔹-assoc {G} {H} {L} φ ψ ρ = funExtSquare _ _ _ _ assoc-ext where
-      𝔹G = Delooping.𝔹 ⟨ G ⟩ (str G)
-      𝔹L = Delooping.𝔹 ⟨ L ⟩ (str L)
-      module 𝔹G = Delooping ⟨ G ⟩ (str G)
-      module 𝔹L = Delooping ⟨ L ⟩ (str L)
+      module 𝔹G = Delooping G
+      module 𝔹L = Delooping L
 
       open 𝔹G using (cong⋆ ; cong⋆-∙)
 
-      assoc-ext : (x : 𝔹G) → Square
+      assoc-ext : (x : 𝔹G.𝔹) → Square
         ((𝔹-trans-lax φ ψ hGpdCat.∙ₕ refl′ (𝔹-hom ρ)) ∙ 𝔹-trans-lax (φ TwoGroup.∙₁ ψ) ρ ≡$ x)
         (((refl′ (𝔹-hom φ) hGpdCat.∙ₕ 𝔹-trans-lax ψ ρ) ∙ 𝔹-trans-lax φ (ψ TwoGroup.∙₁ ρ)) ≡$ x)
         refl
@@ -262,8 +257,8 @@ module TwoFunc (ℓ : Level) where
       (hGpdCat.comp-hom-unit-left (𝔹-hom φ))
       (cong 𝔹-hom (TwoGroup.comp-hom-unit-left φ))
     𝔹-unit-left {G} {H} φ = funExtSquare _ _ _ _ $ 𝔹G.elimProp (λ _ → 𝔹H.isPropDeloopingSquare) unit-left⋆ where
-      module 𝔹G = Delooping ⟨ G ⟩ (str G)
-      module 𝔹H = Delooping ⟨ H ⟩ (str H)
+      module 𝔹G = Delooping G
+      module 𝔹H = Delooping H
 
       p : (id ⟨ 𝔹-ob G ⟩) ⋆ (𝔹-hom φ) ≡ (𝔹-hom idGroupHom) ⋆ (𝔹-hom φ)
       p = 𝔹-id-lax G hGpdCat.∙ₕ refl′ (𝔹-hom φ)
@@ -280,8 +275,8 @@ module TwoFunc (ℓ : Level) where
       (hGpdCat.comp-hom-unit-right (𝔹-hom φ))
       (cong 𝔹-hom (TwoGroup.comp-hom-unit-right φ))
     𝔹-unit-right {G} {H} φ = funExtSquare _ _ _ _ $ 𝔹G.elimProp (λ _ → 𝔹H.isPropDeloopingSquare) unit-right⋆ where
-      module 𝔹G = Delooping ⟨ G ⟩ (str G)
-      module 𝔹H = Delooping ⟨ H ⟩ (str H)
+      module 𝔹G = Delooping G
+      module 𝔹H = Delooping H
 
       p = refl′ (𝔹-hom φ) hGpdCat.∙ₕ 𝔹-id-lax H
       q = 𝔹-trans-lax φ idGroupHom

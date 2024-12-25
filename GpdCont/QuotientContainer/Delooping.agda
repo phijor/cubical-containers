@@ -18,9 +18,9 @@ private
   module Q = QCont Q
 
   𝔹 : (G : Group ℓ) → Type ℓ
-  𝔹  = uncurry GpdCont.Delooping.𝔹
+  𝔹  = GpdCont.Delooping.𝔹
 
-  module 𝔹 {s : Q.Shape} = GpdCont.Delooping (Q.Symm s) (Q.SymmGroupStr s)
+  module 𝔹 {s : Q.Shape} = GpdCont.Delooping (Q.SymmGroup s)
 
 DeloopingShape : hGroupoid ℓ
 DeloopingShape .fst = Σ[ s ∈ Q.Shape ] 𝔹 (Q.SymmGroup s)

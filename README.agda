@@ -111,8 +111,8 @@ module 2·3-LiftingQuotientContainers where
       X : hSet ℓ
 
   module _ (G : Group ℓ) where
-    open import GpdCont.Delooping ⟨ G ⟩ (str G) using (𝔹) public
-    open import GpdCont.Delooping ⟨ G ⟩ (str G) as 𝔹G
+    open import GpdCont.Delooping G using (𝔹) public
+    open import GpdCont.Delooping G as 𝔹G
       using ()
       renaming (𝔹 to 𝔹G)
 

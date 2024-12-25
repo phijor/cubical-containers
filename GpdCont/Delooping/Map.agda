@@ -24,14 +24,14 @@ private
     ℓ : Level
     G H K : Group ℓ
 
-  𝔹 : (G : Group ℓ) → Type ℓ
-  𝔹 = uncurry Delooping.𝔹
+  open Delooping using (𝔹)
 
   𝔹⋆ : {G : Group ℓ} → 𝔹 G
   𝔹⋆ = Delooping.𝔹.⋆
 
 map : (φ : GroupHom G H) → 𝔹 G → 𝔹 H
-map {G} {H} (φ , is-hom-φ) = Delooping.rec ⟨ G ⟩ (str G) Delooping.isGroupoid𝔹 Delooping.⋆ φ′ φ′-comm where
+map {G} {H} (φ , is-hom-φ) = 𝔹G.rec Delooping.isGroupoid𝔹 Delooping.⋆ φ′ φ′-comm where
+  module 𝔹G = Delooping G
   module G = GroupStr (str G)
   module H = GroupStr (str H)
   
@@ -44,10 +44,10 @@ map {G} {H} (φ , is-hom-φ) = Delooping.rec ⟨ G ⟩ (str G) Delooping.isGroup
   φ′-comm g g′ = subst (compSquareFiller _ _) (cong Delooping.loop $ sym (φ.pres· g g′)) (Delooping.loop-comp (φ g) (φ g′))
 
 map-id : (G : Group ℓ) → map (idGroupHom {G = G}) ≡ id (𝔹 G)
-map-id G = funExt (Delooping.elimSet ⟨ G ⟩  (str G) (λ _ → Delooping.isGroupoid𝔹 _ _) refl λ g i j → Delooping.loop g i)
+map-id G = funExt (Delooping.elimSet G (λ _ → Delooping.isGroupoid𝔹 _ _) refl λ g i j → Delooping.loop g i)
 
 map-comp : (φ : GroupHom G H) (ψ : GroupHom H K) → map (compGroupHom φ ψ) ≡ map φ ⋆ map ψ
-map-comp {G} (φ , _) (ψ , _) = funExt $ Delooping.elimSet ⟨ G ⟩ (str G) (λ _ → Delooping.isGroupoid𝔹 _ _) refl λ g i j → Delooping.loop (ψ $ φ g) i
+map-comp {G} (φ , _) (ψ , _) = funExt $ Delooping.elimSet G (λ _ → Delooping.isGroupoid𝔹 _ _) refl λ g i j → Delooping.loop (ψ $ φ g) i
 
 map∙ : (φ : GroupHom G H) → (𝔹 G , 𝔹⋆) →∙ (𝔹 H , 𝔹⋆)
 map∙ φ .fst = map φ
@@ -60,8 +60,8 @@ module _
   (h-conj : ∀ g → (φ g · h) ≡ (h · ψ g))
   where
   private
-    module BG = Delooping ⟨ G ⟩ (str G)
-    module BH = Delooping ⟨ H ⟩ (str H)
+    module BG = Delooping G
+    module BH = Delooping H
     module H = GroupStr (str H)
 
   map-ext-⋆ : BH.⋆ ≡ BH.⋆
@@ -111,8 +111,8 @@ module _ {f g : 𝔹 G → 𝔹 H}
   (sq⋆ : p₀ Delooping.⋆ ≡ p₁ Delooping.⋆)
   where
   private
-    module 𝔹G = Delooping ⟨ G ⟩ (str G)
-    module 𝔹H = Delooping ⟨ H ⟩ (str H)
+    module 𝔹G = Delooping G
+    module 𝔹H = Delooping H
 
   mapDepSquareExt : (x : 𝔹 G) → p₀ x ≡ p₁ x
   mapDepSquareExt = 𝔹G.elimProp isPropDepSquare sq⋆ where
@@ -131,14 +131,14 @@ module _ {G H : Group ℓ} where
     → cong₂ _$_ (map≡ φ ψ h) (Delooping.loop g) ≡ Delooping.loop (h .fst · ψ .fst g)
   map≡-loopᵝ φ ψ h*@(h , h-conj) g =
     cong₂ _$_ (map≡ φ ψ h*) (Delooping.loop g)    ≡⟨ SquareDiag≡pathComp $ map-ext-loop {φ* = φ} {ψ* = ψ} h h-conj g ⟩
-    Delooping.loop h ∙ Delooping.loop (ψ .fst g)  ≡⟨ Delooping.loop-∙ _ _ h (ψ .fst g) ⟩
+    Delooping.loop h ∙ Delooping.loop (ψ .fst g)  ≡⟨ Delooping.loop-∙ H h (ψ .fst g) ⟩
     Delooping.loop (h · ψ .fst g) ∎
 
 -- Functoriality of `map≡`.
 -- Identity and composition of conjugators is mapped to the reflexivity and composition of paths.
 module _ {G H : Group ℓ} where
   private
-    module 𝔹H = Delooping ⟨ H ⟩ (str H)
+    module 𝔹H = Delooping H
 
   map≡-id-refl : (φ : GroupHom G H) → map≡ φ φ (idConjugator φ) ≡ refl′ (map φ)
   map≡-id-refl φ = cong funExt (mapDepSquare 𝔹H.loop-1)
@@ -152,8 +152,8 @@ module _ {G H : Group ℓ} where
 module MapPathEquiv {G H : Group ℓ} where
   private
     open module H = GroupStr (str H) using (_·_)
-    module 𝔹G = Delooping ⟨ G ⟩ (str G)
-    module 𝔹H = Delooping ⟨ H ⟩ (str H)
+    module 𝔹G = Delooping G
+    module 𝔹H = Delooping H
 
   map≡'Equiv : (φ ψ : GroupHom G H) → (Conjugator φ ψ) ≃ (map φ ≡ map ψ)
   map≡'Equiv φ*@(φ , _) ψ*@(ψ , _) =

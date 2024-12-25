@@ -51,7 +51,7 @@ module GpdCont.Coffin.LowerLiftEquiv {ℓ} (C : Coffin ℓ) where
     cong′ _ _ = cong
 
   delooping-equiv' : (2-trunc-Pos : ∀ s t → isEmbedding (cong {x = s} {y = t} C.Pos))
-    → (c : ∥ C.Shape ∥₂) → 𝔹 (↓C.Symm c) (↓C.SymmGroupStr c) ≃ (fiber ∣_∣₂ c)
+    → (c : ∥ C.Shape ∥₂) → 𝔹 (↓C.SymmGroup c) ≃ (fiber ∣_∣₂ c)
   delooping-equiv' 2-trunc-Pos c = GroupEquiv→Equiv group-equiv where
     ⋆ : C.Shape
     ⋆ = C.sk c
@@ -65,12 +65,12 @@ module GpdCont.Coffin.LowerLiftEquiv {ℓ} (C : Coffin ℓ) where
     ShapeFiberGroup .snd = subst (GroupStr ∘ fiber ∣_∣₂) (C.sk-section c) (ShapeFiberGroup⋆ .snd)
 
     𝔹SymmGroup : Group _
-    𝔹SymmGroup .fst = 𝔹 (↓C.Symm c) (↓C.SymmGroupStr c)
+    𝔹SymmGroup .fst = 𝔹 (↓C.SymmGroup c)
     𝔹SymmGroup .snd = ↑↓C.↑SymmElim.deloopingGroupStr c
 
-    module Γ = 𝔹 (↓C.Symm c) (↓C.SymmGroupStr c)
+    module Γ = 𝔹 (↓C.SymmGroup c)
 
-    hom : 𝔹 (↓C.Symm c) (↓C.SymmGroupStr c) → fiber ∣_∣₂ c
+    hom : 𝔹 (↓C.SymmGroup c) → fiber ∣_∣₂ c
     hom = ↑↓C.↑SymmElim.rec c (ShapeFiberGroup .snd .GroupStr.is-groupoid)
       (C.component-section c)
       loop
@@ -92,7 +92,7 @@ module GpdCont.Coffin.LowerLiftEquiv {ℓ} (C : Coffin ℓ) where
     group-equiv .GroupEquiv.is-emb-hom = {! !}
     group-equiv .GroupEquiv.pres-pt = sym (fromPathP {A = λ i → fiber ∣_∣₂ (C.component-section c .snd i)} {! !})
 
-  delooping-equiv : (c : ∥ C.Shape ∥₂) → (fiber ∣_∣₂ c) ≃ 𝔹 (↓C.Symm c) (↓C.SymmGroupStr c)
+  delooping-equiv : (c : ∥ C.Shape ∥₂) → (fiber ∣_∣₂ c) ≃ 𝔹 (↓C.SymmGroup c)
   delooping-equiv c = GroupEquiv→Equiv group-equiv where
     ⋆ : C.Shape
     ⋆ = C.sk c
@@ -106,7 +106,7 @@ module GpdCont.Coffin.LowerLiftEquiv {ℓ} (C : Coffin ℓ) where
     ShapeFiberGroup .snd = subst (GroupStr ∘ fiber ∣_∣₂) (C.sk-section c) (ShapeFiberGroup⋆ .snd)
 
     𝔹SymmGroup : Group _
-    𝔹SymmGroup .fst = 𝔹 (↓C.Symm c) (↓C.SymmGroupStr c)
+    𝔹SymmGroup .fst = 𝔹 (↓C.SymmGroup c)
     𝔹SymmGroup .snd = ↑↓C.↑SymmElim.deloopingGroupStr c
 
     hom : ∀ {c} → fiber ∣_∣₂ c → ⟨ 𝔹SymmGroup ⟩

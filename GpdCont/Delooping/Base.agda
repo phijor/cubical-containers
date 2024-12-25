@@ -4,9 +4,11 @@ open import Cubical.Foundations.Equiv using (_∙ₑ_)
 open import Cubical.Foundations.GroupoidLaws
 open import Cubical.Algebra.Group.Base
 
-module GpdCont.Delooping.Base {ℓ} (G : Type ℓ) (γ : GroupStr G) where
+module GpdCont.Delooping.Base {ℓ} (G* : Group ℓ) where
   private
-    open module G = GroupStr γ using (_·_ ; inv ; 1g)
+    G : Type ℓ
+    G = ⟨ G* ⟩
+    open module G = GroupStr (str G*) using (_·_ ; inv ; 1g)
 
   data 𝔹 : Type ℓ where
     ⋆ : 𝔹

@@ -7,12 +7,12 @@ open import Cubical.Algebra.Group.MorphismProperties using (isPropIsGroupHom ; m
 open import Cubical.Algebra.Group.GroupPath using (uaGroup)
 open import Cubical.Algebra.SymmetricGroup using (Symmetric-Group)
 
-module GpdCont.Delooping.Properties {ℓ} (G : Type ℓ) (γ : AbsGroupStr G) where
+module GpdCont.Delooping.Properties {ℓ} (G : AbsGroup ℓ) where
 private
-  open module G = AbsGroupStr γ using (_·_ ; inv)
+  open module G = AbsGroupStr (str G) using (_·_ ; inv)
 
 open import GpdCont.Groups.Base
-open import GpdCont.Delooping.Base G γ as Delooping using (𝔹)
+open import GpdCont.Delooping.Base G as Delooping using (𝔹)
 open import GpdCont.Connectivity using (isPathConnected ; isPathConnected→merePath)
 open import GpdCont.Univalence using (ua→)
 
@@ -69,10 +69,10 @@ isPropDeloopingSquare :
 isPropDeloopingSquare = isGroupoid→isPropSquare Delooping.isGroupoid𝔹
 
 private
-  conjugate : (g : G) → G → G
+  conjugate : (g : ⟨ G ⟩) → ⟨ G ⟩ → ⟨ G ⟩
   conjugate g h = inv g · h · g
 
-  conjugateIso : (g : G) → Iso G G
+  conjugateIso : (g : ⟨ G ⟩) → Iso ⟨ G ⟩ ⟨ G ⟩
   conjugateIso g .Iso.fun = conjugate g
   conjugateIso g .Iso.inv = conjugate (inv g)
   conjugateIso g .Iso.rightInv h =
@@ -82,10 +82,10 @@ private
     inv (inv g) · (inv g · h · g) · inv g ≡⟨ {! !} ⟩
     h ∎
 
-  conjugateEquiv : (g : G) → G ≃ G
+  conjugateEquiv : (g : ⟨ G ⟩) → ⟨ G ⟩ ≃ ⟨ G ⟩
   conjugateEquiv g = isoToEquiv $ conjugateIso g
 
-  conjugatePath : (g : G) → G ≡ G
+  conjugatePath : (g : ⟨ G ⟩) → ⟨ G ⟩ ≡ ⟨ G ⟩
   conjugatePath g = ua $ conjugateEquiv g
 
   conjugatePathFiller : ∀ g h → compSquareFiller (conjugatePath g) (conjugatePath h) (conjugatePath $ g · h)
@@ -97,16 +97,16 @@ private
       shuffle : ∀ x → inv h · (inv g · x · g) · h ≡ inv (g · h) · x · g · h
       shuffle = {! !}
 
-  mulRightIso : (g : G) → Iso G G
+  mulRightIso : (g : ⟨ G ⟩) → Iso ⟨ G ⟩ ⟨ G ⟩
   mulRightIso g .Iso.fun = _· g
   mulRightIso g .Iso.inv = _· (inv g)
   mulRightIso g .Iso.rightInv = {! !}
   mulRightIso g .Iso.leftInv = {! !}
 
-  mulRightEquiv : (g : G) → G ≃ G
+  mulRightEquiv : (g : ⟨ G ⟩) → ⟨ G ⟩ ≃ ⟨ G ⟩
   mulRightEquiv g = isoToEquiv $ mulRightIso g
 
-  mulRightPath : (g : G) → G ≡ G
+  mulRightPath : (g : ⟨ G ⟩) → ⟨ G ⟩ ≡ ⟨ G ⟩
   mulRightPath g = ua $ mulRightEquiv g
 
   opaque
@@ -119,10 +119,10 @@ private
 Code : 𝔹 → hSet ℓ
 Code = Delooping.rec isGroupoidHSet Code[⋆≡⋆] Code[⋆≡_] filler where
   Code[⋆≡⋆] : hSet ℓ
-  Code[⋆≡⋆] .fst = G
-  Code[⋆≡⋆] .snd = AbsGroupStr.is-set γ
+  Code[⋆≡⋆] .fst = ⟨ G ⟩
+  Code[⋆≡⋆] .snd = G.is-set
 
-  Code[⋆≡_] : G → Code[⋆≡⋆] ≡ Code[⋆≡⋆]
+  Code[⋆≡_] : ⟨ G ⟩ → Code[⋆≡⋆] ≡ Code[⋆≡⋆]
   Code[⋆≡_] g = TypeOfHLevel≡ 2 (mulRightPath g)
 
   filler : ∀ g h → compSquareFiller Code[⋆≡ g ] Code[⋆≡ h ] Code[⋆≡ g · h ]
@@ -165,13 +165,13 @@ encodeDecodeIso .Iso.leftInv = decode-encode
 encodeDecode : ∀ {y} → (𝔹.⋆ ≡ y) ≃ ⟨ Code y ⟩
 encodeDecode = isoToEquiv encodeDecodeIso
 
-ΩDelooping≃ : (𝔹.⋆ ≡ 𝔹.⋆) ≃ G
+ΩDelooping≃ : (𝔹.⋆ ≡ 𝔹.⋆) ≃ ⟨ G ⟩
 ΩDelooping≃ = encodeDecode {y = 𝔹.⋆}
 
-unloop : 𝔹.⋆ ≡ 𝔹.⋆ → G
+unloop : 𝔹.⋆ ≡ 𝔹.⋆ → ⟨ G ⟩
 unloop = equivFun ΩDelooping≃
 
-loopEquiv : G ≃ (𝔹.⋆ ≡ 𝔹.⋆)
+loopEquiv : ⟨ G ⟩ ≃ (𝔹.⋆ ≡ 𝔹.⋆)
 loopEquiv = invEquiv ΩDelooping≃
 
 isEquivLoop : isEquiv 𝔹.loop
@@ -190,20 +190,20 @@ conjugatePathEquiv = FundamentalGroup.conjugateGroupEquiv (𝔹 , 𝔹.isGroupoi
 conjugatePathHom : {x₀ x₁ : 𝔹} → x₀ ≡ x₁ → GroupHom (π₁ x₀) (π₁ x₁)
 conjugatePathHom p = GroupEquiv→GroupHom $ conjugatePathEquiv p
 
-loopHom : GroupHom (G , γ) π₁𝔹
+loopHom : GroupHom G π₁𝔹
 loopHom .fst = 𝔹.loop
 loopHom .snd .IsGroupHom.pres· g h = sym $ Delooping.loop-∙ g h
 loopHom .snd .IsGroupHom.pres1 = Delooping.loop-1
 loopHom .snd .IsGroupHom.presinv = Delooping.loop-inv
 
-loopGroupEquiv : GroupEquiv (G , γ) π₁𝔹
+loopGroupEquiv : GroupEquiv G π₁𝔹
 loopGroupEquiv .fst = loopEquiv
 loopGroupEquiv .snd = loopHom .snd
 
-unloopGroupEquiv : GroupEquiv π₁𝔹 (G , γ)
+unloopGroupEquiv : GroupEquiv π₁𝔹 G
 unloopGroupEquiv = invGroupEquiv loopGroupEquiv
 
-unloopGroupHom : GroupHom π₁𝔹 (G , γ)
+unloopGroupHom : GroupHom π₁𝔹 G
 unloopGroupHom = GroupEquiv→GroupHom unloopGroupEquiv
 
 _ : unloopGroupHom .fst ≡ unloop
@@ -236,13 +236,13 @@ elimPropEquiv : ∀ {ℓB} {B : 𝔹 → Type ℓB}
 elimPropEquiv = isoToEquiv ∘ elimPropIso
 
 recEquiv : ∀ {ℓX} {X : hGroupoid ℓX}
-  → (Σ[ x₀ ∈ ⟨ X ⟩ ] Σ[ φ ∈ (G → x₀ ≡ x₀) ] ∀ g h → compSquareFiller (φ g) (φ h) (φ $ g · h)) ≃ (𝔹 → ⟨ X ⟩)
+  → (Σ[ x₀ ∈ ⟨ X ⟩ ] Σ[ φ ∈ (⟨ G ⟩ → x₀ ≡ x₀) ] ∀ g h → compSquareFiller (φ g) (φ h) (φ $ g · h)) ≃ (𝔹 → ⟨ X ⟩)
 recEquiv {X = (X , is-gpd-X)} = rec-equiv , is-equiv where
   open IsGroupHom using (pres·)
   rec-equiv : _ → _
   rec-equiv (x₀ , φ , φ-hom) = Delooping.rec is-gpd-X x₀ φ φ-hom
 
-  rec-inv : (𝔹 → X) → (Σ[ x₀ ∈ X ] Σ[ φ ∈ (G → x₀ ≡ x₀) ] ∀ g h → compSquareFiller (φ g) (φ h) (φ $ g · h))
+  rec-inv : (𝔹 → X) → (Σ[ x₀ ∈ X ] Σ[ φ ∈ (⟨ G ⟩ → x₀ ≡ x₀) ] ∀ g h → compSquareFiller (φ g) (φ h) (φ $ g · h))
   rec-inv f .fst = f 𝔹.⋆
   rec-inv f .snd .fst = cong f ∘ 𝔹.loop
   rec-inv f .snd .snd = λ g h i j → f (Delooping.loop-comp g h i j)
@@ -257,9 +257,12 @@ recEquiv {X = (X , is-gpd-X)} = rec-equiv , is-equiv where
   is-equiv = isoToIsEquiv recIso
 
 recEquivHom : ∀ {ℓX} {X : hGroupoid ℓX}
-  → (Σ[ x₀ ∈ ⟨ X ⟩ ] GroupHom (G , γ) (FundamentalGroup.π₁ X x₀)) ≃ (𝔹 → ⟨ X ⟩)
+  → (Σ[ x₀ ∈ ⟨ X ⟩ ] GroupHom G (FundamentalGroup.π₁ X x₀)) ≃ (𝔹 → ⟨ X ⟩)
 recEquivHom {X} = Σ-cong-equiv-snd (λ x₀ → Σ-cong-equiv-snd $ lemma x₀) ∙ₑ recEquiv where
-  lemma : ∀ x₀ (φ : G → x₀ ≡ x₀) → IsGroupHom γ φ (FundamentalGroup.π₁ X x₀ .snd) ≃ ((g h : G) → compSquareFiller (φ g) (φ h) (φ $ g · h))
+  lemma : ∀ x₀ (φ : ⟨ G ⟩ → x₀ ≡ x₀) →
+    IsGroupHom (str G) φ (FundamentalGroup.π₁ X x₀ .snd)
+      ≃
+    ((g h : ⟨ G ⟩) → compSquareFiller (φ g) (φ h) (φ $ g · h))
   lemma x₀ φ = propBiimpl→Equiv (isPropIsGroupHom _ _) (isPropΠ2 (λ g h → isGroupoid→isPropSquare (str X)))
     (λ is-hom g h → coerceCompSquareFiller (sym $ is-hom .IsGroupHom.pres· g h))
     (λ mk-comp-sq → makeIsGroupHom λ g h → sym (compSquareFillerUnique (mk-comp-sq g h)))
@@ -296,7 +299,7 @@ module _ {ℓB} {B : Type ℓB}
     curryFiber2 : ∀ {f : 𝔹 → B} {b₀} {ℓP} {P : (x y : fiber f b₀) → Type ℓP} → ((x y : 𝔹) → (p : f x ≡ b₀) (q : f y ≡ b₀) → P (x , p) (y , q)) → (x y : fiber f b₀) → P x y
     curryFiber2 h (x , p) (y , q) = h x y p q
 
-    unique : (b₀ : B) (φ : (g : G) → b₀ ≡ b₀) → (pres· : ∀ g h → compSquareFiller (φ g) (φ h) (φ $ g · h)) → isTruncatedFun 1 φ → isTruncatedFun 2 (Delooping.rec is-gpd-B b₀ φ pres·)
+    unique : (b₀ : B) (φ : (g : ⟨ G ⟩) → b₀ ≡ b₀) → (pres· : ∀ g h → compSquareFiller (φ g) (φ h) (φ $ g · h)) → isTruncatedFun 1 φ → isTruncatedFun 2 (Delooping.rec is-gpd-B b₀ φ pres·)
     unique b₀ φ pres· trunc-φ = isTruncatedFunSuc 1 f is-prop-trunc-f where
       f = Delooping.rec is-gpd-B b₀ φ pres·
 

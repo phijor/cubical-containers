@@ -181,7 +181,7 @@ private module ViaGAction where
     {!assoc !} {! !} {! !} {! !} {! !}
 
   module _ {ℓ} (G : Group ℓ) (X : hSet ℓ) (η : GroupHom G (Aut X)) where
-    open import GpdCont.Delooping ⟨ G ⟩ (str G) as BG' renaming (𝔹 to BG)
+    open import GpdCont.Delooping G as BG' renaming (𝔹 to BG)
     open import Cubical.HITs.GroupoidQuotients as GQ using (_//_)
 
     𝕏 : BG → hSet ℓ

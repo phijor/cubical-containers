@@ -24,7 +24,7 @@ private
   open module Q = QCont Q using (_·_ ; SymmGroupStr)
 
 module ↑SymmElim (s : Shape) =
-  GpdCont.Delooping (Symm s) (SymmGroupStr s)
+  GpdCont.Delooping (Q.SymmGroup s)
     renaming (𝔹 to ↑Symm)
 
 open ↑SymmElim

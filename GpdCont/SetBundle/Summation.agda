@@ -12,6 +12,7 @@ open import GpdCont.Connectivity as Connectivity using (isPathConnected)
 
 open import GpdCont.TwoCategory.Base using (TwoCategory)
 open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor ; compLaxFunctor)
+open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor)
 open import GpdCont.TwoCategory.LocalFunctor using (LocalFunctor)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
 open import GpdCont.TwoCategory.Displayed.LocallyThin using (LocallyThinOver ; IntoLocallyThin)
@@ -122,6 +123,26 @@ SetBundleΣFst .LaxFunctor.F-id-lax (J , x) = refl
 SetBundleΣFst .LaxFunctor.F-assoc (φ , f) (ψ , g) (ρ , h) = refl′ (refl ∙ refl)
 SetBundleΣFst .LaxFunctor.F-unit-left (J , x) = sym GL.compPathRefl
 SetBundleΣFst .LaxFunctor.F-unit-right (J , x) = sym GL.compPathRefl
+
+SetBundleΣFstˢ : StrictFunctor FamSetBundle (hGpdCat ℓ)
+SetBundleΣFstˢ .StrictFunctor.F-ob = ΣFst₀
+SetBundleΣFstˢ .StrictFunctor.F-hom = ΣFst₁
+SetBundleΣFstˢ .StrictFunctor.F-rel = ΣFst₂
+SetBundleΣFstˢ .StrictFunctor.F-rel-id = refl
+SetBundleΣFstˢ .StrictFunctor.F-rel-trans = ΣFst₂-rel-trans
+SetBundleΣFstˢ .StrictFunctor.F-hom-comp _ _ = refl
+SetBundleΣFstˢ .StrictFunctor.F-hom-id _ = refl
+SetBundleΣFstˢ .StrictFunctor.F-assoc-filler-left _ _ _ .fst = refl
+SetBundleΣFstˢ .StrictFunctor.F-assoc-filler-left _ _ _ .snd = refl
+SetBundleΣFstˢ .StrictFunctor.F-assoc-filler-right _ _ _ .fst = refl
+SetBundleΣFstˢ .StrictFunctor.F-assoc-filler-right _ _ _ .snd = refl
+SetBundleΣFstˢ .StrictFunctor.F-assoc _ _ _ = reflSquare _
+SetBundleΣFstˢ .StrictFunctor.F-unit-left-filler _ .fst = refl
+SetBundleΣFstˢ .StrictFunctor.F-unit-left-filler _ .snd = refl
+SetBundleΣFstˢ .StrictFunctor.F-unit-left f = reflSquare (ΣFst₁ f)
+SetBundleΣFstˢ .StrictFunctor.F-unit-right-filler _ .fst = refl
+SetBundleΣFstˢ .StrictFunctor.F-unit-right-filler _ .snd = refl
+SetBundleΣFstˢ .StrictFunctor.F-unit-right f = reflSquare (ΣFst₁ f)
 
 private
   ΣSnd₀ : (x : FamSetBundle.ob) → SetBundle.ob[ ΣFst₀ x ]

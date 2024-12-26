@@ -3,7 +3,7 @@ open import GpdCont.Prelude
 module GpdCont.HomotopyGroup (ℓ : Level) where
 
 open import GpdCont.TwoCategory.Base
-open import GpdCont.TwoCategory.Subcategory
+open import GpdCont.TwoCategory.Subcategory using (Subcategory ; ForgetLax)
 open import GpdCont.TwoCategory.LaxFunctor
 open import GpdCont.TwoCategory.Displayed.Base
 open import GpdCont.TwoCategory.Displayed.LocallyThin as LT using (IsLocallyThinOver ; LocallyThinOver)
@@ -139,7 +139,7 @@ hGroup : TwoCategory (ℓ-suc ℓ) ℓ ℓ
 hGroup = Subcategory Pointed isPointedConnectedGroupoid
 
 ForgetConnected : LaxFunctor hGroup Pointed
-ForgetConnected = Forget Pointed isPointedConnectedGroupoid
+ForgetConnected = ForgetLax Pointed isPointedConnectedGroupoid
 
 ForgetGroup : LaxFunctor hGroup (hGroupoid ℓ)
 ForgetGroup = compLaxFunctor ForgetConnected ForgetPointed

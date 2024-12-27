@@ -167,18 +167,56 @@ module _ where
     SquareDiag≡pathComp' : SquareDiag ≡ r ∙ s
     SquareDiag≡pathComp' = sym $ compSquareFillerUnique diagFiller'
 
-  doubleCompPathP : ∀ {ℓ} (A : (i j : I) → Type ℓ)
-    → {a₀₀ : A i0 i0} {a₀₁ : A i0 i1} {a₁₀ : A i1 i0} {a₁₁ : A i1 i1}
-    → PathP (λ i → A i i0) a₀₀ a₁₀
-    → PathP (λ j → A i0 j) a₀₀ a₀₁
-    → PathP (λ i → A i i1) a₀₁ a₁₁
-    → PathP (λ j → A i1 j) a₁₀ a₁₁
-  doubleCompPathP A p q r j = comp (λ i → A i j) {φ = j ∨ ~ j}
-    (λ where
-      i (j = i0) → p i
-      i (j = i1) → r i
-    )
-    (q j)
+  module DoubleCompPathP {ℓ} (A : (i j : I) → Type ℓ)
+    {a₀₀ : A i0 i0} {a₀₁ : A i0 i1} {a₁₀ : A i1 i0} {a₁₁ : A i1 i1}
+    (p : PathP (λ i → A i i0) a₀₀ a₁₀)
+    (q : PathP (λ j → A i0 j) a₀₀ a₀₁)
+    (r : PathP (λ i → A i i1) a₀₁ a₁₁)
+    where
+    doubleCompPathP-faces : (i j : I) → Partial (∂ j) (A i j)
+    doubleCompPathP-faces i j (j = i0) = p i
+    doubleCompPathP-faces i j (j = i1) = r i
+
+    doubleCompPathP : PathP (λ j → A i1 j) a₁₀ a₁₁
+    doubleCompPathP j = comp (λ i → A i j) {φ = j ∨ ~ j}
+      (λ i → doubleCompPathP-faces i j)
+      (q j)
+
+    doubleCompPathP-filler : SquareP A q doubleCompPathP p r
+    doubleCompPathP-filler i j = fill (λ i → A i j) {φ = ∂ j}
+      (λ i → doubleCompPathP-faces i j)
+      (inS (q j)) i
+
+    DoubleCompPathPFiller : Type _
+    DoubleCompPathPFiller = Σ[ s ∈ PathP (λ j → A i1 j) a₁₀ a₁₁ ] SquareP A q s p r
+
+    doubleCompPathP→DoubleCompPathPFiller : DoubleCompPathPFiller
+    doubleCompPathP→DoubleCompPathPFiller .fst = doubleCompPathP
+    doubleCompPathP→DoubleCompPathPFiller .snd = doubleCompPathP-filler
+
+    isPropDoubleCompPathPFiller : isProp DoubleCompPathPFiller
+    isPropDoubleCompPathPFiller (s₀ , s₀-filler) (s₁ , s₁-filler) = λ t → lid-path t , filler-path t where
+      cube-faces : (t i j : I) → Partial (∂ t ∨ ∂ j) (A i j)
+      cube-faces t i j (t = i0) = s₀-filler i j
+      cube-faces t i j (t = i1) = s₁-filler i j
+      cube-faces t i j (j = i0) = p i
+      cube-faces t i j (j = i1) = r i
+
+      cube : (t i j : I) → A i j
+      cube t i j = fill (λ i → A i j) {φ = ∂ t ∨ ∂ j} (λ i → cube-faces t i j) (inS (q j)) i
+
+      lid-path : s₀ ≡ s₁
+      lid-path t j = cube t i1 j
+
+      filler-path : PathP (λ t → SquareP A q (lid-path t) p r) s₀-filler s₁-filler
+      filler-path t i j = cube t i j
+
+    isContrDoubleCompPathPFiller : isContr DoubleCompPathPFiller
+    isContrDoubleCompPathPFiller = HLevels.inhProp→isContr
+      doubleCompPathP→DoubleCompPathPFiller
+      isPropDoubleCompPathPFiller
+
+  open DoubleCompPathP public
 
   module _
     {ℓ ℓ'} {A : Type ℓ} (B : A → Type ℓ')

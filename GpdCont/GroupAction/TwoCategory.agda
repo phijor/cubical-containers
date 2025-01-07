@@ -26,6 +26,7 @@ module _ (ℓ : Level) where
 
     GroupActionᴰ₁ : ∀ {G H} (φ : TwoGroup.hom G H) → GroupActionᴰ₀ G → GroupActionᴰ₀ H → Type ℓ
     GroupActionᴰ₁ φ (X , σ) (Y , τ) = Σ[ f ∈ (⟨ Y ⟩ → ⟨ X ⟩) ] isEquivariantMap (φ , f) σ τ
+    {-# INJECTIVE_FOR_INFERENCE GroupActionᴰ₁ #-}
 
     isSetGroupActionᴰ₁ : ∀ {G H} (φ : TwoGroup.hom G H) (Xᴳ : GroupActionᴰ₀ G) (Yᴴ : GroupActionᴰ₀ H) → isSet (GroupActionᴰ₁ φ Xᴳ Yᴴ)
     isSetGroupActionᴰ₁ φ (X , σ) (_ , τ) = isSetΣSndProp (isSet→ (str X)) λ f → isPropIsEquivariantMap (φ , f) σ τ

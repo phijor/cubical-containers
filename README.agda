@@ -340,8 +340,8 @@ module 4-ActionContainers-2-Category where
       {gᴰ : GroupActionᴰ.hom[ ψ ] Xᴳ Yᴴ}
       where
       41-Lemma : (isEquiv (𝔹′ᴰ.₁ {ℓ} {G} {H} {φ} {Xᴳ} {Yᴴ})) × (isEquiv (𝔹′ᴰ.₂ {ℓ} {G} {H} {φ} {ψ} {r} {Xᴳ} {Yᴴ} {fᴰ} {gᴰ}))
-      41-Lemma .fst = ActionDelooping.isEquiv-𝔹₁ ℓ {G} {H} {φ} {Xᴳ} {Yᴴ}
-      41-Lemma .snd = ActionDelooping.isEquiv-𝔹₂ ℓ {G} {H} {φ} {ψ} {r} {Xᴳ} {Yᴴ} {fᴰ} {gᴰ}
+      41-Lemma .fst = ActionDelooping.isEquiv-𝔹ᴰ₁ ℓ {G} {H} {φ} {Xᴳ} {Yᴴ}
+      41-Lemma .snd = ActionDelooping.isEquiv-𝔹ᴰ₂ ℓ {G} {H} {φ} {ψ} {r} {Xᴳ} {Yᴴ} {fᴰ} {gᴰ}
 
     42-Theorem : isLocallyWeakEquivalence (𝔹′ ℓ)
     42-Theorem = ActionDelooping.isLocallyWeakEquivalenceDelooping _

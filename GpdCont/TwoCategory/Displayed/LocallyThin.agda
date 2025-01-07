@@ -61,35 +61,36 @@ module _ {ℓo ℓh ℓr} (C : TwoCategory ℓo ℓh ℓr) (ℓoᴰ ℓhᴰ ℓr
                 (fᴰ ∙₁ᴰ id-homᴰ yᴰ)
                 fᴰ
 
-        -- Any pair displayed 2-cells are connected by a path.
-        -- Taking all possible dependencies in the base into account,
-        -- this is the generic path lemma that we end up with:
-        relᴰPathP : {x y : C.ob}
-          → {f₀ f₁ : C.hom x y} → {f : PathP (λ i → C.hom x y) f₀ f₁}
-          → {g₀ g₁ : C.hom x y} → {g : PathP (λ i → C.hom x y) g₀ g₁}
-          → {r : C.rel f₀ g₀}
-          → {s : C.rel f₁ g₁}
-          → {xᴰ : ob[ x ]} {yᴰ : ob[ y ]}
-          → {fᴰ₀ : hom[ f₀ ] xᴰ yᴰ} → {fᴰ₁ : hom[ f₁ ] xᴰ yᴰ} → {fᴰ : PathP (λ i → hom[ f i ] xᴰ yᴰ) fᴰ₀  fᴰ₁}
-          → {gᴰ₀ : hom[ g₀ ] xᴰ yᴰ} → {gᴰ₁ : hom[ g₁ ] xᴰ yᴰ} → {gᴰ : PathP (λ i → hom[ g i ] xᴰ yᴰ) gᴰ₀  gᴰ₁}
-          → {rᴰ : rel[ r ] fᴰ₀ gᴰ₀}
-          → {sᴰ : rel[ s ] fᴰ₁ gᴰ₁}
-          → (p : PathP (λ i → rel (f i) (g i)) r s)
-          → PathP (λ i → rel[ p i ] (fᴰ i) (gᴰ i)) rᴰ sᴰ
-        relᴰPathP {fᴰ} {gᴰ} {rᴰ} {sᴰ} p = isProp→PathP (λ i → is-prop-relᴰ {s = p i} (fᴰ i) (gᴰ i)) rᴰ sᴰ
+        opaque
+          -- Any pair displayed 2-cells are connected by a path.
+          -- Taking all possible dependencies in the base into account,
+          -- this is the generic path lemma that we end up with:
+          relᴰPathP : {x y : C.ob}
+            → {f₀ f₁ : C.hom x y} → {f : PathP (λ i → C.hom x y) f₀ f₁}
+            → {g₀ g₁ : C.hom x y} → {g : PathP (λ i → C.hom x y) g₀ g₁}
+            → {r : C.rel f₀ g₀}
+            → {s : C.rel f₁ g₁}
+            → {xᴰ : ob[ x ]} {yᴰ : ob[ y ]}
+            → {fᴰ₀ : hom[ f₀ ] xᴰ yᴰ} → {fᴰ₁ : hom[ f₁ ] xᴰ yᴰ} → {fᴰ : PathP (λ i → hom[ f i ] xᴰ yᴰ) fᴰ₀  fᴰ₁}
+            → {gᴰ₀ : hom[ g₀ ] xᴰ yᴰ} → {gᴰ₁ : hom[ g₁ ] xᴰ yᴰ} → {gᴰ : PathP (λ i → hom[ g i ] xᴰ yᴰ) gᴰ₀  gᴰ₁}
+            → {rᴰ : rel[ r ] fᴰ₀ gᴰ₀}
+            → {sᴰ : rel[ s ] fᴰ₁ gᴰ₁}
+            → (p : PathP (λ i → rel (f i) (g i)) r s)
+            → PathP (λ i → rel[ p i ] (fᴰ i) (gᴰ i)) rᴰ sᴰ
+          relᴰPathP {fᴰ} {gᴰ} {rᴰ} {sᴰ} p = isProp→PathP (λ i → is-prop-relᴰ {s = p i} (fᴰ i) (gᴰ i)) rᴰ sᴰ
 
         -- When the identification of 2-cells in the base is non-dependent,
         -- the type simplifies significantly, and we recognize that it actually
         -- identifies parallel displayed 2-cells rᴰ and sᴰ:
-        relᴰ≡ : {x y : C.ob} {f g : C.hom x y} {r s : C.rel f g}
-          → {xᴰ : ob[ x ]} {yᴰ : ob[ y ]}
-          → {fᴰ : hom[ f ] xᴰ yᴰ}
-          → {gᴰ : hom[ g ] xᴰ yᴰ}
-          → {rᴰ : rel[ r ] fᴰ gᴰ}
-          → {sᴰ : rel[ s ] fᴰ gᴰ}
-          → (p : r ≡ s)
-          → PathP (λ i → rel[ p i ] fᴰ gᴰ) rᴰ sᴰ
-        relᴰ≡ = relᴰPathP
+          relᴰ≡ : {x y : C.ob} {f g : C.hom x y} {r s : C.rel f g}
+            → {xᴰ : ob[ x ]} {yᴰ : ob[ y ]}
+            → {fᴰ : hom[ f ] xᴰ yᴰ}
+            → {gᴰ : hom[ g ] xᴰ yᴰ}
+            → {rᴰ : rel[ r ] fᴰ gᴰ}
+            → {sᴰ : rel[ s ] fᴰ gᴰ}
+            → (p : r ≡ s)
+            → PathP (λ i → rel[ p i ] fᴰ gᴰ) rᴰ sᴰ
+          relᴰ≡ = relᴰPathP
 
         relΣPathP : {x y : C.ob}
           → {f₀ f₁ : C.hom x y} → {f : PathP (λ i → C.hom x y) f₀ f₁}

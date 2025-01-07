@@ -127,13 +127,16 @@ SetBundle₂≃Path = ΣPath≃PathΣ
 module SetBundleNotation where
   open TwoCategory SetBundle public
   open TwoCategoryᴰ SetBundleᴰ public
-  open LocallyThinOver SetBundleᵀ public using (relᴰPathP ; relᴰ≡ ; relΣPathP)
+  open LocallyThinOver SetBundleᵀ public using (relᴰPathP ; relᴰ≡ ; relΣPathP ; is-prop-relᴰ)
 
   Base : ob → hGroupoid ℓ
   Base = fst
 
   isGroupoidBase : (x : ob) → isGroupoid ⟨ Base x ⟩
   isGroupoidBase = str ∘ fst
+
+  isSetHomᴰ : ∀ {x y : hGpdCat.ob} (f : hGpdCat.hom x y) (xᴰ : ob[ x ]) (yᴰ : ob[ y ]) → isSet (hom[ f ] xᴰ yᴰ)
+  isSetHomᴰ f xᴰ _ = isSetΠ2 λ j _ → str (xᴰ j)
 
   Fiber : (x : ob) (b : ⟨ Base x ⟩) → hSet ℓ
   Fiber (B , F) b = F b

@@ -163,45 +163,49 @@ module TwoFunc (ℓ : Level) where
     module TwoGroup = TwoCategory (TwoGroup ℓ)
     module hGpdCat = TwoCategory (hGpdCat ℓ)
 
-    𝔹-ob : Group ℓ → hGroupoid ℓ
-    𝔹-ob G = Delooping.𝔹 G , Delooping.isGroupoid𝔹
+  𝔹-ob : TwoGroup.ob → hGpdCat.ob
+  𝔹-ob G .fst = Delooping.𝔹 G
+  𝔹-ob G .snd = Delooping.isGroupoid𝔹
+  {-# INJECTIVE_FOR_INFERENCE 𝔹-ob #-}
 
-    𝔹-hom : {G H : Group ℓ} → GroupHom G H → ⟨ 𝔹-ob G ⟩ → ⟨ 𝔹-ob H ⟩
-    𝔹-hom φ = Map.map φ
+  𝔹-hom : {G H : TwoGroup.ob} → TwoGroup.hom G H → hGpdCat.hom (𝔹-ob G) (𝔹-ob H)
+  𝔹-hom φ = Map.map φ
+  {-# INJECTIVE_FOR_INFERENCE 𝔹-hom #-}
 
-    module _ {G H : Group ℓ}
-      {φ₀₀ φ₀₁ φ₁₀ φ₁₁ : ⟨ 𝔹-ob G ⟩ → ⟨ 𝔹-ob H ⟩}
-      {𝔹φ₀₋ : φ₀₀ ≡ φ₀₁}
-      {𝔹φ₁₋ : φ₁₀ ≡ φ₁₁}
-      {𝔹φ₋₀ : φ₀₀ ≡ φ₁₀}
-      {𝔹φ₋₁ : φ₀₁ ≡ φ₁₁}
-      where
+  module _ {G H : TwoGroup.ob}
+    {φ₀₀ φ₀₁ φ₁₀ φ₁₁ : hGpdCat.hom (𝔹-ob G) (𝔹-ob H)}
+    {𝔹φ₀₋ : φ₀₀ ≡ φ₀₁}
+    {𝔹φ₁₋ : φ₁₀ ≡ φ₁₁}
+    {𝔹φ₋₀ : φ₀₀ ≡ φ₁₀}
+    {𝔹φ₋₁ : φ₀₁ ≡ φ₁₁}
+    where
 
-      private
-        module 𝔹G = Delooping G
-        module 𝔹H = Delooping H
+    private
+      module 𝔹G = Delooping G
+      module 𝔹H = Delooping H
 
-      -- Squares in 𝔹H are propositions, so squares of functions 𝔹G → 𝔹H
-      -- are exactly exactly squares in 𝔹H of the functions evaluated at 𝔹G.⋆.
-      𝔹-hom-SquareEquiv :
-        Square (𝔹φ₀₋ ≡$ 𝔹G.⋆) (𝔹φ₁₋ ≡$ 𝔹G.⋆)  (𝔹φ₋₀ ≡$ 𝔹G.⋆) (𝔹φ₋₁ ≡$ 𝔹G.⋆) ≃ Square 𝔹φ₀₋ 𝔹φ₁₋ 𝔹φ₋₀ 𝔹φ₋₁
-      𝔹-hom-SquareEquiv = 𝔹G.elimPropEquiv (λ x → 𝔹H.isPropDeloopingSquare) ∙ₑ funExtSquareEquiv
+    -- Squares in 𝔹H are propositions, so squares of functions 𝔹G → 𝔹H
+    -- are exactly exactly squares in 𝔹H of the functions evaluated at 𝔹G.⋆.
+    𝔹-hom-SquareEquiv :
+      Square (𝔹φ₀₋ ≡$ 𝔹G.⋆) (𝔹φ₁₋ ≡$ 𝔹G.⋆)  (𝔹φ₋₀ ≡$ 𝔹G.⋆) (𝔹φ₋₁ ≡$ 𝔹G.⋆) ≃ Square 𝔹φ₀₋ 𝔹φ₁₋ 𝔹φ₋₀ 𝔹φ₋₁
+    𝔹-hom-SquareEquiv = 𝔹G.elimPropEquiv (λ x → 𝔹H.isPropDeloopingSquare) ∙ₑ funExtSquareEquiv
 
-      𝔹-hom-Square :
-        (sq : Square (𝔹φ₀₋ ≡$ 𝔹G.⋆) (𝔹φ₁₋ ≡$ 𝔹G.⋆)  (𝔹φ₋₀ ≡$ 𝔹G.⋆) (𝔹φ₋₁ ≡$ 𝔹G.⋆))
-        → Square 𝔹φ₀₋ 𝔹φ₁₋ 𝔹φ₋₀ 𝔹φ₋₁
-      𝔹-hom-Square = equivFun 𝔹-hom-SquareEquiv
+    𝔹-hom-Square :
+      (sq : Square (𝔹φ₀₋ ≡$ 𝔹G.⋆) (𝔹φ₁₋ ≡$ 𝔹G.⋆)  (𝔹φ₋₀ ≡$ 𝔹G.⋆) (𝔹φ₋₁ ≡$ 𝔹G.⋆))
+      → Square 𝔹φ₀₋ 𝔹φ₁₋ 𝔹φ₋₀ 𝔹φ₋₁
+    𝔹-hom-Square = equivFun 𝔹-hom-SquareEquiv
 
-    𝔹-rel : {G H : Group ℓ} {φ ψ : GroupHom G H} → Conjugator φ ψ → 𝔹-hom φ ≡ 𝔹-hom ψ
-    𝔹-rel {φ} {ψ} = map≡ φ ψ
+  𝔹-rel : {G H : TwoGroup.ob} {φ ψ : TwoGroup.hom G H} → TwoGroup.rel φ ψ → hGpdCat.rel (𝔹-hom φ) (𝔹-hom ψ)
+  𝔹-rel {φ} {ψ} = map≡ φ ψ
 
-    𝔹-rel-id : 𝔹-rel (idConjugator φ) ≡ refl
-    𝔹-rel-id {φ} = Map.map≡-id-refl φ
+  𝔹-rel-id : 𝔹-rel (TwoGroup.id-rel φ) ≡ refl
+  𝔹-rel-id {φ} = Map.map≡-id-refl φ
 
-    𝔹-rel-trans : (h₁ : Conjugator φ ψ) (h₂ : Conjugator ψ ρ) → 𝔹-rel (compConjugator h₁ h₂) ≡ 𝔹-rel h₁ ∙ 𝔹-rel h₂
-    𝔹-rel-trans {φ} {ψ} {ρ} = Map.map≡-comp-∙ φ ψ ρ
+  𝔹-rel-trans : (h₁ : TwoGroup.rel φ ψ) (h₂ : TwoGroup.rel ψ ρ) → 𝔹-rel (compConjugator h₁ h₂) ≡ 𝔹-rel h₁ ∙ 𝔹-rel h₂
+  𝔹-rel-trans {φ} {ψ} {ρ} = Map.map≡-comp-∙ φ ψ ρ
 
-    𝔹-trans-lax : (φ : GroupHom G H) (ψ : GroupHom H K) → (𝔹-hom φ hGpdCat.∙₁ 𝔹-hom ψ) ≡ 𝔹-hom (φ TwoGroup.∙₁ ψ)
+  private
+    𝔹-trans-lax : (φ : TwoGroup.hom G H) (ψ : TwoGroup.hom H K) → (𝔹-hom φ hGpdCat.∙₁ 𝔹-hom ψ) ≡ 𝔹-hom (φ TwoGroup.∙₁ ψ)
     𝔹-trans-lax {G} {H} {K} φ ψ = funExt (𝔹G.elimSet isSetMotive refl λ g i j → 𝔹K.loop ((φ TwoGroup.∙₁ ψ) .fst g) i) where
       module 𝔹G = Delooping G
       module 𝔹K = Delooping K
@@ -209,9 +213,9 @@ module TwoFunc (ℓ : Level) where
       isSetMotive : (x : Delooping.𝔹 G) → isSet ((𝔹-hom ψ $ 𝔹-hom φ x) ≡ (𝔹-hom (φ TwoGroup.∙₁ ψ) x))
       isSetMotive x = 𝔹K.isGroupoid𝔹 _ _
 
-    𝔹-trans-lax-natural : {φ₁ φ₂ : GroupHom G H} {ψ₁ ψ₂ : GroupHom H K}
-      → (h : Conjugator φ₁ φ₂)
-      → (k : Conjugator ψ₁ ψ₂)
+    𝔹-trans-lax-natural : {φ₁ φ₂ : TwoGroup.hom G H} {ψ₁ ψ₂ : TwoGroup.hom H K}
+      → (h : TwoGroup.rel φ₁ φ₂)
+      → (k : TwoGroup.rel ψ₁ ψ₂)
       → ((𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ 𝔹-trans-lax φ₂ ψ₂) ≡ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k))
     𝔹-trans-lax-natural {G} {H} {K} {φ₁} {φ₂} {ψ₁} {ψ₂} h k = funExtSquare lax where
       module K = GroupStr (str K)
@@ -243,10 +247,10 @@ module TwoFunc (ℓ : Level) where
       lax : (x : 𝔹G.𝔹) → (((𝔹-rel h hGpdCat.∙ₕ 𝔹-rel k) ∙ 𝔹-trans-lax φ₂ ψ₂) ≡$S x) ≡ (𝔹-trans-lax φ₁ ψ₁ ∙ 𝔹-rel (h TwoGroup.∙ₕ k) ≡$S x)
       lax = 𝔹G.elimProp (λ x → 𝔹K.isGroupoid𝔹 _ _ _ _) lax⋆
 
-    𝔹-id-lax : (G : Group ℓ) → id ⟨ 𝔹-ob G ⟩ ≡ 𝔹-hom (idGroupHom {G = G})
+    𝔹-id-lax : (G : TwoGroup.ob) → hGpdCat.id-hom (𝔹-ob G) ≡ 𝔹-hom (TwoGroup.id-hom G)
     𝔹-id-lax G = sym (Map.map-id G)
 
-    𝔹-assoc : (φ : GroupHom G H) (ψ : GroupHom H K) (ρ : GroupHom K L)
+    𝔹-assoc : (φ : TwoGroup.hom G H) (ψ : TwoGroup.hom H K) (ρ : TwoGroup.hom K L)
       → Square
         ((𝔹-trans-lax φ ψ hGpdCat.∙ₕ refl′ (𝔹-hom ρ)) ∙ 𝔹-trans-lax (φ TwoGroup.∙₁ ψ) ρ)
         ((refl′ (𝔹-hom φ) hGpdCat.∙ₕ 𝔹-trans-lax ψ ρ) ∙ 𝔹-trans-lax φ (ψ TwoGroup.∙₁ ρ))
@@ -275,11 +279,12 @@ module TwoFunc (ℓ : Level) where
         (refl ∙ refl)       ≡⟨ sym $ cong⋆-∙ r s ⟩
         (cong⋆ $ r ∙ s)     ∎
 
-    𝔹-unit-left : (φ : GroupHom G H) → Square
-      ((𝔹-id-lax G hGpdCat.∙ₕ refl′ (𝔹-hom φ)) hGpdCat.∙ᵥ 𝔹-trans-lax idGroupHom φ)
-      (refl′ (𝔹-hom φ))
-      (hGpdCat.comp-hom-unit-left (𝔹-hom φ))
-      (cong 𝔹-hom (TwoGroup.comp-hom-unit-left φ))
+    𝔹-unit-left : (φ : TwoGroup.hom G H)
+      → Square
+        ((𝔹-id-lax G hGpdCat.∙ₕ refl′ (𝔹-hom φ)) hGpdCat.∙ᵥ 𝔹-trans-lax idGroupHom φ)
+        (refl′ (𝔹-hom φ))
+        (hGpdCat.comp-hom-unit-left (𝔹-hom φ))
+        (cong 𝔹-hom (TwoGroup.comp-hom-unit-left φ))
     𝔹-unit-left {G} {H} φ = 𝔹-hom-Square unit-left⋆ where
       module 𝔹G = Delooping G
       module 𝔹H = Delooping H
@@ -293,11 +298,12 @@ module TwoFunc (ℓ : Level) where
       unit-left⋆ : 𝔹G.cong⋆ (p ∙ q) ≡ refl′ 𝔹H.⋆
       unit-left⋆ = 𝔹G.cong⋆-∙ p q ∙ sym compPathRefl
 
-    𝔹-unit-right : (φ : GroupHom G H) → Square
-      ((refl′ (𝔹-hom φ) hGpdCat.∙ₕ 𝔹-id-lax H) hGpdCat.∙ᵥ 𝔹-trans-lax φ idGroupHom)
-      (refl′ (𝔹-hom φ))
-      (hGpdCat.comp-hom-unit-right (𝔹-hom φ))
-      (cong 𝔹-hom (TwoGroup.comp-hom-unit-right φ))
+    𝔹-unit-right : (φ : TwoGroup.hom G H)
+      → Square
+        ((refl′ (𝔹-hom φ) hGpdCat.∙ₕ 𝔹-id-lax H) hGpdCat.∙ᵥ 𝔹-trans-lax φ idGroupHom)
+        (refl′ (𝔹-hom φ))
+        (hGpdCat.comp-hom-unit-right (𝔹-hom φ))
+        (cong 𝔹-hom (TwoGroup.comp-hom-unit-right φ))
     𝔹-unit-right {G} {H} φ = 𝔹-hom-Square unit-right⋆ where
       module 𝔹G = Delooping G
       module 𝔹H = Delooping H
@@ -363,47 +369,62 @@ module TwoFunc (ℓ : Level) where
       assoc-hom : (𝔹-hom φ* ⋆ 𝔹-hom ψ*) ⋆ 𝔹-hom ρ* ≡ 𝔹-hom ((φ* TwoGroup.∙₁ ψ*) TwoGroup.∙₁ ρ*)
       assoc-hom = funExt (𝔹G.elimSet (λ _ → str (𝔹-ob L) _ _) refl λ g j i → 𝔹L.loop (ρ (ψ (φ g))) j)
 
-      filler-left : PathCompFiller (cong (λ - → hGpdCat._∙₁_ {x = 𝔹-ob G} - (𝔹-hom ρ*)) (sym (Map.map-comp φ* ψ*))) (sym (Map.map-comp (φ* TwoGroup.∙₁ ψ*) ρ*))
-      filler-left .fst = funExt (𝔹G.elimSet (λ _ → str (𝔹-ob L) _ _) refl λ g j i → 𝔹L.loop (ρ (ψ (φ g))) j)
+      filler-left-lid : ((map φ* ⋆ map ψ*) ⋆ 𝔹-hom ρ*) ≡ map ((φ* TwoGroup.∙₁ ψ*) TwoGroup.∙₁ ρ*)
+      filler-left-lid = funExt (𝔹G.elimSet (λ _ → str (𝔹-ob L) _ _) refl λ g j i → 𝔹L.loop (ρ (ψ (φ g))) j)
+
+      filler-right-lid : map φ* ⋆ (map ψ* ⋆ map ρ*) ≡ map (φ* TwoGroup.∙₁ (ψ* TwoGroup.∙₁ ρ*))
+      filler-right-lid = funExt (𝔹G.elimSet (λ _ → str (𝔹-ob L) _ _) refl λ g j i → 𝔹L.loop (ρ (ψ (φ g))) j)
+
+      private
+        [φ⋆ψ]⋆ρ = cong (λ - → hGpdCat._∙₁_ {x = 𝔹-ob G} - (𝔹-hom ρ*)) (𝔹-hom-comp φ* ψ*)
+        φ⋆[ψ⋆ρ] = cong (λ - → hGpdCat._∙₁_ {z = 𝔹-ob L} (𝔹-hom φ*) -) (𝔹-hom-comp ψ* ρ*)
+
+      filler-left : PathCompFiller (cong (_⋆ (𝔹-hom ρ*)) (𝔹-hom-comp φ* ψ*)) (𝔹-hom-comp (φ* TwoGroup.∙₁ ψ*) ρ*)
+      filler-left .fst = filler-left-lid
       filler-left .snd = 𝔹-hom-Square (reflSquare 𝔹L.⋆)
       {-# INJECTIVE_FOR_INFERENCE filler-left #-}
 
-      filler-right : PathCompFiller (cong (λ - → hGpdCat._∙₁_ {z = 𝔹-ob L} (𝔹-hom φ*) -) (sym (Map.map-comp ψ* ρ*))) (sym (Map.map-comp φ* (ψ* TwoGroup.∙₁ ρ*)))
-      filler-right .fst = funExt (𝔹G.elimSet (λ _ → str (𝔹-ob L) _ _) refl λ g j i → 𝔹L.loop (ρ (ψ (φ g))) j)
+      filler-right : PathCompFiller (cong ((𝔹-hom φ*) ⋆_) (𝔹-hom-comp ψ* ρ*)) (𝔹-hom-comp φ* (ψ* TwoGroup.∙₁ ρ*))
+      filler-right .fst = filler-right-lid
       filler-right .snd = 𝔹-hom-Square (reflSquare 𝔹L.⋆)
       {-# INJECTIVE_FOR_INFERENCE filler-right #-}
 
       assoc : PathP
         (λ i → hGpdCat.comp-hom-assoc (𝔹-hom φ*) (𝔹-hom ψ*) (𝔹-hom ρ*) i ≡ 𝔹-hom (TwoGroup.comp-hom-assoc φ* ψ* ρ* i))
-        (filler-left .fst)
-        (filler-right .fst)
+        filler-left-lid
+        filler-right-lid
       assoc = 𝔹-hom-Square (reflSquare 𝔹L.⋆)
       {-# INJECTIVE_FOR_INFERENCE assoc #-}
 
     module 𝔹-unit-left {G H : TwoGroup.ob} (φ : TwoGroup.hom G H) where
-      module 𝔹G = Delooping G
       module 𝔹H = Delooping H
 
-      filler : PathCompFiller (cong (λ - → hGpdCat._∙₁_ {x = 𝔹-ob G} - (𝔹-hom φ)) (sym (Map.map-id G))) (sym (Map.map-comp (TwoGroup.id-hom G) φ))
-      filler .fst = cong 𝔹-hom (sym $ TwoGroup.comp-hom-unit-left φ)
+      filler-lid : map φ ≡ map ((TwoGroup.id-hom G) TwoGroup.∙₁ φ)
+      filler-lid = cong map (sym $ TwoGroup.comp-hom-unit-left φ)
+
+      filler : PathCompFiller (cong (_⋆ 𝔹-hom φ) (𝔹-hom-id G)) (𝔹-hom-comp (TwoGroup.id-hom G) φ)
+      filler .fst = filler-lid
       filler .snd = 𝔹-hom-Square (reflSquare 𝔹H.⋆)
       {-# INJECTIVE_FOR_INFERENCE filler #-}
 
       unit-left : PathP (λ i → hGpdCat.comp-hom-unit-left (𝔹-hom φ) i ≡ 𝔹-hom (TwoGroup.comp-hom-unit-left φ i))
-        (filler .fst)
+        filler-lid
         (refl′ (𝔹-hom φ))
       unit-left = 𝔹-hom-Square (reflSquare 𝔹H.⋆)
 
     module 𝔹-unit-right {G H : TwoGroup.ob} (φ : TwoGroup.hom G H) where
-      module 𝔹G = Delooping G
       module 𝔹H = Delooping H
+
+      filler-lid : map φ ≡ map (φ TwoGroup.∙₁ (TwoGroup.id-hom H))
+      filler-lid = cong map (sym $ TwoGroup.comp-hom-unit-right φ)
+
       filler : PathCompFiller (cong ((𝔹-hom φ) hGpdCat.∙₁_) (𝔹-hom-id H)) (𝔹-hom-comp φ (TwoGroup.id-hom H))
-      filler .fst = cong 𝔹-hom (sym $ TwoGroup.comp-hom-unit-right φ)
+      filler .fst = filler-lid
       filler .snd = 𝔹-hom-Square (reflSquare 𝔹H.⋆)
       {-# INJECTIVE_FOR_INFERENCE filler #-}
 
       unit-right : PathP (λ i → hGpdCat.comp-hom-unit-right (𝔹-hom φ) i ≡ 𝔹-hom (TwoGroup.comp-hom-unit-right φ i))
-        (filler .fst)
+        filler-lid
         (refl′ (𝔹-hom φ))
       unit-right = 𝔹-hom-Square (reflSquare 𝔹H.⋆)
 

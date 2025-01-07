@@ -13,6 +13,7 @@ open import Cubical.Algebra.Group.MorphismProperties as GroupHom using (compGrou
 
 module _ (ℓ : Level) where
   {-# INJECTIVE_FOR_INFERENCE isConjugator #-}
+  {-# INJECTIVE_FOR_INFERENCE Group #-}
 
   private
     module _ (G : Group ℓ) where

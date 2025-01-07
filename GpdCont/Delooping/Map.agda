@@ -67,27 +67,6 @@ module _
   map-ext-⋆ : BH.⋆ ≡ BH.⋆
   map-ext-⋆ = BH.loop h
 
-  map-ext-loop' : ∀ g → Square (BH.loop h) (BH.loop h) (BH.loop (φ g)) (BH.loop (ψ g))
-  map-ext-loop' g = λ i j → hcomp {φ = ∂² i j} (sides i j) (base i j) where
-    -- base : Square (BH.loop $ φ g H.· h) (BH.loop $ h H.· ψ g) refl refl
-    -- base = cong BH.loop (h-conj g)
-
-    base : Square refl refl (BH.loop $ φ g H.· h) (BH.loop $ h H.· ψ g)
-    base i j = BH.loop (h-conj g j) i
-
-    side-φg·h : Square refl (sym $ BH.loop h) (BH.loop (φ g H.· h)) (BH.loop (φ g))
-    side-φg·h i k = BH.loop-comp (φ g) h (~ k) i
-
-    side-h·ψg : Square (BH.loop h) refl (BH.loop (h H.· ψ g)) (BH.loop (ψ g))
-    side-h·ψg i k = {!BH.loop-comp h (ψ g) !}
-
-
-    sides : (i j k : I) → Partial (∂² i j) BH.𝔹
-    sides i j k (i = i0) = {! !} -- side-φg·h j k
-    sides i j k (i = i1) = {!  !}
-    sides i j k (j = i0) = side-φg·h i k
-    sides i j k (j = i1) = side-h·ψg i k
-
   map-ext-loop : ∀ g → Square (BH.loop h) (BH.loop h) (BH.loop (φ g)) (BH.loop (ψ g))
   map-ext-loop g = Path.compPath→Square $ BH.loop-∙ (φ g) h ∙∙ cong BH.loop (h-conj g) ∙∙ (sym $ BH.loop-∙ h (ψ g))
 

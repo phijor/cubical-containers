@@ -106,3 +106,35 @@ module _ {ℓo ℓh ℓr}
   idStrictFunctor .StrictFunctor.F-unit-left f i j = C.comp-hom-unit-left f i
   idStrictFunctor .StrictFunctor.F-unit-right-filler f = refl , refl
   idStrictFunctor .StrictFunctor.F-unit-right f = λ i j → C.comp-hom-unit-right f i
+
+private
+  variable
+    ℓo ℓh ℓr : Level
+    C D E : TwoCategory ℓo ℓh ℓr
+
+module _
+  (F : StrictFunctor C D)
+  (G : StrictFunctor D E)
+  where
+  private
+    module C = TwoCategory C
+    module D = TwoCategory D
+    module E = TwoCategory E
+    module F = StrictFunctor F
+    module G = StrictFunctor G
+
+  compStrictFunctor : StrictFunctor C E
+  compStrictFunctor .StrictFunctor.F-ob = F.F-ob ⋆ G.F-ob
+  compStrictFunctor .StrictFunctor.F-hom = F.F-hom ⋆ G.F-hom
+  compStrictFunctor .StrictFunctor.F-rel = F.F-rel ⋆ G.F-rel
+  compStrictFunctor .StrictFunctor.F-rel-id = cong G.F-rel F.F-rel-id ∙ G.F-rel-id
+  compStrictFunctor .StrictFunctor.F-rel-trans r s = cong G.F-rel (F.F-rel-trans r s) ∙ G.F-rel-trans (F.F-rel r) (F.F-rel s)
+  compStrictFunctor .StrictFunctor.F-hom-comp f g = G.F-hom-comp (F.F-hom f) (F.F-hom g) ∙ cong G.F-hom (F.F-hom-comp f g)
+  compStrictFunctor .StrictFunctor.F-hom-id x = G.F-hom-id (F.F-ob x) ∙ cong G.F-hom (F.F-hom-id x)
+  compStrictFunctor .StrictFunctor.F-assoc-filler-left f g h = {! !}
+  compStrictFunctor .StrictFunctor.F-assoc-filler-right f g h = {! !}
+  compStrictFunctor .StrictFunctor.F-assoc f g h = {! !}
+  compStrictFunctor .StrictFunctor.F-unit-left-filler f = {! !}
+  compStrictFunctor .StrictFunctor.F-unit-left f = {! !}
+  compStrictFunctor .StrictFunctor.F-unit-right-filler f = {! !}
+  compStrictFunctor .StrictFunctor.F-unit-right f = {! !}

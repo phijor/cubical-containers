@@ -20,9 +20,8 @@ import      GpdCont.Delooping.Map as DeloopingMap
 open import GpdCont.TwoCategory.Base using (TwoCategory)
 open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
 open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor)
-open import GpdCont.TwoCategory.Pseudofunctor using (isPseudoFunctor ; isLocallyGroupoidal→isPseudofunctor)
+open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor as LocalFunctor using (LocalFunctor)
 open import GpdCont.TwoCategory.LocalCategory using (LocalCategory)
-open import GpdCont.TwoCategory.LocalFunctor as LocalFunctor using (isLocallyFullyFaithful ; isLocallyEssentiallySurjective ; isLocallyWeakEquivalence)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
 open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
 open import GpdCont.TwoCategory.Displayed.StrictFunctor using (StrictFunctorᴰ)
@@ -246,13 +245,10 @@ module _ (ℓ : Level) where
   private
     module ∫𝔹ᴰ = StrictFunctor Deloopingˢ
 
-  isPseudoFunctorDelooping : isPseudoFunctor Delooping
-  isPseudoFunctorDelooping = isLocallyGroupoidal→isPseudofunctor Delooping (isLocallyGroupoidalSetBundle ℓ)
-
   private
     module 𝔹Act where
       open LaxFunctor Delooping public
-      open LocalFunctor Delooping public
+      open LocalFunctor Deloopingˢ public
 
   isConnectedDeloopingBase : (σ : GroupAction.ob) → isPathConnected ⟨ SetBundle.Base (∫𝔹ᴰ.₀ σ) ⟩
   isConnectedDeloopingBase (G , (X , σ)) = Delooping.isConnectedDelooping G

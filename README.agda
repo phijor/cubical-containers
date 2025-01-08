@@ -281,14 +281,14 @@ module 4-ActionContainers-2-Category where
     open import GpdCont.GroupAction.Equivariant using (isEquivariantMap[_][_,_])
     open import GpdCont.GroupAction.TwoCategory using (GroupAction ; GroupActionᴰ)
     open import GpdCont.GroupAction.AssociatedBundle using (associatedBundle ; associatedBundleMap)
-    open import GpdCont.GroupAction.Delooping as ActionDelooping renaming (𝔹ᴰ to 𝔹′ᴰ ; Delooping to 𝔹′)
+    open import GpdCont.GroupAction.Delooping as ActionDelooping renaming (𝔹ᴰˢ to 𝔹′ᴰ ; Deloopingˢ to 𝔹′)
     open import GpdCont.Delooping.Functor using (module TwoFunc)
 
     open import GpdCont.TwoCategory.Base using (TwoCategory)
-    open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
-    open import GpdCont.TwoCategory.LocalFunctor using (isLocallyWeakEquivalence)
+    open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor)
+    open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor using (isLocallyWeakEquivalence)
     open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ ; module TotalTwoCategory)
-    open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
+    open import GpdCont.TwoCategory.Displayed.StrictFunctor using (StrictFunctorᴰ)
     open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
 
     open import GpdCont.Group.TwoCategory using (TwoGroup)
@@ -297,9 +297,9 @@ module 4-ActionContainers-2-Category where
     open import Cubical.Algebra.Group.Base using (Group)
     open import Cubical.Algebra.Group.Morphisms using (GroupHom)
 
-    open TwoFunc renaming (TwoDelooping to 𝔹)
-    module 𝔹 {ℓ} = LaxFunctor (𝔹 ℓ)
-    module 𝔹′ᴰ {ℓ} = LaxFunctorᴰ (𝔹′ᴰ ℓ)
+    open TwoFunc renaming (TwoDeloopingˢ to 𝔹)
+    module 𝔹 {ℓ} = StrictFunctor (𝔹 ℓ)
+    module 𝔹′ᴰ {ℓ} = StrictFunctorᴰ (𝔹′ᴰ ℓ)
 
     -- The 2-category of group actions is defined by displaying it over the 2-category of groups:
     37-Definition : TwoCategory (ℓ-suc ℓ) ℓ ℓ
@@ -323,7 +323,7 @@ module 4-ActionContainers-2-Category where
       → (x : ⟨ 𝔹.₀ G ⟩) → ⟨ associatedBundle τ (𝔹.₁ φ x) ⟩ → ⟨ associatedBundle σ x ⟩
     39-Definition = associatedBundleMap
 
-    40-Definition : LaxFunctorᴰ (𝔹 ℓ) (GroupActionᴰ ℓ) (SetBundleᴰ ℓ)
+    40-Definition : StrictFunctorᴰ (𝔹 ℓ) (GroupActionᴰ ℓ) (SetBundleᴰ ℓ)
     40-Definition = 𝔹′ᴰ _
 
     module TwoGroup ℓ = TwoCategory (TwoGroup ℓ)

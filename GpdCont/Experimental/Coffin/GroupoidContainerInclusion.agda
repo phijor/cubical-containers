@@ -1,8 +1,8 @@
 open import GpdCont.Prelude
-open import GpdCont.Coffin.Base
+open import GpdCont.Experimental.Coffin.Base
 open import GpdCont.SymmetricContainer.Base
 
-module GpdCont.Coffin.GroupoidContainerInclusion {ℓ} (C : Coffin ℓ) where
+module GpdCont.Experimental.Coffin.GroupoidContainerInclusion {ℓ} (C : Coffin ℓ) where
 private
   module C = Coffin C
 

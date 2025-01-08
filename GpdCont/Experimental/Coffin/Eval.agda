@@ -1,6 +1,6 @@
-open import GpdCont.Coffin.Base
+open import GpdCont.Experimental.Coffin.Base
 
-module GpdCont.Coffin.Eval {ℓ} (C : Coffin ℓ) where
+module GpdCont.Experimental.Coffin.Eval {ℓ} (C : Coffin ℓ) where
 -- TODO: This should ideally do the following:
 -- import GpdCont.Coffin.GroupoidContainerInclusion as Inc
 -- open import GpdCont.GroupoidContainer.Eval (Inc.Coffin→GroupoidContainer C) public

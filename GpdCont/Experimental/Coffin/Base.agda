@@ -1,4 +1,4 @@
-module GpdCont.Coffin.Base where
+module GpdCont.Experimental.Coffin.Base where
 
 open import GpdCont.Prelude
 open import GpdCont.Experimental.Groups.Base

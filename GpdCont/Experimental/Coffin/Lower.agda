@@ -1,7 +1,7 @@
 open import GpdCont.Prelude
-open import GpdCont.Coffin.Base
+open import GpdCont.Experimental.Coffin.Base
 
-module GpdCont.Coffin.Lower {ℓ} (C : Coffin ℓ) where
+module GpdCont.Experimental.Coffin.Lower {ℓ} (C : Coffin ℓ) where
   open import GpdCont.QuotientContainer.Base
   open import GpdCont.Equiv using (pathToEquivSym ; pathToEquivComp)
 

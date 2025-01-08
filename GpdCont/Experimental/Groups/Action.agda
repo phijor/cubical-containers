@@ -1,8 +1,8 @@
-module GpdCont.GroupAction where
+module GpdCont.Experimental.Groups.Action where
 
 open import GpdCont.Prelude
-open import GpdCont.Groups.Base
-open import GpdCont.Groups.Homomorphism
+open import GpdCont.Experimental.Groups.Base
+open import GpdCont.Experimental.Groups.Homomorphism
 open import GpdCont.SetQuotients using (SetTrunc≃SetQuotientPath ; relBiimpl→QuotIso)
 
 open import Cubical.Foundations.HLevels

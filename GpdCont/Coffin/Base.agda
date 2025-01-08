@@ -1,9 +1,9 @@
 module GpdCont.Coffin.Base where
 
 open import GpdCont.Prelude
-open import GpdCont.Groups.Base
-open import GpdCont.GroupAction
-open import GpdCont.Skeleton using (Skeleton)
+open import GpdCont.Experimental.Groups.Base
+open import GpdCont.Experimental.Groups.Action
+open import GpdCont.Experimental.Groups.Skeleton using (Skeleton)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels using (isGroupoidΣ ; isSet→isGroupoid ; hSet)

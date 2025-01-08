@@ -1,10 +1,10 @@
 -- TODO:
 -- ⋆ Define `isSkeletal` as propositional truncation `Skeleton`
-module GpdCont.Skeleton where
+module GpdCont.Experimental.Groups.Skeleton where
 
 open import GpdCont.Prelude
 open import GpdCont.RecordEquiv
-open import GpdCont.Groups.Base
+open import GpdCont.Experimental.Groups.Base
 open import GpdCont.SetTruncation using (isConnected-fiber-∣-∣₂ ; componentEquiv)
 
 open import Cubical.Foundations.Equiv

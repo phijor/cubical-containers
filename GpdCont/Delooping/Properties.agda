@@ -1,20 +1,20 @@
 {-# OPTIONS --lossy-unification #-}
 
 open import GpdCont.Prelude
-open import Cubical.Algebra.Group.Base as AbsGroup renaming (GroupStr to AbsGroupStr ; Group to AbsGroup)
+open import Cubical.Algebra.Group.Base using (GroupStr ; Group)
 open import Cubical.Algebra.Group.Properties using (module GroupTheory)
 open import Cubical.Algebra.Group.Morphisms using (GroupHom ; IsGroupHom ; GroupEquiv)
 open import Cubical.Algebra.Group.MorphismProperties using (isPropIsGroupHom ; makeIsGroupHom ; invGroupEquiv ; GroupEquiv→GroupHom)
 open import Cubical.Algebra.Group.GroupPath using (uaGroup)
 open import Cubical.Algebra.SymmetricGroup using (Symmetric-Group)
 
-module GpdCont.Delooping.Properties {ℓ} (G : AbsGroup ℓ) where
+module GpdCont.Delooping.Properties {ℓ} (G : Group ℓ) where
 private
-  open module G = AbsGroupStr (str G) using (_·_ ; inv)
+  open module G = GroupStr (str G) using (_·_ ; inv)
 
-open import GpdCont.Groups.Base
+open import GpdCont.Experimental.Groups.Base using () renaming (GroupStr to hGroupStr)
 open import GpdCont.Delooping.Base G as Delooping using (𝔹)
-open import GpdCont.Groups.Solve using (solveGroup)
+open import GpdCont.Group.Solve using (solveGroup)
 open import GpdCont.Connectivity using (isPathConnected ; isPathConnected→merePath)
 open import GpdCont.Univalence using (ua→)
 
@@ -46,10 +46,10 @@ isConnectedDelooping = inhProp→isContr ST.∣ 𝔹.⋆ ∣₂ isPropSetTruncDe
 merePath : (x y : 𝔹) → ∥ x ≡ y ∥₁
 merePath = isPathConnected→merePath isConnectedDelooping
 
-deloopingGroupStr : GroupStr 𝔹
-deloopingGroupStr .GroupStr.is-connected = isConnectedDelooping
-deloopingGroupStr .GroupStr.is-groupoid = Delooping.isGroupoid𝔹
-deloopingGroupStr .GroupStr.pt = Delooping.⋆
+deloopingGroupStr : hGroupStr 𝔹
+deloopingGroupStr .hGroupStr.is-connected = isConnectedDelooping
+deloopingGroupStr .hGroupStr.is-groupoid = Delooping.isGroupoid𝔹
+deloopingGroupStr .hGroupStr.pt = Delooping.⋆
 
 coerceLoopCompSquareFiller : ∀ {g h r}
   → g · h ≡ r
@@ -185,11 +185,11 @@ loopEquiv = invEquiv ΩDelooping≃
 isEquivLoop : isEquiv 𝔹.loop
 isEquivLoop = equivIsEquiv loopEquiv
 
-π₁ : (x₀ : 𝔹) → AbsGroup _
+π₁ : (x₀ : 𝔹) → Group _
 π₁ = FundamentalGroup.π₁ (𝔹 , 𝔹.isGroupoid𝔹)
 
 private
-  π₁𝔹 : AbsGroup _
+  π₁𝔹 : Group _
   π₁𝔹 = π₁ 𝔹.⋆
 
 conjugatePathEquiv : {x₀ x₁ : 𝔹} → x₀ ≡ x₁ → GroupEquiv (π₁ x₀) (π₁ x₁)

@@ -1,4 +1,4 @@
-module GpdCont.Groups.Solve where
+module GpdCont.Group.Solve where
 
 open import Agda.Builtin.Reflection using (Term ; TC)
 

@@ -1,8 +1,8 @@
-module GpdCont.Groups.Category where
+module GpdCont.Experimental.Groups.Category where
 
 open import GpdCont.Prelude hiding (id ; _⋆_)
-open import GpdCont.Groups.Base
-open import GpdCont.Groups.Homomorphism as GroupHom using (GroupHom)
+open import GpdCont.Experimental.Groups.Base
+open import GpdCont.Experimental.Groups.Homomorphism as GroupHom using (GroupHom)
 
 open import Cubical.WildCat.Base
 

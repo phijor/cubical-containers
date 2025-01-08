@@ -1,7 +1,7 @@
-module GpdCont.Groups.Homomorphism where
+module GpdCont.Experimental.Groups.Homomorphism where
 
 open import GpdCont.Prelude hiding (id ; comp)
-open import GpdCont.Groups.Base
+open import GpdCont.Experimental.Groups.Base
 
 open import Cubical.Foundations.Pointed using (_→∙_ ; idfun∙)
 open import Cubical.Foundations.GroupoidLaws as GL using ()

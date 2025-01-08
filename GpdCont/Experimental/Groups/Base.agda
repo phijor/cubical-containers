@@ -1,4 +1,4 @@
-module GpdCont.Groups.Base where
+module GpdCont.Experimental.Groups.Base where
 
 open import GpdCont.Prelude
 open import GpdCont.RecordEquiv

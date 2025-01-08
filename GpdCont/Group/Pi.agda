@@ -1,6 +1,6 @@
 open import GpdCont.Prelude
 
-module GpdCont.Groups.Pi (ℓ : Level) where
+module GpdCont.Group.Pi (ℓ : Level) where
 
 open import GpdCont.HomotopySet
 open import GpdCont.Equiv using (isSet→section-equivToIso)

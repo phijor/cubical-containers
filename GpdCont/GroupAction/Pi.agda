@@ -110,7 +110,7 @@ module Products (K : hSet ℓ) (x* : ⟨ K ⟩ → GroupAction.ob {ℓ}) where
   import GpdCont.Categories.ProductCategory as Prod
   import GpdCont.Categories.Opposite as Op
 
-  open import GpdCont.Groups.Pi as ΠGroup using (GroupProducts)
+  open import GpdCont.Group.Pi as ΠGroup using (GroupProducts)
   open import GpdCont.Categories.Sets using (SetCoproducts)
 
   open import Cubical.Categories.Displayed.Constructions.StructureOver using (StructureOver)

@@ -1,7 +1,7 @@
-module GpdCont.Groups.Equiv where
+module GpdCont.Experimental.Groups.Equiv where
 
 open import GpdCont.Prelude
-open import GpdCont.Groups.Base
+open import GpdCont.Experimental.Groups.Base
 open import GpdCont.Univalence
 
 open import Cubical.Foundations.Equiv

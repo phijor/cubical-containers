@@ -18,12 +18,10 @@ open import GpdCont.Delooping.Functor using (module TwoFunc ; module LocalInvers
 import      GpdCont.Delooping.Map as DeloopingMap
 
 open import GpdCont.TwoCategory.Base using (TwoCategory)
-open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
 open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor)
 open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor as LocalFunctor using (LocalFunctor)
 open import GpdCont.TwoCategory.LocalCategory using (LocalCategory)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
-open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
 open import GpdCont.TwoCategory.Displayed.StrictFunctor using (StrictFunctorᴰ)
 open import GpdCont.TwoCategory.Displayed.LocallyThin using (IntoLocallyThin)
 open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
@@ -42,7 +40,7 @@ open import Cubical.Algebra.Group.MorphismProperties using (GroupHom≡)
 -- =========================================================================
 --
 -- We define this functor by extending the delooping-functor of groups to
--- a lax functor on total 2-categories
+-- a strict functor on total 2-categories
 --
 --    𝔹 : ∫ Group GroupActionᴰ → ∫ hGpd SetBundleᴰ
 --
@@ -54,7 +52,7 @@ open import Cubical.Algebra.Group.MorphismProperties using (GroupHom≡)
 --  ∙ 𝔹ᴰ₁, assigning to an equivariant map its associated map of bundles
 --  ∙ 𝔹ᴰ₂, assigning to a conjugator of actions a homotopy of bundle maps
 --
--- ...and proofs that 𝔹 (laxly) preserves identity 2-cells and vertical composites.
+-- ...and proofs that 𝔹 (strictly) preserves identity 2-cells and vertical composites.
 module _ (ℓ : Level) where
   private
     module Group = TwoCategory (TwoGroup ℓ)
@@ -63,19 +61,15 @@ module _ (ℓ : Level) where
     module hGpdCat = TwoCategory (hGpdCat ℓ)
 
     module SetBundle = SetBundleNotation ℓ
-    -- module SetBundleᴰ = TwoCategoryᴰ (SetBundleᴰ ℓ)
 
     open Delooping.𝔹 using (⋆ ; loop)
-    𝔹 = TwoFunc.TwoDeloopingˢ ℓ
+    𝔹 = TwoFunc.𝔹 ℓ
     module 𝔹 = StrictFunctor 𝔹
-
-    𝔹-lax = TwoFunc.TwoDelooping ℓ
-    module 𝔹-lax = LaxFunctor 𝔹-lax
 
     -- To each group action, assign its associated bundle:
     𝔹ᴰ₀ : ∀ {G} → GroupActionᴰ.ob[ G ] → SetBundle.ob[ 𝔹.₀ G ]
     𝔹ᴰ₀ (X , σ) = associatedBundle {X = X} σ
-    -- {-# INJECTIVE_FOR_INFERENCE 𝔹ᴰ₀ #-}
+    {-# INJECTIVE_FOR_INFERENCE 𝔹ᴰ₀ #-}
 
   -- Any equivariant map of group actions is exactly a map of associated bundles.
   𝔹ᴰ₁-equiv : ∀ {G H} {φ : Group.hom G H} {Xᴳ : GroupActionᴰ.ob[ G ]} {Yᴴ : GroupActionᴰ.ob[ H ]}
@@ -178,6 +172,7 @@ module _ (ℓ : Level) where
           (SetBundle.transᴰ {yᴰ = 𝔹ᴰ₀ yᴰ} {gᴰ = 𝔹ᴰ₁ gᴰ} (𝔹ᴰ₂ rᴰ) (𝔹ᴰ₂ sᴰ))
     𝔹-rel-trans {r} {s} {yᴰ} rᴰ sᴰ = SetBundle.relᴰ≡ {r = 𝔹.₂ (r Group.∙ᵥ s)} {s = 𝔹.₂ r hGpdCat.∙ᵥ 𝔹.₂ s} {yᴰ = 𝔹ᴰ₀ yᴰ} (𝔹.F-rel-trans r s)
 
+    -- Up to a path, 𝔹ᴰ preserves composition of displayed 1-cells...
     𝔹-hom-comp : ∀ {x y z} {f : Group.hom x y} {g : Group.hom y z}
       → {xᴰ : GroupActionᴰ.ob[ x ]} {yᴰ : GroupActionᴰ.ob[ y ]} {zᴰ : GroupActionᴰ.ob[ z ]}
       → (fᴰ : GroupActionᴰ.hom[ f ] xᴰ yᴰ) (gᴰ : GroupActionᴰ.hom[ g ] yᴰ zᴰ)
@@ -186,79 +181,49 @@ module _ (ℓ : Level) where
         (𝔹ᴰ₁ (fᴰ GroupActionᴰ.∙₁ᴰ gᴰ))
     𝔹-hom-comp {x = G} {z = K} {f} {g} {xᴰ} {zᴰ} fᴰ gᴰ = 𝔹ᴰ₁PathP (𝔹ᴰ₀ zᴰ) refl
 
+    -- ...and displayed identity 1-cells:
     𝔹-hom-id : ∀ {x} (xᴰ : GroupActionᴰ.ob[ x ])
       → PathP (λ i → SetBundle.hom[ 𝔹.F-hom-id x i ] (𝔹ᴰ₀ xᴰ) (𝔹ᴰ₀ xᴰ))
         (SetBundle.id-homᴰ (𝔹ᴰ₀ xᴰ))
         (𝔹ᴰ₁ (GroupActionᴰ.id-homᴰ xᴰ))
     𝔹-hom-id {x} xᴰ = 𝔹ᴰ₁PathP (𝔹ᴰ₀ xᴰ) refl
 
-  private
-    -- On the point, 𝔹 stricly preserves vertical composition of 2-cells...
-    𝔹-trans-lax : ∀ {G H K} {φ : Group.hom G H} {ψ : Group.hom H K}
-      → {Xᴳ : GroupActionᴰ.ob[ G ]}
-      → {Yᴴ : GroupActionᴰ.ob[ H ]}
-      → {Zᴷ : GroupActionᴰ.ob[ K ]}
-      → (fᴰ : GroupActionᴰ.hom[ φ ] Xᴳ Yᴴ)
-      → (gᴰ : GroupActionᴰ.hom[ ψ ] Yᴴ Zᴷ)
-      → SetBundle.rel[_] {yᴰ = 𝔹ᴰ₀ Zᴷ} (𝔹-lax.F-trans-lax φ ψ) (SetBundle.comp-homᴰ {zᴰ = 𝔹ᴰ₀ Zᴷ} (𝔹ᴰ₁ fᴰ) (𝔹ᴰ₁ gᴰ)) (𝔹ᴰ₁ (fᴰ GroupActionᴰ.∙₁ᴰ gᴰ))
-    𝔹-trans-lax {Zᴷ} (f , _) (g , _) = 𝔹ᴰ₁PathP (𝔹ᴰ₀ Zᴷ) $ refl′ (f ∘ g)
+  𝔹ᴰ : StrictFunctorᴰ 𝔹 (GroupActionᴰ ℓ) (SetBundleᴰ ℓ)
+  𝔹ᴰ .StrictFunctorᴰ.F-obᴰ = 𝔹ᴰ₀
+  𝔹ᴰ .StrictFunctorᴰ.F-homᴰ = 𝔹ᴰ₁
+  𝔹ᴰ .StrictFunctorᴰ.F-relᴰ = 𝔹ᴰ₂
+  𝔹ᴰ .StrictFunctorᴰ.F-rel-idᴰ = 𝔹-rel-id
+  𝔹ᴰ .StrictFunctorᴰ.F-rel-transᴰ = 𝔹-rel-trans
+  𝔹ᴰ .StrictFunctorᴰ.F-hom-compᴰ = 𝔹-hom-comp
+  𝔹ᴰ .StrictFunctorᴰ.F-hom-idᴰ = 𝔹-hom-id
+  𝔹ᴰ .StrictFunctorᴰ.F-assoc-filler-leftᴰ fᴰ gᴰ hᴰ = doubleCompPathP→DoubleCompPathPFiller _ _ _ _
+  𝔹ᴰ .StrictFunctorᴰ.F-assoc-filler-rightᴰ fᴰ gᴰ hᴰ = doubleCompPathP→DoubleCompPathPFiller _ _ _ _
+  𝔹ᴰ .StrictFunctorᴰ.F-assocᴰ {f} {g} {h} {xᴰ} {wᴰ} fᴰ gᴰ hᴰ = isSet→SquareP (λ i j → SetBundle.isSetHomᴰ (𝔹.F-assoc f g h i j) (𝔹ᴰ₀ xᴰ) (𝔹ᴰ₀ wᴰ)) _ _ _ _
+  𝔹ᴰ .StrictFunctorᴰ.F-unit-left-fillerᴰ fᴰ = doubleCompPathP→DoubleCompPathPFiller _ _ _ _
+  𝔹ᴰ .StrictFunctorᴰ.F-unit-leftᴰ {f} {xᴰ} {yᴰ} fᴰ = isSet→SquareP (λ i j → SetBundle.isSetHomᴰ (𝔹.F-unit-left f i j) (𝔹ᴰ₀ xᴰ) (𝔹ᴰ₀ yᴰ)) _ _ _ _
+  𝔹ᴰ .StrictFunctorᴰ.F-unit-right-fillerᴰ fᴰ = doubleCompPathP→DoubleCompPathPFiller _ _ _ _
+  𝔹ᴰ .StrictFunctorᴰ.F-unit-rightᴰ {f} {xᴰ} {yᴰ} fᴰ = isSet→SquareP (λ i j → SetBundle.isSetHomᴰ (𝔹.F-unit-right f i j) (𝔹ᴰ₀ xᴰ) (𝔹ᴰ₀ yᴰ)) _ _ _ _
 
-    -- ...and similarly for identity 2-cells:
-    𝔹-id-lax : ∀ {G}
-      → (Xᴳ : GroupActionᴰ.ob[ G ])
-      → SetBundle.rel[_] (𝔹-lax.F-id-lax G) (SetBundle.id-homᴰ (𝔹ᴰ₀ Xᴳ)) (𝔹ᴰ₁ (GroupActionᴰ.id-homᴰ Xᴳ))
-    𝔹-id-lax = 𝔹-hom-id
-
-  -- The above data assembles into a lax functor (𝔹 : GroupAction → SetBundle).
-  𝔹ᵀ : IntoLocallyThin 𝔹-lax (GroupActionᴰ ℓ) (SetBundleᵀ ℓ)
-  𝔹ᵀ .IntoLocallyThin.F-obᴰ = 𝔹ᴰ₀
-  𝔹ᵀ .IntoLocallyThin.F-homᴰ = 𝔹ᴰ₁
-  𝔹ᵀ .IntoLocallyThin.F-relᴰ = 𝔹ᴰ₂
-  𝔹ᵀ .IntoLocallyThin.F-trans-laxᴰ = 𝔹-trans-lax
-  𝔹ᵀ .IntoLocallyThin.F-id-laxᴰ = 𝔹-id-lax
-
-  𝔹ᴰ : LaxFunctorᴰ 𝔹-lax (GroupActionᴰ ℓ) (SetBundleᴰ ℓ)
-  𝔹ᴰ = IntoLocallyThin.toLaxFunctorᴰ 𝔹ᵀ
-
-  Delooping : LaxFunctor (GroupAction ℓ) (SetBundle ℓ)
-  Delooping = LaxFunctorᴰ.toTotalFunctor 𝔹ᴰ
-
-  𝔹ᴰˢ : StrictFunctorᴰ 𝔹 (GroupActionᴰ ℓ) (SetBundleᴰ ℓ)
-  𝔹ᴰˢ .StrictFunctorᴰ.F-obᴰ = 𝔹ᴰ₀
-  𝔹ᴰˢ .StrictFunctorᴰ.F-homᴰ = 𝔹ᴰ₁
-  𝔹ᴰˢ .StrictFunctorᴰ.F-relᴰ = 𝔹ᴰ₂
-  𝔹ᴰˢ .StrictFunctorᴰ.F-rel-idᴰ = 𝔹-rel-id
-  𝔹ᴰˢ .StrictFunctorᴰ.F-rel-transᴰ = 𝔹-rel-trans
-  𝔹ᴰˢ .StrictFunctorᴰ.F-hom-compᴰ = 𝔹-hom-comp
-  𝔹ᴰˢ .StrictFunctorᴰ.F-hom-idᴰ = 𝔹-hom-id
-  𝔹ᴰˢ .StrictFunctorᴰ.F-assoc-filler-leftᴰ fᴰ gᴰ hᴰ = doubleCompPathP→DoubleCompPathPFiller _ _ _ _
-  𝔹ᴰˢ .StrictFunctorᴰ.F-assoc-filler-rightᴰ fᴰ gᴰ hᴰ = doubleCompPathP→DoubleCompPathPFiller _ _ _ _
-  𝔹ᴰˢ .StrictFunctorᴰ.F-assocᴰ {f} {g} {h} {xᴰ} {wᴰ} fᴰ gᴰ hᴰ = isSet→SquareP (λ i j → SetBundle.isSetHomᴰ (𝔹.F-assoc f g h i j) (𝔹ᴰ₀ xᴰ) (𝔹ᴰ₀ wᴰ)) _ _ _ _
-  𝔹ᴰˢ .StrictFunctorᴰ.F-unit-left-fillerᴰ fᴰ = doubleCompPathP→DoubleCompPathPFiller _ _ _ _
-  𝔹ᴰˢ .StrictFunctorᴰ.F-unit-leftᴰ {f} {xᴰ} {yᴰ} fᴰ = isSet→SquareP (λ i j → SetBundle.isSetHomᴰ (𝔹.F-unit-left f i j) (𝔹ᴰ₀ xᴰ) (𝔹ᴰ₀ yᴰ)) _ _ _ _
-  𝔹ᴰˢ .StrictFunctorᴰ.F-unit-right-fillerᴰ fᴰ = doubleCompPathP→DoubleCompPathPFiller _ _ _ _
-  𝔹ᴰˢ .StrictFunctorᴰ.F-unit-rightᴰ {f} {xᴰ} {yᴰ} fᴰ = isSet→SquareP (λ i j → SetBundle.isSetHomᴰ (𝔹.F-unit-right f i j) (𝔹ᴰ₀ xᴰ) (𝔹ᴰ₀ yᴰ)) _ _ _ _
-
-  Deloopingˢ : StrictFunctor (GroupAction ℓ) (SetBundle ℓ)
-  Deloopingˢ = StrictFunctorᴰ.toTotalFunctor 𝔹ᴰˢ
+  ActionDelooping : StrictFunctor (GroupAction ℓ) (SetBundle ℓ)
+  ActionDelooping = StrictFunctorᴰ.toTotalFunctor 𝔹ᴰ
 
   private
-    module ∫𝔹ᴰ = StrictFunctor Deloopingˢ
+    module ∫𝔹ᴰ = StrictFunctor ActionDelooping
 
   private
-    module 𝔹Act where
-      open LaxFunctor Delooping public
-      open LocalFunctor Deloopingˢ public
+    module ActionDelooping where
+      open StrictFunctor ActionDelooping public
+      open LocalFunctor ActionDelooping public
 
   isConnectedDeloopingBase : (σ : GroupAction.ob) → isPathConnected ⟨ SetBundle.Base (∫𝔹ᴰ.₀ σ) ⟩
   isConnectedDeloopingBase (G , (X , σ)) = Delooping.isConnectedDelooping G
 
-  isLocallyFullyFaithfulDelooping : 𝔹Act.isLocallyFullyFaithful
+  isLocallyFullyFaithfulDelooping : ActionDelooping.isLocallyFullyFaithful
   isLocallyFullyFaithfulDelooping σ τ f@(φ , _) g@(ψ , _) = goal where
-    ∫𝔹₁ = LaxFunctor.F-hom Delooping
+    ∫𝔹₁ = StrictFunctor.F-hom ActionDelooping
 
     ∫𝔹₂ : GroupAction.rel f g → SetBundle.rel (∫𝔹₁ f) (∫𝔹₁ g)
-    ∫𝔹₂ = LaxFunctor.F-rel Delooping {f = f} {g = g}
+    ∫𝔹₂ = StrictFunctor.F-rel ActionDelooping {f = f} {g = g}
 
     ∫𝔹₂-equiv : GroupAction.rel f g ≃ SetBundle.rel (∫𝔹₁ f) (∫𝔹₁ g)
     ∫𝔹₂-equiv = Sigma.Σ-cong-equiv
@@ -295,19 +260,19 @@ module _ (ℓ : Level) where
       goal .fst = φᴰ
       goal .snd = symP (subst (PathP _ fᴰ) φᴰ-sec fᴰ′-filler)
 
-  isEssentiallySurjectiveDelooping : 𝔹Act.isLocallyEssentiallySurjective
+  isEssentiallySurjectiveDelooping : ActionDelooping.isLocallyEssentiallySurjective
   isEssentiallySurjectiveDelooping Xᴳ@(G , (X , σ)) Yᴴ@(H , (Y , τ)) = goal
-    where module _ (f* @ (f , fᴰ) : SetBundle.hom (𝔹Act.₀ Xᴳ) (𝔹Act.₀ Yᴴ)) where
+    where module _ (f* @ (f , fᴰ) : SetBundle.hom (ActionDelooping.₀ Xᴳ) (ActionDelooping.₀ Yᴴ)) where
     open import Cubical.HITs.PropositionalTruncation.Monad
     open import Cubical.Categories.Category.Base using (CatIso ; pathToIso)
-    goal : ∃[ φ* ∈ GroupAction.hom Xᴳ Yᴴ ] CatIso (LocalCategory _ (𝔹Act.₀ Xᴳ) (𝔹Act.₀ Yᴴ)) (𝔹Act.₁ φ*) f*
+    goal : ∃[ φ* ∈ GroupAction.hom Xᴳ Yᴴ ] CatIso (LocalCategory _ (∫𝔹ᴰ.₀ Xᴳ) (∫𝔹ᴰ.₀ Yᴴ)) (∫𝔹ᴰ.₁ φ*) f*
     goal = do
       (φ , φ-sec) ← LocalInverse.isSurjection-map f
       let (φᴰ , φᴰ-sec) = 𝔹ᴰ₁-sectionOver (X , σ) (Y , τ) f fᴰ φ φ-sec
       ∃-intro (φ , φᴰ) $ pathToIso $ Sigma.ΣPathP (φ-sec , φᴰ-sec)
 
-  isLocallyWeakEquivalenceDelooping : 𝔹Act.isLocallyWeakEquivalence
+  isLocallyWeakEquivalenceDelooping : ActionDelooping.isLocallyWeakEquivalence
   isLocallyWeakEquivalenceDelooping =
-    𝔹Act.isLocallyFullyFaithful×EssentiallySurjective→isLocallyWeakEquivalence
+    ActionDelooping.isLocallyFullyFaithful×EssentiallySurjective→isLocallyWeakEquivalence
       isLocallyFullyFaithfulDelooping
       isEssentiallySurjectiveDelooping

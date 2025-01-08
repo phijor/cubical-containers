@@ -10,7 +10,7 @@ open import GpdCont.Group.MapConjugator using (Conjugator)
 open import GpdCont.GroupAction.Base using (Action ; _⁺_)
 open import GpdCont.GroupAction.Equivariant using (isEquivariantMap[_][_,_])
 open import GpdCont.GroupAction.TwoCategory using (GroupAction ; isLocallyStrictGroupAction)
-open import GpdCont.GroupAction.Delooping as ActionDelooping renaming (Deloopingˢ to ActionDelooping)
+open import GpdCont.GroupAction.Delooping as ActionDelooping using (ActionDelooping)
 open import GpdCont.SetBundle.Base ℓ using (SetBundle)
 
 open import GpdCont.TwoCategory.Base using (TwoCategory)
@@ -150,14 +150,14 @@ module _ where
   open LocalFunctor Fam𝔹
 
   isLocallyFullyFaithfulFam𝔹 : isLocallyFullyFaithful
-  isLocallyFullyFaithfulFam𝔹 = Fam𝔹.isLocallyFullyFaithfulFam (isLocallyFullyFaithfulDelooping ℓ)
+  isLocallyFullyFaithfulFam𝔹 = Fam𝔹.isLocallyFullyFaithfulFam (ActionDelooping.isLocallyFullyFaithfulDelooping ℓ)
 
   module _ (choice : AxiomOfSetChoice ℓ ℓ) where
     isLocallyEssentiallySurjectiveFam𝔹 : isLocallyEssentiallySurjective
     isLocallyEssentiallySurjectiveFam𝔹 = Fam𝔹.isLocallyEssentiallySurjectiveFam
       choice
       (isLocallyStrictGroupAction ℓ)
-      (isEssentiallySurjectiveDelooping ℓ)
+      (ActionDelooping.isEssentiallySurjectiveDelooping ℓ)
 
     isLocallyWeakEquivalenceFam𝔹 : isLocallyWeakEquivalence
     isLocallyWeakEquivalenceFam𝔹 = isLocallyFullyFaithful×EssentiallySurjective→isLocallyWeakEquivalence

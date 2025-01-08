@@ -254,16 +254,16 @@ module 4-ActionContainers-2-Category where
     open import GpdCont.Group.TwoCategory using (TwoGroup)
     open import GpdCont.Delooping.Functor using (module TwoFunc)
     open import GpdCont.TwoCategory.Base using (TwoCategory)
-    open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
-    open import GpdCont.TwoCategory.LocalFunctor as LocalFunctor using (LocalFunctor)
+    open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor)
+    open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor as LocalFunctor using (LocalFunctor)
     open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat)
 
-    open TwoFunc renaming (TwoDelooping to 𝔹)
+    open TwoFunc renaming (TwoDeloopingˢ to 𝔹)
 
     32-Definition : TwoCategory (ℓ-suc ℓ) ℓ ℓ
     32-Definition = TwoGroup _
 
-    33-Lemma : LaxFunctor (TwoGroup ℓ) (hGpdCat ℓ)
+    33-Lemma : StrictFunctor (TwoGroup ℓ) (hGpdCat ℓ)
     33-Lemma = 𝔹 _
 
     -- Delooping of groups is locally a weak equalence of categories

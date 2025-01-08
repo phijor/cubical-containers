@@ -12,7 +12,7 @@ open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor)
 open import GpdCont.TwoCategory.Pseudofunctor
 open import GpdCont.TwoCategory.HomotopyGroupoid using (hGpdCat ; isLocallyGroupoidalHGpdCat)
 open import GpdCont.TwoCategory.LocalCategory using (LocalCategory)
-open import GpdCont.TwoCategory.LocalFunctor as LocalFunctor using (LocalFunctor ; isLocallyFullyFaithful)
+open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor as LocalFunctor using (LocalFunctor)
 
 import      GpdCont.Delooping as Delooping
 open import GpdCont.Delooping.Map as Map using (map ; map≡ ; module MapPathEquiv)
@@ -329,33 +329,6 @@ module TwoFunc (ℓ : Level) where
   TwoDelooping .LaxFunctor.F-unit-right = 𝔹-unit-right
 
   private
-    module TwoDelooping = LaxFunctor TwoDelooping
-
-  isPseudoFunctorTwoDelooping : isPseudoFunctor TwoDelooping
-  isPseudoFunctorTwoDelooping = isLocallyGroupoidal→isPseudofunctor TwoDelooping (isLocallyGroupoidalHGpdCat ℓ)
-
-  isLocallyFullyFaithfulDelooping : isLocallyFullyFaithful TwoDelooping
-  isLocallyFullyFaithfulDelooping G H = goal where module _ (φ ψ : TwoGroup.hom G H) where
-    goal : isEquiv 𝔹-rel
-    goal = equivIsEquiv (MapPathEquiv.map≡Equiv φ ψ)
-
-  localDeloopingEmbedding : {G H : TwoGroup.ob} (φ ψ : TwoGroup.hom G H)
-    → TwoGroup.rel φ ψ ≃ hGpdCat.rel (TwoDelooping.₁ φ) (TwoDelooping.₁ ψ)
-  localDeloopingEmbedding = LocalFunctor.localEmbedding TwoDelooping isLocallyFullyFaithfulDelooping
-
-  isLocallyEssentiallySurjectiveDelooping : LocalFunctor.isLocallyEssentiallySurjective TwoDelooping
-  isLocallyEssentiallySurjectiveDelooping G H = goal where module _ (f : ⟨ 𝔹-ob G ⟩ → ⟨ 𝔹-ob H ⟩) where
-    open import Cubical.HITs.PropositionalTruncation.Monad
-    goal : ∃[ φ ∈ GroupHom G H ] CatIso (LocalCategory _ (𝔹-ob G) (𝔹-ob H)) (map φ) f
-    goal = do
-      (φ , section-f-mapφ) ← LocalInverse.isSurjection-map f
-      ∃-intro φ $ pathToIso section-f-mapφ
-
-  isLocallyWeakEquivalenceDelooping : LocalFunctor.isLocallyWeakEquivalence TwoDelooping
-  isLocallyWeakEquivalenceDelooping G H .isWeakEquivalence.fullfaith = isLocallyFullyFaithfulDelooping G H
-  isLocallyWeakEquivalenceDelooping G H .isWeakEquivalence.esssurj = isLocallyEssentiallySurjectiveDelooping G H
-
-  private
     𝔹-hom-id : (G : TwoGroup.ob) → hGpdCat.id-hom (𝔹-ob G) ≡ 𝔹-hom (TwoGroup.id-hom G)
     𝔹-hom-id G = sym (Map.map-id G)
 
@@ -444,3 +417,27 @@ module TwoFunc (ℓ : Level) where
   TwoDeloopingˢ .StrictFunctor.F-unit-left = 𝔹-unit-left.unit-left
   TwoDeloopingˢ .StrictFunctor.F-unit-right-filler = 𝔹-unit-right.filler
   TwoDeloopingˢ .StrictFunctor.F-unit-right = 𝔹-unit-right.unit-right
+
+  private
+    module TwoDeloopingˢ = StrictFunctor TwoDeloopingˢ
+
+  isLocallyFullyFaithfulDelooping : LocalFunctor.isLocallyFullyFaithful TwoDeloopingˢ
+  isLocallyFullyFaithfulDelooping G H = goal where module _ (φ ψ : TwoGroup.hom G H) where
+    goal : isEquiv 𝔹-rel
+    goal = equivIsEquiv (MapPathEquiv.map≡Equiv φ ψ)
+
+  localDeloopingEmbedding : {G H : TwoGroup.ob} (φ ψ : TwoGroup.hom G H)
+    → TwoGroup.rel φ ψ ≃ hGpdCat.rel (TwoDeloopingˢ.₁ φ) (TwoDeloopingˢ.₁ ψ)
+  localDeloopingEmbedding = LocalFunctor.localEmbedding TwoDeloopingˢ isLocallyFullyFaithfulDelooping
+
+  isLocallyEssentiallySurjectiveDelooping : LocalFunctor.isLocallyEssentiallySurjective TwoDeloopingˢ
+  isLocallyEssentiallySurjectiveDelooping G H = goal where module _ (f : ⟨ 𝔹-ob G ⟩ → ⟨ 𝔹-ob H ⟩) where
+    open import Cubical.HITs.PropositionalTruncation.Monad
+    goal : ∃[ φ ∈ GroupHom G H ] CatIso (LocalCategory _ (𝔹-ob G) (𝔹-ob H)) (map φ) f
+    goal = do
+      (φ , section-f-mapφ) ← LocalInverse.isSurjection-map f
+      ∃-intro φ $ pathToIso section-f-mapφ
+
+  isLocallyWeakEquivalenceDelooping : LocalFunctor.isLocallyWeakEquivalence TwoDeloopingˢ
+  isLocallyWeakEquivalenceDelooping G H .isWeakEquivalence.fullfaith = isLocallyFullyFaithfulDelooping G H
+  isLocallyWeakEquivalenceDelooping G H .isWeakEquivalence.esssurj = isLocallyEssentiallySurjectiveDelooping G H

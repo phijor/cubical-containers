@@ -10,17 +10,16 @@ open import GpdCont.Group.MapConjugator using (Conjugator)
 open import GpdCont.GroupAction.Base using (Action ; _⁺_)
 open import GpdCont.GroupAction.Equivariant using (isEquivariantMap[_][_,_])
 open import GpdCont.GroupAction.TwoCategory using (GroupAction ; isLocallyStrictGroupAction)
-open import GpdCont.GroupAction.Delooping as ActionDelooping renaming (Delooping to ActionDelooping)
+open import GpdCont.GroupAction.Delooping as ActionDelooping renaming (Deloopingˢ to ActionDelooping)
 open import GpdCont.SetBundle.Base ℓ using (SetBundle)
-open import GpdCont.SetBundle.Summation ℓ using (SetBundleΣ)
 
 open import GpdCont.TwoCategory.Base using (TwoCategory)
-open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
-open import GpdCont.TwoCategory.LocalFunctor as LocalFunctor using (LocalFunctor)
+open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor)
+open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor as LocalFunctor using (LocalFunctor)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
 open import GpdCont.TwoCategory.Family.Base using (Fam ; Famᴰ)
-open import GpdCont.TwoCategory.Family.Functor renaming (LiftFunctor to FamFunctor)
-open import GpdCont.TwoCategory.HomotopySet using (SetEq ; isTwoCategorySetStr)
+open import GpdCont.TwoCategory.Family.Functor using (FamFunctor)
+open import GpdCont.TwoCategory.HomotopySet using (SetEq)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
@@ -136,14 +135,14 @@ module _
 
 private
   𝔹ᴬ = ActionDelooping ℓ
-  module 𝔹ᴬ = LaxFunctor 𝔹ᴬ
+  module 𝔹ᴬ = StrictFunctor 𝔹ᴬ
 
-Fam𝔹 : LaxFunctor FamAction FamSetBundle
+Fam𝔹 : StrictFunctor FamAction FamSetBundle
 Fam𝔹 = FamFunctor (ActionDelooping ℓ) ℓ
 
 private
   module Fam𝔹 where
-    open LaxFunctor Fam𝔹 public
+    open StrictFunctor Fam𝔹 public
     open import GpdCont.TwoCategory.Family.Properties (ActionDelooping ℓ) ℓ public
 
 module _ where

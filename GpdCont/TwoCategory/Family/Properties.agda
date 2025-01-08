@@ -2,18 +2,18 @@
 open import GpdCont.Prelude
 
 open import GpdCont.TwoCategory.Base
-open import GpdCont.TwoCategory.LaxFunctor
+open import GpdCont.TwoCategory.StrictFunctor
 
 module GpdCont.TwoCategory.Family.Properties
   {ℓo ℓh ℓr ℓo′ ℓh′ ℓr′}
   {C : TwoCategory ℓo ℓh ℓr}
   {D : TwoCategory ℓo′ ℓh′ ℓr′}
-  (F : LaxFunctor C D)
+  (F : StrictFunctor C D)
   (ℓ : Level)
   where
 
   open import GpdCont.TwoCategory.LocalCategory
-  open import GpdCont.TwoCategory.LocalFunctor
+  open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor
   open import GpdCont.TwoCategory.Family.Base
   open import GpdCont.TwoCategory.Family.Functor
   open import GpdCont.TwoCategory.Displayed.Base
@@ -31,10 +31,10 @@ module GpdCont.TwoCategory.Family.Properties
     module D = TwoCategory D
     module FamC = TwoCategory (Fam C ℓ)
     module FamD = TwoCategory (Fam D ℓ)
-    module F = LaxFunctor F
-    module LiftF = LaxFunctor (LiftFunctor F ℓ)
+    module F = StrictFunctor F
+    module LiftF = StrictFunctor (FamFunctor F ℓ)
 
-  isLocallyFullyFaithfulFam : isLocallyFullyFaithful F → isLocallyFullyFaithful (LiftFunctor F ℓ)
+  isLocallyFullyFaithfulFam : isLocallyFullyFaithful F → isLocallyFullyFaithful (FamFunctor F ℓ)
   isLocallyFullyFaithfulFam is-locally-ff-F x y f g = goal where
     FamF₂-equiv : FamC.rel {x} {y} f g ≃ FamD.rel {x = LiftF.₀ x} {y = LiftF.₀ y} (LiftF.₁ {x} {y} f) (LiftF.₁ {x} {y} g)
     FamF₂-equiv = Sigma.Σ-cong-equiv-snd λ where
@@ -64,10 +64,10 @@ module GpdCont.TwoCategory.Family.Properties
         goal .fst = f*
         goal .snd = iso-at
 
-  isLocallySplitEssentiallySurjectiveFam : isLocallySplitEssentiallySurjective F → isLocallySplitEssentiallySurjective (LiftFunctor F ℓ)
+  isLocallySplitEssentiallySurjectiveFam : isLocallySplitEssentiallySurjective F → isLocallySplitEssentiallySurjective (FamFunctor F ℓ)
   isLocallySplitEssentiallySurjectiveFam split-F x y g = hasPointwiseSection→hasLocalSectionFam x y g (λ j → split-F (x .snd j) (y .snd (g .fst j)) (g .snd j))
 
-  isLocallyEssentiallySurjectiveFam : ASC ℓ (ℓ-max ℓh ℓr′) → isLocallyStrict C → isLocallyEssentiallySurjective F → isLocallyEssentiallySurjective (LiftFunctor F ℓ)
+  isLocallyEssentiallySurjectiveFam : ASC ℓ (ℓ-max ℓh ℓr′) → isLocallyStrict C → isLocallyEssentiallySurjective F → isLocallyEssentiallySurjective (FamFunctor F ℓ)
   isLocallyEssentiallySurjectiveFam choose is-set-hom-C is-eso-F x*@(J , x) y*@(K , y) g*@(ψ , g) = goal where
     isPointwiseSplitEso : (j : ⟨ J ⟩) → hSet _
     isPointwiseSplitEso j .fst = Σ[ f ∈ C.hom (x j) (y (ψ j)) ] LocalCatIso D (F.₁ f) (g j)

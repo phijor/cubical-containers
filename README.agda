@@ -348,12 +348,12 @@ module 4-ActionContainers-2-Category where
 
   module 4·3-Families where
     open import GpdCont.TwoCategory.Family.Base using (Fam ; Famᴰ)
-    open import GpdCont.TwoCategory.Family.Functor using (LiftFunctor ; LiftFunctorᴰ)
+    open import GpdCont.TwoCategory.Family.Functor using (FamFunctor ; FamFunctorᴰ)
     open import GpdCont.TwoCategory.Base using (TwoCategory)
-    open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor)
-    open import GpdCont.TwoCategory.HomotopySet using () renaming (SetEq to hSetCat ; idSetEq to idHSet)
+    open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor ; idStrictFunctor)
+    open import GpdCont.TwoCategory.HomotopySet using () renaming (SetEq to hSetCat)
     open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
-    open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
+    open import GpdCont.TwoCategory.Displayed.StrictFunctor using (StrictFunctorᴰ)
 
     private
       variable
@@ -365,24 +365,24 @@ module 4-ActionContainers-2-Category where
       _ : TwoCategoryᴰ (hSetCat ℓ) _ _ _
       _ = Famᴰ C ℓ
 
-    44-Defintion : LaxFunctor C D → LaxFunctor (Fam C ℓ) (Fam D ℓ)
-    44-Defintion {C} {D} {ℓ} F = LiftFunctor F ℓ where
-      _ : LaxFunctorᴰ (idHSet ℓ) (Famᴰ C ℓ) (Famᴰ D ℓ)
-      _ = LiftFunctorᴰ F ℓ
+    44-Defintion : StrictFunctor C D → StrictFunctor (Fam C ℓ) (Fam D ℓ)
+    44-Defintion {C} {D} {ℓ} F = FamFunctor F ℓ where
+      _ : StrictFunctorᴰ (idStrictFunctor (hSetCat ℓ)) (Famᴰ C ℓ) (Famᴰ D ℓ)
+      _ = FamFunctorᴰ F ℓ
 
-    module 45-Proposition {ℓ} (F : LaxFunctor C D) where
+    module 45-Proposition {ℓ} (F : StrictFunctor C D) where
       open import GpdCont.TwoCategory.Family.Properties
       open import GpdCont.TwoCategory.LocalCategory using (isLocallyStrict)
-      open import GpdCont.TwoCategory.LocalFunctor
+      open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor
       open import GpdCont.Axioms.TruncatedChoice renaming (ASC to AxiomOfSetChoice)
 
-      1-locally-ff : isLocallyFullyFaithful F → isLocallyFullyFaithful (LiftFunctor F ℓ)
+      1-locally-ff : isLocallyFullyFaithful F → isLocallyFullyFaithful (FamFunctor F ℓ)
       1-locally-ff = isLocallyFullyFaithfulFam F ℓ
 
-      2-locally-split-eso : isLocallySplitEssentiallySurjective F → isLocallySplitEssentiallySurjective (LiftFunctor F ℓ)
+      2-locally-split-eso : isLocallySplitEssentiallySurjective F → isLocallySplitEssentiallySurjective (FamFunctor F ℓ)
       2-locally-split-eso = isLocallySplitEssentiallySurjectiveFam F ℓ
 
-      3-locally-eso : AxiomOfSetChoice ℓ _ → isLocallyStrict C → isLocallyEssentiallySurjective F → isLocallyEssentiallySurjective (LiftFunctor F ℓ)
+      3-locally-eso : AxiomOfSetChoice ℓ _ → isLocallyStrict C → isLocallyEssentiallySurjective F → isLocallyEssentiallySurjective (FamFunctor F ℓ)
       3-locally-eso = isLocallyEssentiallySurjectiveFam F ℓ
 
   module 4·3-ActionContainers {ℓ} where
@@ -396,8 +396,8 @@ module 4-ActionContainers-2-Category where
     open import GpdCont.SetBundle.Base ℓ using (SetBundle ; module SetBundleNotation)
     open import GpdCont.SetBundle.Summation ℓ as Summation using (SetBundleΣ)
     open import GpdCont.TwoCategory.Base using (TwoCategory)
-    open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor) renaming (compLaxFunctor to _⋆F_)
-    open import GpdCont.TwoCategory.LocalFunctor
+    open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor) renaming (compStrictFunctor to _⋆F_)
+    open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor
     open import GpdCont.TwoCategory.Family.Base using (Fam ; Famᴰ)
     open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
     open import GpdCont.Connectivity using (isPathConnected)
@@ -453,7 +453,7 @@ module 4-ActionContainers-2-Category where
       2-locally-weq : AxiomOfSetChoice ℓ ℓ → isLocallyWeakEquivalence AsFamily.Fam𝔹
       2-locally-weq = AsFamily.isLocallyWeakEquivalenceFam𝔹
 
-    49-Definition : LaxFunctor (Fam SetBundle ℓ) SetBundle
+    49-Definition : StrictFunctor (Fam SetBundle ℓ) SetBundle
     49-Definition = SetBundleΣ
 
     private

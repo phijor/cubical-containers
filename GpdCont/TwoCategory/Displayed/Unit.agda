@@ -10,8 +10,10 @@ private
   module C = TwoCategory C
 
 open import GpdCont.TwoCategory.LaxFunctor
+open import GpdCont.TwoCategory.StrictFunctor
 open import GpdCont.TwoCategory.Displayed.Base
 open import GpdCont.TwoCategory.Displayed.LaxFunctor
+open import GpdCont.TwoCategory.Displayed.StrictFunctor
 
 open import Cubical.Data.Unit using (Unit ; tt ; isOfHLevelUnit)
 
@@ -43,42 +45,74 @@ UnitOver = TotalTwoCategory.∫ C Unitᴰ
 ForgetUnit : LaxFunctor UnitOver C
 ForgetUnit = TotalTwoCategory.Fst C Unitᴰ
 
-AddUnit : LaxFunctor C UnitOver
-AddUnit .LaxFunctor.F-ob = _, tt
-AddUnit .LaxFunctor.F-hom = _, tt
-AddUnit .LaxFunctor.F-rel = _, tt
-AddUnit .LaxFunctor.F-rel-id = refl
-AddUnit .LaxFunctor.F-rel-trans r s = refl
-AddUnit .LaxFunctor.F-trans-lax f g .fst = C.id-rel (C.comp-hom f g)
-AddUnit .LaxFunctor.F-trans-lax f g .snd = tt
-AddUnit .LaxFunctor.F-trans-lax-natural r s i .fst = (C.trans-unit-right (C.comp-rel r s) ∙ (sym $ C.trans-unit-left _)) i
-AddUnit .LaxFunctor.F-trans-lax-natural r s i .snd = tt
-AddUnit .LaxFunctor.F-id-lax x = C.id-rel (C.id-hom x) , tt
-AddUnit .LaxFunctor.F-assoc f g h i .fst = {! !}
-AddUnit .LaxFunctor.F-assoc f g h i .snd = tt
-AddUnit .LaxFunctor.F-unit-left = {! !}
-AddUnit .LaxFunctor.F-unit-right = {! !}
+AddUnit : StrictFunctor C UnitOver
+AddUnit .StrictFunctor.F-ob = _, tt
+AddUnit .StrictFunctor.F-hom =  _, tt
+AddUnit .StrictFunctor.F-rel =  _, tt
+AddUnit .StrictFunctor.F-rel-id = refl
+AddUnit .StrictFunctor.F-rel-trans r s = refl
+AddUnit .StrictFunctor.F-hom-comp f g = refl
+AddUnit .StrictFunctor.F-hom-id x = refl
+AddUnit .StrictFunctor.F-assoc-filler-left f g h .fst = refl
+AddUnit .StrictFunctor.F-assoc-filler-left f g h .snd = reflSquare _
+AddUnit .StrictFunctor.F-assoc-filler-right f g h .fst = refl
+AddUnit .StrictFunctor.F-assoc-filler-right f g h .snd = reflSquare _
+AddUnit .StrictFunctor.F-assoc f g h = λ i j → C.comp-hom-assoc f g h i , tt
+AddUnit .StrictFunctor.F-unit-left-filler f .fst = refl
+AddUnit .StrictFunctor.F-unit-left-filler f .snd = reflSquare _
+AddUnit .StrictFunctor.F-unit-left f = λ i j → C.comp-hom-unit-left f i , tt
+AddUnit .StrictFunctor.F-unit-right-filler f .fst = refl
+AddUnit .StrictFunctor.F-unit-right-filler f .snd = reflSquare _
+AddUnit .StrictFunctor.F-unit-right f = λ i j → C.comp-hom-unit-right f i , tt
 
-ReindexUnit : ∀ {ℓo′ ℓh′ ℓr′ ℓoᴰ ℓhᴰ ℓrᴰ} (D : TwoCategory ℓo′ ℓh′ ℓr′)  (F : LaxFunctor C D)
-  → (Dᴰ : TwoCategoryᴰ D ℓoᴰ ℓhᴰ ℓrᴰ)
-  → LaxFunctorᴰ F Unitᴰ Dᴰ
-  → LaxFunctor C (TotalTwoCategory.∫ D Dᴰ)
-ReindexUnit D F Dᴰ Fᴰ = F′ where
-  module F = LaxFunctor F
-  module Fᴰ = LaxFunctorᴰ Fᴰ
-  F′ : LaxFunctor C (TotalTwoCategory.∫ D Dᴰ)
-  F′ .LaxFunctor.F-ob x = F.₀ x , Fᴰ.₀ tt
-  F′ .LaxFunctor.F-hom f = F.₁ f , Fᴰ.₁ tt
-  F′ .LaxFunctor.F-rel r = F.₂  r , Fᴰ.₂ tt
-  F′ .LaxFunctor.F-rel-id i = F.F-rel-id i , Fᴰ.F-rel-idᴰ i
-  F′ .LaxFunctor.F-rel-trans r s i .fst = F.F-rel-trans r s i
-  F′ .LaxFunctor.F-rel-trans r s i .snd = Fᴰ.F-rel-transᴰ tt tt i
-  F′ .LaxFunctor.F-trans-lax f g .fst = F.F-trans-lax f g
-  F′ .LaxFunctor.F-trans-lax f g .snd = Fᴰ.F-trans-laxᴰ tt tt
-  F′ .LaxFunctor.F-trans-lax-natural r s i .fst = {! !}
-  F′ .LaxFunctor.F-trans-lax-natural r s i .snd = {! !}
-  F′ .LaxFunctor.F-id-lax x = {! !}
-  F′ .LaxFunctor.F-assoc f g h i .fst = F.F-assoc f g h i
-  F′ .LaxFunctor.F-assoc f g h i .snd = Fᴰ.F-assocᴰ tt tt tt i
-  F′ .LaxFunctor.F-unit-left = {! !}
-  F′ .LaxFunctor.F-unit-right = {! !}
+module _
+  {ℓo′ ℓh′ ℓr′ ℓoᴰ ℓhᴰ ℓrᴰ}
+  {D : TwoCategory ℓo′ ℓh′ ℓr′}
+  (F : StrictFunctor C D)
+  {Dᴰ : TwoCategoryᴰ D ℓoᴰ ℓhᴰ ℓrᴰ}
+  (Fᴰ : StrictFunctorᴰ F Unitᴰ Dᴰ)
+  where
+
+  private
+    ∫D = TotalTwoCategory.∫ D Dᴰ
+
+    module F = StrictFunctor F
+    module Fᴰ = StrictFunctorᴰ Fᴰ
+
+  ReindexUnit : StrictFunctor C ∫D
+  ReindexUnit .StrictFunctor.F-ob x .fst = F.₀ x
+  ReindexUnit .StrictFunctor.F-ob x .snd = Fᴰ.₀ tt
+  ReindexUnit .StrictFunctor.F-hom f .fst = F.₁ f
+  ReindexUnit .StrictFunctor.F-hom f .snd = Fᴰ.₁ tt
+  ReindexUnit .StrictFunctor.F-rel r .fst = F.₂ r
+  ReindexUnit .StrictFunctor.F-rel r .snd = Fᴰ.₂ tt
+  ReindexUnit .StrictFunctor.F-rel-id {f = f} i .fst = F.F-rel-id {f = f} i
+  ReindexUnit .StrictFunctor.F-rel-id {f = f} i .snd = Fᴰ.F-rel-idᴰ tt i
+  ReindexUnit .StrictFunctor.F-rel-trans r s i .fst = F.F-rel-trans r s i
+  ReindexUnit .StrictFunctor.F-rel-trans r s i .snd = Fᴰ.F-rel-transᴰ tt tt i
+  ReindexUnit .StrictFunctor.F-hom-comp f g i .fst = F.F-hom-comp f g i
+  ReindexUnit .StrictFunctor.F-hom-comp f g i .snd = Fᴰ.F-hom-compᴰ tt tt i
+  ReindexUnit .StrictFunctor.F-hom-id x i .fst = F.F-hom-id x i
+  ReindexUnit .StrictFunctor.F-hom-id x i .snd = Fᴰ.F-hom-idᴰ tt i
+  ReindexUnit .StrictFunctor.F-assoc-filler-left f g h .fst i .fst = F.F-assoc-filler-left f g h .fst i
+  ReindexUnit .StrictFunctor.F-assoc-filler-left f g h .fst i .snd = Fᴰ.F-assoc-filler-leftᴰ tt tt tt .fst i
+  ReindexUnit .StrictFunctor.F-assoc-filler-left f g h .snd i j .fst = F.F-assoc-filler-left f g h .snd i j
+  ReindexUnit .StrictFunctor.F-assoc-filler-left f g h .snd i j .snd = Fᴰ.F-assoc-filler-leftᴰ tt tt tt .snd i j
+  ReindexUnit .StrictFunctor.F-assoc-filler-right f g h .fst i .fst = F.F-assoc-filler-right f g h .fst i
+  ReindexUnit .StrictFunctor.F-assoc-filler-right f g h .fst i .snd = Fᴰ.F-assoc-filler-rightᴰ tt tt tt .fst i
+  ReindexUnit .StrictFunctor.F-assoc-filler-right f g h .snd i j .fst = F.F-assoc-filler-right f g h .snd i j
+  ReindexUnit .StrictFunctor.F-assoc-filler-right f g h .snd i j .snd = Fᴰ.F-assoc-filler-rightᴰ tt tt tt .snd i j
+  ReindexUnit .StrictFunctor.F-assoc f g h i j .fst = F.F-assoc f g h i j
+  ReindexUnit .StrictFunctor.F-assoc f g h i j .snd = Fᴰ.F-assocᴰ tt tt tt i j
+  ReindexUnit .StrictFunctor.F-unit-left-filler f .fst i .fst = F.F-unit-left-filler f .fst i
+  ReindexUnit .StrictFunctor.F-unit-left-filler f .fst i .snd = Fᴰ.F-unit-left-fillerᴰ tt .fst i
+  ReindexUnit .StrictFunctor.F-unit-left-filler f .snd i j .fst = F.F-unit-left-filler f .snd i j
+  ReindexUnit .StrictFunctor.F-unit-left-filler f .snd i j .snd = Fᴰ.F-unit-left-fillerᴰ tt .snd i j
+  ReindexUnit .StrictFunctor.F-unit-left f i j .fst = F.F-unit-left f i j
+  ReindexUnit .StrictFunctor.F-unit-left f i j .snd = Fᴰ.F-unit-leftᴰ tt i j
+  ReindexUnit .StrictFunctor.F-unit-right-filler f .fst i .fst = F.F-unit-right-filler f .fst i
+  ReindexUnit .StrictFunctor.F-unit-right-filler f .fst i .snd = Fᴰ.F-unit-right-fillerᴰ tt .fst i
+  ReindexUnit .StrictFunctor.F-unit-right-filler f .snd i j .fst = F.F-unit-right-filler f .snd i j
+  ReindexUnit .StrictFunctor.F-unit-right-filler f .snd i j .snd = Fᴰ.F-unit-right-fillerᴰ tt .snd i j
+  ReindexUnit .StrictFunctor.F-unit-right f i j .fst = F.F-unit-right f i j
+  ReindexUnit .StrictFunctor.F-unit-right f i j .snd = Fᴰ.F-unit-rightᴰ tt i j

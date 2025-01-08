@@ -13,10 +13,11 @@ open import GpdCont.Connectivity as Connectivity using (isPathConnected)
 open import GpdCont.TwoCategory.Base using (TwoCategory)
 open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor ; compLaxFunctor)
 open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor)
-open import GpdCont.TwoCategory.LocalFunctor using (LocalFunctor)
+open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor using (LocalFunctor)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
 open import GpdCont.TwoCategory.Displayed.LocallyThin using (LocallyThinOver ; IntoLocallyThin)
 open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
+open import GpdCont.TwoCategory.Displayed.StrictFunctor using (StrictFunctorᴰ)
 open import GpdCont.TwoCategory.Displayed.Unit using (Unitᴰ ; UnitOver ; AddUnit ; ReindexUnit)
 open import GpdCont.TwoCategory.Family.Base using (Fam ; Famᴰ ; Fam₂J[_] ; Famᴰ₂ ; Fam₂PathP)
 open import GpdCont.TwoCategory.HomotopySet using (SetEq ; isTwoCategorySetStr)
@@ -108,41 +109,28 @@ private
         (congS (λ - → φ j , - b) (rᴰ j .fst)) ∙ (congS (λ - → φ j , - b) (sᴰ j .fst))
       goal = GL.cong-∙ (λ - → φ j , - b) (rᴰ j .fst) (sᴰ j .fst)
 
-SetBundleΣFst : LaxFunctor FamSetBundle (hGpdCat ℓ)
-SetBundleΣFst .LaxFunctor.F-ob = ΣFst₀
-SetBundleΣFst .LaxFunctor.F-hom = ΣFst₁
-SetBundleΣFst .LaxFunctor.F-rel = ΣFst₂
-SetBundleΣFst .LaxFunctor.F-rel-id = refl
-SetBundleΣFst .LaxFunctor.F-rel-trans = ΣFst₂-rel-trans
-SetBundleΣFst .LaxFunctor.F-trans-lax (φ , f) (ψ , g) = refl
-SetBundleΣFst .LaxFunctor.F-trans-lax-natural {x = J , X} {y = K , Y} {f₁ = φ , f₁} {f₂ = .φ , f₂} {g₁ = ψ , g₁} {g₂ = .ψ , g₂} (Eq.refl , rᴰ) (Eq.refl , sᴰ) = Path.Square→compPath
-  λ where
-    i j (idx , b) .fst → ψ (φ idx)
-    i j (idx , b) .snd → sᴰ (φ idx) .fst i (rᴰ idx .fst i b)
-SetBundleΣFst .LaxFunctor.F-id-lax (J , x) = refl
-SetBundleΣFst .LaxFunctor.F-assoc (φ , f) (ψ , g) (ρ , h) = refl′ (refl ∙ refl)
-SetBundleΣFst .LaxFunctor.F-unit-left (J , x) = sym GL.compPathRefl
-SetBundleΣFst .LaxFunctor.F-unit-right (J , x) = sym GL.compPathRefl
+SetBundleΣFst : StrictFunctor FamSetBundle (hGpdCat ℓ)
+SetBundleΣFst .StrictFunctor.F-ob = ΣFst₀
+SetBundleΣFst .StrictFunctor.F-hom = ΣFst₁
+SetBundleΣFst .StrictFunctor.F-rel = ΣFst₂
+SetBundleΣFst .StrictFunctor.F-rel-id = refl
+SetBundleΣFst .StrictFunctor.F-rel-trans = ΣFst₂-rel-trans
+SetBundleΣFst .StrictFunctor.F-hom-comp _ _ = refl
+SetBundleΣFst .StrictFunctor.F-hom-id _ = refl
+SetBundleΣFst .StrictFunctor.F-assoc-filler-left _ _ _ .fst = refl
+SetBundleΣFst .StrictFunctor.F-assoc-filler-left _ _ _ .snd = refl
+SetBundleΣFst .StrictFunctor.F-assoc-filler-right _ _ _ .fst = refl
+SetBundleΣFst .StrictFunctor.F-assoc-filler-right _ _ _ .snd = refl
+SetBundleΣFst .StrictFunctor.F-assoc _ _ _ = reflSquare _
+SetBundleΣFst .StrictFunctor.F-unit-left-filler _ .fst = refl
+SetBundleΣFst .StrictFunctor.F-unit-left-filler _ .snd = refl
+SetBundleΣFst .StrictFunctor.F-unit-left f = reflSquare (ΣFst₁ f)
+SetBundleΣFst .StrictFunctor.F-unit-right-filler _ .fst = refl
+SetBundleΣFst .StrictFunctor.F-unit-right-filler _ .snd = refl
+SetBundleΣFst .StrictFunctor.F-unit-right f = reflSquare (ΣFst₁ f)
 
-SetBundleΣFstˢ : StrictFunctor FamSetBundle (hGpdCat ℓ)
-SetBundleΣFstˢ .StrictFunctor.F-ob = ΣFst₀
-SetBundleΣFstˢ .StrictFunctor.F-hom = ΣFst₁
-SetBundleΣFstˢ .StrictFunctor.F-rel = ΣFst₂
-SetBundleΣFstˢ .StrictFunctor.F-rel-id = refl
-SetBundleΣFstˢ .StrictFunctor.F-rel-trans = ΣFst₂-rel-trans
-SetBundleΣFstˢ .StrictFunctor.F-hom-comp _ _ = refl
-SetBundleΣFstˢ .StrictFunctor.F-hom-id _ = refl
-SetBundleΣFstˢ .StrictFunctor.F-assoc-filler-left _ _ _ .fst = refl
-SetBundleΣFstˢ .StrictFunctor.F-assoc-filler-left _ _ _ .snd = refl
-SetBundleΣFstˢ .StrictFunctor.F-assoc-filler-right _ _ _ .fst = refl
-SetBundleΣFstˢ .StrictFunctor.F-assoc-filler-right _ _ _ .snd = refl
-SetBundleΣFstˢ .StrictFunctor.F-assoc _ _ _ = reflSquare _
-SetBundleΣFstˢ .StrictFunctor.F-unit-left-filler _ .fst = refl
-SetBundleΣFstˢ .StrictFunctor.F-unit-left-filler _ .snd = refl
-SetBundleΣFstˢ .StrictFunctor.F-unit-left f = reflSquare (ΣFst₁ f)
-SetBundleΣFstˢ .StrictFunctor.F-unit-right-filler _ .fst = refl
-SetBundleΣFstˢ .StrictFunctor.F-unit-right-filler _ .snd = refl
-SetBundleΣFstˢ .StrictFunctor.F-unit-right f = reflSquare (ΣFst₁ f)
+private
+  module SetBundleΣFst = StrictFunctor SetBundleΣFst
 
 private
   ΣSnd₀ : (x : FamSetBundle.ob) → SetBundle.ob[ ΣFst₀ x ]
@@ -158,28 +146,34 @@ private
     → SetBundle.rel[_] {yᴰ = ΣSnd₀ y} (ΣFst₂ r) (ΣSnd₁ f) (ΣSnd₁ g)
   ΣSnd₂ (Eq.refl , rᴰ) = funExt λ (j , b) → rᴰ j .snd ≡$ b
 
-SetBundleΣᵀ : IntoLocallyThin SetBundleΣFst (Unitᴰ FamSetBundle) SetBundleᵀ
-SetBundleΣᵀ .IntoLocallyThin.F-obᴰ {x} _ = ΣSnd₀ x
-SetBundleΣᵀ .IntoLocallyThin.F-homᴰ {x} {y} {f} _ = ΣSnd₁ {x} {y} f
-SetBundleΣᵀ .IntoLocallyThin.F-relᴰ {r} _ = ΣSnd₂ r
-SetBundleΣᵀ .IntoLocallyThin.F-trans-laxᴰ fᴰ gᴰ = refl
-SetBundleΣᵀ .IntoLocallyThin.F-id-laxᴰ xᴰ = refl
+SetBundleΣᴰ : StrictFunctorᴰ SetBundleΣFst (Unitᴰ FamSetBundle) SetBundleᴰ
+SetBundleΣᴰ .StrictFunctorᴰ.F-obᴰ {x} _ = ΣSnd₀ x
+SetBundleΣᴰ .StrictFunctorᴰ.F-homᴰ {x} {y} {f} _ = ΣSnd₁ {x} {y} f
+SetBundleΣᴰ .StrictFunctorᴰ.F-relᴰ {r} _ = ΣSnd₂ r
+SetBundleΣᴰ .StrictFunctorᴰ.F-rel-idᴰ fᴰ = reflSquare _
+SetBundleΣᴰ .StrictFunctorᴰ.F-rel-transᴰ {y} {r} {s} tt tt = SetBundle.relᴰ≡ {yᴰ = ΣSnd₀ y} (SetBundleΣFst.F-rel-trans r s)
+SetBundleΣᴰ .StrictFunctorᴰ.F-hom-compᴰ {f} {g} _ _ = goal where
+  goal : SetBundle.comp-homᴰ {zᴰ = ΣSnd₀ _} (ΣSnd₁ f) (ΣSnd₁ g) ≡ ΣSnd₁ (f FamSetBundle.∙₁ g)
+  goal = refl
+SetBundleΣᴰ .StrictFunctorᴰ.F-hom-idᴰ _ = refl
+SetBundleΣᴰ .StrictFunctorᴰ.F-assoc-filler-leftᴰ {f} {g} {h} _ _ _ .fst = refl
+SetBundleΣᴰ .StrictFunctorᴰ.F-assoc-filler-leftᴰ {f} {g} {h} _ _ _ .snd = reflSquare _
+SetBundleΣᴰ .StrictFunctorᴰ.F-assoc-filler-rightᴰ {f} {g} {h} _ _ _ .fst = refl
+SetBundleΣᴰ .StrictFunctorᴰ.F-assoc-filler-rightᴰ {f} {g} {h} _ _ _ .snd = reflSquare _
+SetBundleΣᴰ .StrictFunctorᴰ.F-assocᴰ {f} {g} {h} _ _ _ = reflSquare _
+SetBundleΣᴰ .StrictFunctorᴰ.F-unit-left-fillerᴰ {f} _ .fst = refl
+SetBundleΣᴰ .StrictFunctorᴰ.F-unit-left-fillerᴰ {f} _ .snd = reflSquare _
+SetBundleΣᴰ .StrictFunctorᴰ.F-unit-leftᴰ {f} _ = reflSquare _
+SetBundleΣᴰ .StrictFunctorᴰ.F-unit-right-fillerᴰ {f} _ .fst = refl
+SetBundleΣᴰ .StrictFunctorᴰ.F-unit-right-fillerᴰ {f} _ .snd = reflSquare _
+SetBundleΣᴰ .StrictFunctorᴰ.F-unit-rightᴰ {f} _ = reflSquare _
 
-SetBundleΣᴰ : LaxFunctorᴰ SetBundleΣFst (Unitᴰ FamSetBundle) SetBundleᴰ
-SetBundleΣᴰ = IntoLocallyThin.toLaxFunctorᴰ SetBundleΣᵀ
-
-SetBundleΣUnit : LaxFunctor (UnitOver FamSetBundle) SetBundle
-SetBundleΣUnit = LaxFunctorᴰ.toTotalFunctor SetBundleΣᴰ
-
-SetBundleΣ : LaxFunctor FamSetBundle SetBundle
-SetBundleΣ = compLaxFunctor (AddUnit _) SetBundleΣUnit
+SetBundleΣ : StrictFunctor FamSetBundle SetBundle
+SetBundleΣ = ReindexUnit FamSetBundle SetBundleΣFst SetBundleΣᴰ
 
 private
   module SetBundleΣ where
-    open LaxFunctor SetBundleΣ public
-
-SetBundleΣ' : LaxFunctor FamSetBundle SetBundle
-SetBundleΣ' = ReindexUnit FamSetBundle (hGpdCat ℓ) SetBundleΣFst SetBundleᴰ SetBundleΣᴰ
+    open StrictFunctor SetBundleΣ public
 
 -- Local functors of Σ : Fam(SetBundle) → SetBundle are fully faithful whenever
 -- the familiy x in Σ(x, y) : Fam(SetBundle)(x, y) → SetBundle(Σx, Σy) has a connected bases.

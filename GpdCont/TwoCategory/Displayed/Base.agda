@@ -3,6 +3,7 @@ module GpdCont.TwoCategory.Displayed.Base where
 open import GpdCont.Prelude
 open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.LaxFunctor
+open import GpdCont.TwoCategory.StrictFunctor
 
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Sigma using (Σ≡Prop)
@@ -312,3 +313,23 @@ module TotalTwoCategory
   Fst .LaxFunctor.F-assoc = {! !}
   Fst .LaxFunctor.F-unit-left = {! !}
   Fst .LaxFunctor.F-unit-right = {! !}
+
+  Fstˢ : StrictFunctor ∫ C
+  Fstˢ .StrictFunctor.F-ob = fst
+  Fstˢ .StrictFunctor.F-hom = fst
+  Fstˢ .StrictFunctor.F-rel = fst
+  Fstˢ .StrictFunctor.F-rel-id = refl
+  Fstˢ .StrictFunctor.F-rel-trans r s = refl
+  Fstˢ .StrictFunctor.F-hom-comp f g = refl
+  Fstˢ .StrictFunctor.F-hom-id x = refl
+  Fstˢ .StrictFunctor.F-assoc-filler-left f g h .fst = refl
+  Fstˢ .StrictFunctor.F-assoc-filler-left f g h .snd = reflSquare ((fst f ∙₁ fst g) ∙₁ fst h)
+  Fstˢ .StrictFunctor.F-assoc-filler-right f g h .fst = refl
+  Fstˢ .StrictFunctor.F-assoc-filler-right f g h .snd = reflSquare ((fst f) ∙₁ (fst g ∙₁ fst h))
+  Fstˢ .StrictFunctor.F-assoc f g h = λ i j → comp-hom-assoc (fst f) (fst g) (fst h) i
+  Fstˢ .StrictFunctor.F-unit-left-filler {x} f .fst = refl
+  Fstˢ .StrictFunctor.F-unit-left-filler {x} f .snd = reflSquare ((id-hom (fst x)) ∙₁ (fst f))
+  Fstˢ .StrictFunctor.F-unit-left f = λ i j → comp-hom-unit-left (fst f) i
+  Fstˢ .StrictFunctor.F-unit-right-filler {y} f .fst = refl
+  Fstˢ .StrictFunctor.F-unit-right-filler {y} f .snd = reflSquare ((fst f) ∙₁ (id-hom (fst y)))
+  Fstˢ .StrictFunctor.F-unit-right f = λ i j → comp-hom-unit-right (fst f) i

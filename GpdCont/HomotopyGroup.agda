@@ -142,7 +142,7 @@ Pointed : TwoCategory (ℓ-suc ℓ) ℓ ℓ
 Pointed = TotalTwoCategory.∫ (hGroupoid ℓ) Pointedᴰ
 
 ForgetPointed : StrictFunctor Pointed (hGroupoid ℓ)
-ForgetPointed = TotalTwoCategory.Fstˢ (hGroupoid ℓ) _
+ForgetPointed = TotalTwoCategory.Fst (hGroupoid ℓ) _
 
 private
   module Pointed = TwoCategory Pointed

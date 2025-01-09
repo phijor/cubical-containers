@@ -42,9 +42,6 @@ Unitᴰ .TwoCategoryᴰ.is-two-categoryᴰ .IsTwoCategoryᴰ.comp-rel-unit-right
 UnitOver : TwoCategory ℓo ℓh ℓr
 UnitOver = TotalTwoCategory.∫ C Unitᴰ
 
-ForgetUnit : LaxFunctor UnitOver C
-ForgetUnit = TotalTwoCategory.Fst C Unitᴰ
-
 AddUnit : StrictFunctor C UnitOver
 AddUnit .StrictFunctor.F-ob = _, tt
 AddUnit .StrictFunctor.F-hom =  _, tt

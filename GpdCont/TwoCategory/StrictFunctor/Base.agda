@@ -131,10 +131,41 @@ module _
   compStrictFunctor .StrictFunctor.F-rel-trans r s = cong G.F-rel (F.F-rel-trans r s) ∙ G.F-rel-trans (F.F-rel r) (F.F-rel s)
   compStrictFunctor .StrictFunctor.F-hom-comp f g = G.F-hom-comp (F.F-hom f) (F.F-hom g) ∙ cong G.F-hom (F.F-hom-comp f g)
   compStrictFunctor .StrictFunctor.F-hom-id x = G.F-hom-id (F.F-ob x) ∙ cong G.F-hom (F.F-hom-id x)
-  compStrictFunctor .StrictFunctor.F-assoc-filler-left f g h = {! !}
-  compStrictFunctor .StrictFunctor.F-assoc-filler-right f g h = {! !}
-  compStrictFunctor .StrictFunctor.F-assoc f g h = {! !}
-  compStrictFunctor .StrictFunctor.F-unit-left-filler f = {! !}
-  compStrictFunctor .StrictFunctor.F-unit-left f = {! !}
-  compStrictFunctor .StrictFunctor.F-unit-right-filler f = {! !}
-  compStrictFunctor .StrictFunctor.F-unit-right f = {! !}
+  compStrictFunctor .StrictFunctor.F-assoc-filler-left f g h = comp-assoc-filler-left where
+    postulate
+      comp-assoc-filler-left : PathCompFiller
+        (cong (E._∙₁ G.F-hom (F.F-hom h)) (G.F-hom-comp (F.F-hom f) (F.F-hom g) ∙ (cong G.F-hom (F.F-hom-comp f g))))
+        (G.F-hom-comp (F.F-hom (f C.∙₁ g)) (F.F-hom h) ∙ (cong G.F-hom (F.F-hom-comp (f C.∙₁ g) h)))
+  compStrictFunctor .StrictFunctor.F-assoc-filler-right f g h = comp-assoc-filler-right where
+    postulate
+      comp-assoc-filler-right : PathCompFiller
+        (cong (E._∙₁_ (G.F-hom (F.F-hom f))) (G.F-hom-comp (F.F-hom g) (F.F-hom h) ∙ (cong G.F-hom (F.F-hom-comp g h))))
+        (G.F-hom-comp (F.F-hom f) (F.F-hom (g C.∙₁ h)) ∙ (cong G.F-hom (F.F-hom-comp f (g C.∙₁ h))))
+  compStrictFunctor .StrictFunctor.F-assoc f g h = comp-assoc where
+    postulate
+      comp-assoc : PathP
+        (λ i → E.comp-hom-assoc (G.F-hom (F.F-hom f)) (G.F-hom (F.F-hom g)) (G.F-hom (F.F-hom h)) i ≡ G.F-hom (F.F-hom (C.comp-hom-assoc f g h i)))
+        (compStrictFunctor .StrictFunctor.F-assoc-filler-left f g h .fst)
+        (compStrictFunctor .StrictFunctor.F-assoc-filler-right f g h .fst)
+  compStrictFunctor .StrictFunctor.F-unit-left-filler {x} f = comp-unit-left-filler where
+    postulate
+      comp-unit-left-filler : PathCompFiller
+        (cong (E._∙₁ G.F-hom (F.F-hom f)) (G.F-hom-id (F.F-ob x) ∙ (cong G.F-hom (F.F-hom-id x))))
+        (G.F-hom-comp (F.F-hom (C.id-hom x)) (F.F-hom f) ∙ (cong G.F-hom (F.F-hom-comp (C.id-hom x) f)))
+  compStrictFunctor .StrictFunctor.F-unit-left f = comp-unit-left where
+    postulate
+      comp-unit-left : PathP
+        (λ i → E.comp-hom-unit-left (G.F-hom (F.F-hom f)) i ≡ G.F-hom (F.F-hom (C.comp-hom-unit-left f i)))
+        (compStrictFunctor .StrictFunctor.F-unit-left-filler f .fst)
+        refl
+  compStrictFunctor .StrictFunctor.F-unit-right-filler {y} f = comp-unit-right-filler where
+    postulate
+      comp-unit-right-filler : PathCompFiller
+        (cong (E._∙₁_ (G.F-hom (F.F-hom f))) (G.F-hom-id (F.F-ob y) ∙ (cong G.F-hom (F.F-hom-id y))))
+        (G.F-hom-comp (F.F-hom f) (F.F-hom (C.id-hom y)) ∙ (cong G.F-hom (F.F-hom-comp f (C.id-hom y))))
+  compStrictFunctor .StrictFunctor.F-unit-right f = comp-unit-right where
+    postulate
+      comp-unit-right : PathP
+        (λ i → E.comp-hom-unit-right (G.F-hom (F.F-hom f)) i ≡ G.F-hom (F.F-hom (C.comp-hom-unit-right f i)))
+        (compStrictFunctor .StrictFunctor.F-unit-right-filler f .fst)
+        refl

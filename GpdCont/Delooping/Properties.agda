@@ -9,12 +9,25 @@ open import Cubical.Algebra.Group.GroupPath using (uaGroup)
 open import Cubical.Algebra.SymmetricGroup using (Symmetric-Group)
 
 module GpdCont.Delooping.Properties {ℓ} (G : Group ℓ) where
+
+open import GpdCont.Group.Solve using (solveGroup)
+
 private
-  open module G = GroupStr (str G) using (_·_ ; inv)
+  module G where
+    open GroupStr (str G) public
+    open GroupTheory G public
+
+    reassoc : (g g′ h : ⟨ G ⟩) → g · (g′ · h · g) · g′ ≡ (g · g′) · h · (g · g′)
+    reassoc = solveGroup G
+
+    ·IdLR : (h : ⟨ G ⟩) → 1g · h · 1g ≡ h
+    ·IdLR h = cong (1g ·_) (·IdR h) ∙ ·IdL h
+
+
+  open G using (_·_ ; inv)
 
 open import GpdCont.Experimental.Groups.Base using () renaming (GroupStr to hGroupStr)
 open import GpdCont.Delooping.Base G as Delooping using (𝔹)
-open import GpdCont.Group.Solve using (solveGroup)
 open import GpdCont.Connectivity using (isPathConnected ; isPathConnected→merePath)
 open import GpdCont.Univalence using (ua→)
 
@@ -78,10 +91,16 @@ private
   conjugateIso g .Iso.fun = conjugate g
   conjugateIso g .Iso.inv = conjugate (inv g)
   conjugateIso g .Iso.rightInv h =
-    inv g · (inv (inv g) · h · inv g) · g ≡⟨ {! !} ⟩
+    inv g · (inv (inv g) · h · inv g) · g ≡[ i ]⟨ inv g · (G.invInv g i · h · inv g) · g ⟩
+    inv g · (g · (h · inv g)) · g ≡⟨ G.reassoc (inv g) g h ⟩
+    (inv g · g) · h · (inv g · g) ≡⟨ cong (λ - → - · h · -) (G.·InvL g) ⟩
+    G.1g · h · G.1g ≡⟨ G.·IdLR h ⟩
     h ∎
   conjugateIso g .Iso.leftInv h =
-    inv (inv g) · (inv g · h · g) · inv g ≡⟨ {! !} ⟩
+    inv (inv g) · (inv g · h · g) · inv g ≡⟨ cong (_· (inv g · h · g) · inv g) (G.invInv g) ⟩
+    g · (inv g · h · g) · inv g ≡⟨ G.reassoc g (inv g) h ⟩
+    (g · inv g) · h · (g · inv g) ≡⟨ cong (λ - → - · h · -) (G.·InvR g) ⟩
+    G.1g · h · G.1g ≡⟨ G.·IdLR h ⟩
     h ∎
 
   conjugateEquiv : (g : ⟨ G ⟩) → ⟨ G ⟩ ≃ ⟨ G ⟩
@@ -99,7 +118,7 @@ private
       shuffle : ∀ x → inv h · (inv g · x · g) · h ≡ inv (g · h) · x · g · h
       shuffle x =
         inv h · (inv g · x · g) · h ≡⟨ lemma₁ (inv h) (inv g) x g h ⟩
-        (inv h · inv g) · x · g · h ≡⟨ cong (λ - → - · x · g · h) (sym $ GroupTheory.invDistr G g h) ⟩
+        (inv h · inv g) · x · g · h ≡⟨ cong (λ - → - · x · g · h) (sym $ G.invDistr g h) ⟩
         inv (g · h) · x · g · h ∎
         where
           lemma₁ : (h⁻¹ g⁻¹ x g h : ⟨ G ⟩) → h⁻¹ · (g⁻¹ · x · g) · h ≡ (h⁻¹ · g⁻¹) · x · g · h

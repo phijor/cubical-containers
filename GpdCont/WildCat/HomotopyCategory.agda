@@ -26,9 +26,9 @@ ho C = def where
   def .Category.Hom[_,_] x y = ∥C[ x , y ]∥₂
   def .Category.id {x} = ST.∣ C.id ∣₂
   def .Category._⋆_ = ST.rec2 isSet-∥C[-,-]∥₂ λ f g → ST.∣ f C.⋆ g ∣₂
-  def .Category.⋆IdL = {! !}
-  def .Category.⋆IdR = {! !}
-  def .Category.⋆Assoc = {! !}
+  def .Category.⋆IdL = ST.elim (λ f → ST.isSetPathImplicit) λ f → cong ST.∣_∣₂ (C.⋆IdL f)
+  def .Category.⋆IdR = ST.elim (λ f → ST.isSetPathImplicit) λ f → cong ST.∣_∣₂ (C.⋆IdR f)
+  def .Category.⋆Assoc = ST.elim3 (λ f g h → ST.isSetPathImplicit) λ f g h → cong ST.∣_∣₂ (C.⋆Assoc f g h)
   def .Category.isSetHom = isSet-∥C[-,-]∥₂
 
 module Notation (C : WildCat ℓo ℓh) where

@@ -153,50 +153,29 @@ isOfHLevel×isConnected→isContr (suc k) A suc-k-level-A suc-k-conn-A = is-cont
   is-contr-A : isContr A
   is-contr-A = isOfHLevelRespectEquiv 0 universal-property-trunc suc-k-conn-A
 
--- isConnectedΠ : {B : A → Type ℓ} (k : HLevel) → ((a : A) → isConnected k (B a)) → isConnected k ((a : A) → B a)
--- isConnectedΠ {A} {B} zero _ = isConnectedZero (∀ a → B a)
--- isConnectedΠ {A} {B} (suc k) conn = merelyInh×isConnectedPath→isConnectedSuc k merely-inh {! !} where
-
---   foo : (a : A) → ∥ B a ∥₁ × ((b₀ b₁ : B a) → isConnected k (b₀ ≡ b₁))
---   foo a = isConnectedSuc→merelyInh×isConnectedPath k (conn a)
-
---   merely-inh : ∥ (∀ a → B a) ∥₁
---   merely-inh = {!PT.elim !}
-
-conType→indMapEquiv' : ∀ {ℓ} {A : Type ℓ} (n : HLevel)
-  → isConnected n A
-  → ((B : TypeOfHLevel ℓ n)
-  → isEquiv (λ (b : ⟨ B ⟩) → λ (a : A) → b))
-conType→indMapEquiv' {ℓ} {A} n conn-A (B , lvl-B) = {!Connected.elim.isEquivPrecompose (λ (a : A) → tt) n ? !} where
-  isConnectedFunConst : isConnectedFun n (λ (a : A) → tt)
-  isConnectedFunConst = isConnected→isConnectedFun n conn-A
-
-  lem : isEquiv (λ (s : (b : Unit) → TypeOfHLevel ℓ n) → s ∘ (λ a → tt))
-  lem = elim.isEquivPrecompose (λ (a : A) → tt) n {! !} isConnectedFunConst
-
+-- For an n-connected type A and n-truncated B, the map `(λ b → (λ a → b)) : B → (A → B)` is an equivalence.
+-- This is [HoTT book, Corollary 7.5.9].
 conType→indMapEquiv : ∀ {ℓ} {A : Type ℓ} (n : HLevel)
   → isConnected n A
-  → ((B : TypeOfHLevel ℓ n)
-  → isEquiv (λ (b : ⟨ B ⟩) → λ (a : A) → b))
-conType→indMapEquiv {A} n conn-A (B , lvl-B) .equiv-proof = goal where
-  module _ (f : A → B) where
-    ev : fiber (λ b a → b) f → ∥ A ∥ n
-    ev (b , const-b≡f) = conn-A .fst
+  → (B : TypeOfHLevel ℓ n)
+  → isEquiv (λ (b : ⟨ B ⟩) → λ (a : A) → b)
+conType→indMapEquiv {ℓ} {A} 0 _ (B , is-contr-B) = isoToIsEquiv (isContr→Iso' is-contr-B (isContrΠ λ _ → is-contr-B) (λ b a → b))
+conType→indMapEquiv {ℓ} {A} n@(suc _) conn-A (B , lvl-B) = subst isEquiv fun-equiv≡const (equivIsEquiv fun-equiv) where
+  fun-equiv : B ≃ (A → B)
+  fun-equiv =
+    B ≃⟨ invEquiv $ Π-contractDom conn-A ⟩
+    (∥ A ∥ n → B) ≃⟨ isoToEquiv (Tr.univTrunc n {B = B , lvl-B}) ⟩
+    (A → B) ≃∎
 
-    un-ev : ∥ A ∥ n → fiber (λ b a → b) f
-    un-ev ∣a∣ .fst = Tr.rec lvl-B f ∣a∣
-    un-ev ∣a∣ .snd = funExt λ a → {! !}
+  fun-equiv≡const : equivFun fun-equiv ≡ (λ b a → b)
+  fun-equiv≡const = funExt λ b → funExt λ a → transportRefl b
 
-    ev-retr : (x : fiber (λ b a → b) f) → un-ev (conn-A .fst) ≡ x
-    ev-retr (b , const-b≡f) = Sigma.ΣPathP ({!funExt⁻ const-b≡f !} , {! !})
-
-    ∣f∣ : ∥ A ∥ n → B
-    ∣f∣ = Tr.rec lvl-B f
-
-    goal : isContr (fiber (λ b a → b) f)
-    -- goal = isContrRetract {B = ∥ A ∥ n} ev un-ev ev-retr conn-A
-    goal .fst = ∣f∣ (conn-A .fst) , funExt λ a → Tr.elim {B = λ ∣a∣ → ∣f∣ ∣a∣ ≡ f a} {! !} (λ a′ → Tr.recUniq lvl-B f a′ ∙ cong f {! !}) (conn-A .fst)
-    goal .snd = {! !}
+isConnected→constEquiv : ∀ {ℓ} {A : Type ℓ} (n : HLevel)
+  → isConnected n A
+  → (B : TypeOfHLevel ℓ n)
+  → ⟨ B ⟩ ≃ (A → ⟨ B ⟩)
+isConnected→constEquiv n conn-A B .fst = λ b a → b
+isConnected→constEquiv n conn-A B .snd = conType→indMapEquiv n conn-A B
 
 isPathConnected→isEquivConst : ∀ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'}
   → isPathConnected A
@@ -230,26 +209,3 @@ isConnected→mereLoopSpaceEquiv conn-A a b = do
     open import Cubical.HITs.PropositionalTruncation.Monad
     conjEquiv : (p : a ≡ b) → (a ≡ a) ≃ (b ≡ b)
     conjEquiv p = doubleCompPathEquiv p p
-
--- isConnected→overCenter : ∀ {ℓ'} {B : A → Type ℓ'} {k}
---   → isConnected k A
---   → Type _
--- isConnected→overCenter conn-A = {! !}
---
--- isPointedConnected→TruncSigmaContrFst : ∀ {ℓ'} {B : A → Type ℓ'} {k}
---   → isConnected k A → (a₀ : A)
---   → ∥ Σ A B ∥ k ≃ ∥ B a₀ ∥ k
--- isPointedConnected→TruncSigmaContrFst conn-A a₀ .fst = Tr.rec {! !} λ { (a , b) → {! !} }
--- isPointedConnected→TruncSigmaContrFst conn-A a₀ .snd = {! !}
-
--- _>>=_ : ∥ A ∥₂ → (A → ∥ B ∥₂) → ∥ B ∥₂
--- x >>= f = ST.rec ST.isSetSetTrunc f x
-
--- isPointedConnected→TruncSigmaContrFst : ∀ {ℓ'} {B : A → Type ℓ'}
---   → isPathConnected A → (a₀ : A)
---   → ∥ Σ A B ∥₂ ≃ ∥ B a₀ ∥₂
--- isPointedConnected→TruncSigmaContrFst {B} conn-A a₀ .fst x = do
---   (a , b) ← x
---   let q = isPathConnected→merePath conn-A a₀ a
---   PT.elim→Set (λ _ → ST.isSetSetTrunc) (λ (p : a₀ ≡ a) → subst (∥_∥₂ ∘ B) (sym p) ST.∣ b ∣₂) (λ p p′ → cong ST.∣_∣₂ {! !}) q
--- isPointedConnected→TruncSigmaContrFst conn-A a₀ .snd = {! !}

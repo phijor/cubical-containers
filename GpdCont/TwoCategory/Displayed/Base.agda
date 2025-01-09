@@ -301,35 +301,22 @@ module TotalTwoCategory
   ∫ .TwoCategory.two-category-structure = ∫-two-category-structure
   ∫ .TwoCategory.is-two-category = ∫-is-two-cat
 
-  Fst : LaxFunctor ∫ C
-  Fst .LaxFunctor.F-ob = fst
-  Fst .LaxFunctor.F-hom = fst
-  Fst .LaxFunctor.F-rel = fst
-  Fst .LaxFunctor.F-rel-id = refl
-  Fst .LaxFunctor.F-rel-trans r s = refl
-  Fst .LaxFunctor.F-trans-lax (f , _) (g , _) = id-rel (f ∙₁ g)
-  Fst .LaxFunctor.F-trans-lax-natural (r , _) (s , _) = trans-unit-right (r ∙ₕ s) ∙ sym (trans-unit-left (r ∙ₕ s))
-  Fst .LaxFunctor.F-id-lax (x , _) = id-rel (id-hom x)
-  Fst .LaxFunctor.F-assoc = {! !}
-  Fst .LaxFunctor.F-unit-left = {! !}
-  Fst .LaxFunctor.F-unit-right = {! !}
-
-  Fstˢ : StrictFunctor ∫ C
-  Fstˢ .StrictFunctor.F-ob = fst
-  Fstˢ .StrictFunctor.F-hom = fst
-  Fstˢ .StrictFunctor.F-rel = fst
-  Fstˢ .StrictFunctor.F-rel-id = refl
-  Fstˢ .StrictFunctor.F-rel-trans r s = refl
-  Fstˢ .StrictFunctor.F-hom-comp f g = refl
-  Fstˢ .StrictFunctor.F-hom-id x = refl
-  Fstˢ .StrictFunctor.F-assoc-filler-left f g h .fst = refl
-  Fstˢ .StrictFunctor.F-assoc-filler-left f g h .snd = reflSquare ((fst f ∙₁ fst g) ∙₁ fst h)
-  Fstˢ .StrictFunctor.F-assoc-filler-right f g h .fst = refl
-  Fstˢ .StrictFunctor.F-assoc-filler-right f g h .snd = reflSquare ((fst f) ∙₁ (fst g ∙₁ fst h))
-  Fstˢ .StrictFunctor.F-assoc f g h = λ i j → comp-hom-assoc (fst f) (fst g) (fst h) i
-  Fstˢ .StrictFunctor.F-unit-left-filler {x} f .fst = refl
-  Fstˢ .StrictFunctor.F-unit-left-filler {x} f .snd = reflSquare ((id-hom (fst x)) ∙₁ (fst f))
-  Fstˢ .StrictFunctor.F-unit-left f = λ i j → comp-hom-unit-left (fst f) i
-  Fstˢ .StrictFunctor.F-unit-right-filler {y} f .fst = refl
-  Fstˢ .StrictFunctor.F-unit-right-filler {y} f .snd = reflSquare ((fst f) ∙₁ (id-hom (fst y)))
-  Fstˢ .StrictFunctor.F-unit-right f = λ i j → comp-hom-unit-right (fst f) i
+  Fst : StrictFunctor ∫ C
+  Fst .StrictFunctor.F-ob = fst
+  Fst .StrictFunctor.F-hom = fst
+  Fst .StrictFunctor.F-rel = fst
+  Fst .StrictFunctor.F-rel-id = refl
+  Fst .StrictFunctor.F-rel-trans r s = refl
+  Fst .StrictFunctor.F-hom-comp f g = refl
+  Fst .StrictFunctor.F-hom-id x = refl
+  Fst .StrictFunctor.F-assoc-filler-left f g h .fst = refl
+  Fst .StrictFunctor.F-assoc-filler-left f g h .snd = reflSquare ((fst f ∙₁ fst g) ∙₁ fst h)
+  Fst .StrictFunctor.F-assoc-filler-right f g h .fst = refl
+  Fst .StrictFunctor.F-assoc-filler-right f g h .snd = reflSquare ((fst f) ∙₁ (fst g ∙₁ fst h))
+  Fst .StrictFunctor.F-assoc f g h = λ i j → comp-hom-assoc (fst f) (fst g) (fst h) i
+  Fst .StrictFunctor.F-unit-left-filler {x} f .fst = refl
+  Fst .StrictFunctor.F-unit-left-filler {x} f .snd = reflSquare ((id-hom (fst x)) ∙₁ (fst f))
+  Fst .StrictFunctor.F-unit-left f = λ i j → comp-hom-unit-left (fst f) i
+  Fst .StrictFunctor.F-unit-right-filler {y} f .fst = refl
+  Fst .StrictFunctor.F-unit-right-filler {y} f .snd = reflSquare ((fst f) ∙₁ (id-hom (fst y)))
+  Fst .StrictFunctor.F-unit-right f = λ i j → comp-hom-unit-right (fst f) i

@@ -159,7 +159,13 @@ opaque
 
   ⟦-⟧-hom-comp : (Q R S : QCont ℓ) (f : QCONT ℓ [ Q , R ]) (g : QCONT ℓ [ R , S ])
     → ⟦-⟧-hom Q S (f ⋆⟨ QCONT _ ⟩ g) ≡ (⟦-⟧-hom Q R f) ⋆⟨ EndofunctorCategory (SET ℓ) ⟩ (⟦-⟧-hom R S g)
-  ⟦-⟧-hom-comp Q R S f g = NT.makeNatTransPath $ funExt₂ λ X → ⟦ Q ⟧ᵗ-elimProp (λ _ → isSet-⟦ S ⟧ᵗ ⟨ X ⟩ _ _) λ label → {! !}
+  ⟦-⟧-hom-comp Q R S = MorphismElimProp2 (λ f g → ⟦-⟧-hom Q S (f ⋆⟨ QCONT _ ⟩ g) ≡ (⟦-⟧-hom Q R f) ⋆⟨ EndofunctorCategory (SET _) ⟩ (⟦-⟧-hom R S g))
+    (λ f g → NT.isSetNatTrans _ _)
+    (λ u v f g → NT.makeNatTransPath $ funExt₂
+      λ X → ⟦ Q ⟧ᵗ-elimProp
+        (λ _ → isSet-⟦ S ⟧ᵗ ⟨ X ⟩ _ _)
+        λ label → refl′ (Label→⟦ S ⟧ᵗ (label ∘ Composite.comp-pos-mor f g _))
+    )
 
 EvalFunctor : Functor (QCONT ℓ) (EndofunctorCategory (SET ℓ))
 EvalFunctor .Functor.F-ob = Eval

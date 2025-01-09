@@ -3,8 +3,8 @@ open import GpdCont.Prelude
 module GpdCont.HomotopyGroup (ℓ : Level) where
 
 open import GpdCont.TwoCategory.Base
-open import GpdCont.TwoCategory.Subcategory using (Subcategory ; ForgetLax)
-open import GpdCont.TwoCategory.LaxFunctor
+open import GpdCont.TwoCategory.Subcategory using (Subcategory ; Forget)
+open import GpdCont.TwoCategory.StrictFunctor
 open import GpdCont.TwoCategory.Displayed.Base
 open import GpdCont.TwoCategory.Displayed.LocallyThin as LT using (IsLocallyThinOver ; LocallyThinOver)
 open import GpdCont.TwoCategory.HomotopyGroupoid renaming (hGpdCat to hGroupoid)
@@ -14,6 +14,7 @@ open import Cubical.Foundations.Equiv.Base using (fiber)
 open import Cubical.Foundations.HLevels hiding (hGroupoid)
 open import Cubical.Foundations.Isomorphism using (section)
 open import Cubical.Foundations.Path as Path using (compPath→Square)
+import      Cubical.Foundations.GroupoidLaws as GL
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 
 {-# INJECTIVE_FOR_INFERENCE ⟨_⟩ #-}
@@ -107,11 +108,25 @@ PointedStr .TwoCategoryStrᴰ.id-relᴰ = pt-id₂
 PointedStr .TwoCategoryStrᴰ.transᴰ = pt-trans
 PointedStr .TwoCategoryStrᴰ.comp-relᴰ = pt-comp₂
 
+pt-comp-hom-assoc : ∀ {x y z w : hGroupoid.ob}
+  → {f : hGroupoid.hom x y} {g : hGroupoid.hom y z} {h : hGroupoid.hom z w}
+  → {xᴰ : Pointed₀ x} {yᴰ : Pointed₀ y} {zᴰ : Pointed₀ z} {wᴰ : Pointed₀ w}
+  → (fᴰ : Pointed₁ f xᴰ yᴰ)
+  → (gᴰ : Pointed₁ g yᴰ zᴰ)
+  → (hᴰ : Pointed₁ h zᴰ wᴰ)
+  → Path (Pointed₁ (h ∘ g ∘ f) xᴰ wᴰ)
+    (cong h (cong g fᴰ ∙ gᴰ) ∙ hᴰ)
+    (cong (h ∘ g) fᴰ ∙ (cong h gᴰ ∙ hᴰ))
+pt-comp-hom-assoc {f} {g} {h} {xᴰ} {wᴰ} fᴰ gᴰ hᴰ =
+  cong h (cong g fᴰ ∙ gᴰ) ∙ hᴰ          ≡⟨ cong (_∙ hᴰ) (GL.cong-∙ h (cong g fᴰ) gᴰ) ⟩
+  (cong h (cong g fᴰ) ∙ cong h gᴰ) ∙ hᴰ ≡⟨ sym (GL.assoc (cong (h ∘ g) fᴰ) (cong h gᴰ) hᴰ) ⟩
+  (cong (h ∘ g) fᴰ ∙ (cong h gᴰ ∙ hᴰ))  ∎
+
 isLocallyThinOverPointedStr : IsLocallyThinOver (hGroupoid ℓ) _ _ _ Pointed₀ Pointed₁ Pointed₂ PointedStr
 isLocallyThinOverPointedStr .IsLocallyThinOver.is-prop-relᴰ {y = H} φ₀ ψ₀ = isGroupoid→isPropSquare (str H)
-isLocallyThinOverPointedStr .IsLocallyThinOver.comp-hom-assocᴰ = {! !}
-isLocallyThinOverPointedStr .IsLocallyThinOver.comp-hom-unit-leftᴰ = {! !}
-isLocallyThinOverPointedStr .IsLocallyThinOver.comp-hom-unit-rightᴰ = {! !}
+isLocallyThinOverPointedStr .IsLocallyThinOver.comp-hom-assocᴰ = pt-comp-hom-assoc
+isLocallyThinOverPointedStr .IsLocallyThinOver.comp-hom-unit-leftᴰ gᴰ = sym (GL.lUnit gᴰ)
+isLocallyThinOverPointedStr .IsLocallyThinOver.comp-hom-unit-rightᴰ fᴰ = sym (GL.rUnit fᴰ)
 
 Pointedᵀ : LocallyThinOver (hGroupoid ℓ) ℓ ℓ ℓ
 Pointedᵀ .LocallyThinOver.ob[_] = Pointed₀
@@ -126,8 +141,8 @@ Pointedᴰ = LocallyThinOver.toTwoCategoryᴰ Pointedᵀ
 Pointed : TwoCategory (ℓ-suc ℓ) ℓ ℓ
 Pointed = TotalTwoCategory.∫ (hGroupoid ℓ) Pointedᴰ
 
-ForgetPointed : LaxFunctor Pointed (hGroupoid ℓ)
-ForgetPointed = TotalTwoCategory.Fst (hGroupoid ℓ) _
+ForgetPointed : StrictFunctor Pointed (hGroupoid ℓ)
+ForgetPointed = TotalTwoCategory.Fstˢ (hGroupoid ℓ) _
 
 private
   module Pointed = TwoCategory Pointed
@@ -138,8 +153,8 @@ isPointedConnectedGroupoid (G , G⋆) = isPathConnected ⟨ G ⟩ , isPropIsPath
 hGroup : TwoCategory (ℓ-suc ℓ) ℓ ℓ
 hGroup = Subcategory Pointed isPointedConnectedGroupoid
 
-ForgetConnected : LaxFunctor hGroup Pointed
-ForgetConnected = ForgetLax Pointed isPointedConnectedGroupoid
+ForgetConnected : StrictFunctor hGroup Pointed
+ForgetConnected = Forget Pointed isPointedConnectedGroupoid
 
-ForgetGroup : LaxFunctor hGroup (hGroupoid ℓ)
-ForgetGroup = compLaxFunctor ForgetConnected ForgetPointed
+ForgetGroup : StrictFunctor hGroup (hGroupoid ℓ)
+ForgetGroup = compStrictFunctor ForgetConnected ForgetPointed

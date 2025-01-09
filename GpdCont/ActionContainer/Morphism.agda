@@ -27,6 +27,10 @@ module GpdCont.ActionContainer.Morphism {ℓ} (C D : ActionContainer ℓ) where
   isEquivariantPosMap : {u : S → T} (f : ∀ s → Q (u s) → P s) (φ : ∀ s → G s → H (u s)) → Type ℓ
   isEquivariantPosMap f φ = ∀ (s : S) (g : G s) → equivFun (σ g) ∘ f s ≡ f s ∘ equivFun (τ (φ s g))
 
+  isPropIsEquivariantPosMap : {u : S → T} (f : ∀ s → Q (u s) → P s) (φ : ∀ s → G s → H (u s))
+    → isProp (isEquivariantPosMap f φ)
+  isPropIsEquivariantPosMap f φ = isPropΠ2 λ s g → isOfHLevelPath' 1 (isSet→ (C.is-set-pos s)) _ _
+
   isSymmGroupHom : {u : S → T} (φ : ∀ s → G s → H (u s)) → Type ℓ
   isSymmGroupHom {u} φ = ∀ (s : S) → IsGroupHom (C.symm-group-str s) (φ s) (D.symm-group-str (u s))
 
@@ -116,5 +120,13 @@ module GpdCont.ActionContainer.Morphism {ℓ} (C D : ActionContainer ℓ) where
   Morphism≡ shape pos symm i .shape-map = shape i
   Morphism≡ shape pos symm i .mor-str .pos-map = pos i
   Morphism≡ shape pos symm i .mor-str .symm-map = symm i
-  Morphism≡ shape pos symm i .mor-str .is-group-hom-symm-map = ? -- isProp→PathP (λ _ → isPropIsSymmGroupHom) (f .is-group-hom-symm-map) (g .is-group-hom-symm-map) i
-  Morphism≡ shape pos symm i .mor-str .is-equivariant-pos-map = ? -- isProp→PathP {! !}
+  Morphism≡ {f} {g} shape pos symm i .mor-str .is-group-hom-symm-map =
+    isProp→PathP (λ i → isPropIsSymmGroupHom {u = shape i} {φ = symm i})
+      (f .is-group-hom-symm-map)
+      (g .is-group-hom-symm-map)
+      i
+  Morphism≡ {f} {g} shape pos symm i .mor-str .is-equivariant-pos-map =
+    isProp→PathP (λ i → isPropIsEquivariantPosMap (pos i) (symm i))
+      (f .is-equivariant-pos-map)
+      (g .is-equivariant-pos-map)
+      i

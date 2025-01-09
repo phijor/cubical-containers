@@ -11,12 +11,10 @@ open import GpdCont.SetTruncation using (componentEquiv ; setTruncateFstΣ≃ ; 
 open import GpdCont.Connectivity as Connectivity using (isPathConnected)
 
 open import GpdCont.TwoCategory.Base using (TwoCategory)
-open import GpdCont.TwoCategory.LaxFunctor using (LaxFunctor ; compLaxFunctor)
 open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor)
 open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor using (LocalFunctor)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
 open import GpdCont.TwoCategory.Displayed.LocallyThin using (LocallyThinOver ; IntoLocallyThin)
-open import GpdCont.TwoCategory.Displayed.LaxFunctor using (LaxFunctorᴰ)
 open import GpdCont.TwoCategory.Displayed.StrictFunctor using (StrictFunctorᴰ)
 open import GpdCont.TwoCategory.Displayed.Unit using (Unitᴰ ; UnitOver ; AddUnit ; ReindexUnit)
 open import GpdCont.TwoCategory.Family.Base using (Fam ; Famᴰ ; Fam₂J[_] ; Famᴰ₂ ; Fam₂PathP)

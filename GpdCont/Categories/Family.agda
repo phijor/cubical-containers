@@ -8,6 +8,7 @@ open import GpdCont.HomotopySet
 import      GpdCont.Categories.Products as Pr
 
 open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Equiv.Properties using (domIsoDep)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Data.Sigma
@@ -196,8 +197,8 @@ module ConstantExponentials (p : Pr.Products C ℓ) where
       index : ⟨ Index c ⟩
       index = f k
 
-      el' : C.Hom[ C._×_ ? ? , El c index ]
-      el' = ?
+      el' : C.Hom[ C._×_ {! !} {! !} , El c index ]
+      el' = {! !}
 
       el : C.Hom[ El (konst K ΠFam.× [konst K , c ]') (bool-elim k f) , El c index ]
       el = {! !} C.⋆ eval-El f k
@@ -213,7 +214,7 @@ module ConstantExponentials (p : Pr.Products C ℓ) where
       index = f k
 
       el' : C.Hom[ {! !} C.× {! !}, El c index ]
-      el' = ?
+      el' = {! !}
       el : C.Hom[ El (konst K ΠFam.× [konst K , c ]') idx , El c index ]
       el = {! !} C.⋆ eval-El f k
 
@@ -232,21 +233,68 @@ module ConstantExponentials (p : Pr.Products C ℓ) where
 
     univ-iso' : ∀ x → Iso (Fam [ x , [konst K , c ] ]) (Fam [ konst K ΠFam.× x , c ])
     univ-iso' x =
-      Σ[ f ∈ (⟨ Index x ⟩ → ⟨ K ⟩ → ⟨ Index c ⟩) ] (∀ idx → C.Hom[ El x idx , {! !} ]) Iso⟨ {! !} ⟩
+      Σ[ f ∈ (⟨ Index x ⟩ → ⟨ K ⟩ → ⟨ Index c ⟩) ]
+        ((idx : ⟨ Index x ⟩) → C.Hom[ El x idx , El [konst K , c ] (f idx) ])
+        Iso⟨ invIso Σ-Π-Iso ⟩
+      ((j : ⟨ Index x ⟩)
+        → Σ[ ic ∈ (⟨ K ⟩ → ⟨ Index c ⟩) ] C.Hom[ El x j , El [konst K , c ] ic ])
+        Iso⟨ codomainIsoDep (λ j → Σ-cong-iso-snd λ ic → C.univ-iso K _ (El x j)) ⟩
+      ((j : ⟨ Index x ⟩)
+        → Σ[ ic ∈ (⟨ K ⟩ → ⟨ Index c ⟩) ] ∀ k → C.Hom[ El x j , El c (ic k) ])
+        Iso⟨ codomainIsoDep (λ j → invIso Σ-Π-Iso) ⟩
+      ((j : ⟨ Index x ⟩) (k : ⟨ K ⟩)
+        → Σ[ ic ∈ ⟨ Index c ⟩ ] C.Hom[ El x j , El c ic ])
+        Iso⟨ invIso curryIso ⟩
+      ((idx : ⟨ Index x ⟩ × ⟨ K ⟩)
+        → Σ[ ic ∈ ⟨ Index c ⟩ ] C.Hom[ El x (idx .fst) , El c ic ])
+        Iso⟨ codomainIsoDep (λ { idx@(j , k) → Σ-cong-iso-snd (el-iso j k)} ) ⟩
+      ((idx : ⟨ Index x ⟩ × ⟨ K ⟩)
+        → Σ[ ic ∈ ⟨ Index c ⟩ ] C.Hom[ El (konst K ΠFam.× x) (Iso.fun index-iso' idx) , El c ic ])
+        Iso⟨ invIso (domIsoDep index-iso') ⟩
+      ((idx : ⟨ Index (konst K ΠFam.× x) ⟩)
+        → Σ[ ic ∈ ⟨ Index c ⟩ ] C.Hom[ El (konst K ΠFam.× x) idx , El c ic ])
+        Iso⟨ Σ-Π-Iso ⟩
+      Σ[ f ∈ (⟨ Index (konst K ΠFam.× x) ⟩ → ⟨ Index c ⟩) ]
+        ((idx : ⟨ Index (konst K ΠFam.× x) ⟩) → C.Hom[ El (konst K ΠFam.× x) idx , El c (f idx) ] )
+        Iso⟨⟩
       Fam [ konst K ΠFam.× x , c ] Iso∎
+      where
+        index-iso' : Iso (⟨ Index x ⟩ × ⟨ K ⟩) (⟨ Index (konst K ΠFam.× x) ⟩)
+        index-iso' =
+          ⟨ Index x ⟩ × ⟨ Index (konst K) ⟩ Iso⟨ Σ-swap-Iso ⟩
+          ⟨ Index (konst K) ⟩ × ⟨ Index x ⟩ Iso⟨ bool-elim-Iso ⟩
+          (∀ b → ⟨ Index (bool-elim (konst K) x b) ⟩) Iso⟨⟩
+          ⟨ Index (konst K ΠFam.× x) ⟩ Iso∎
+
+        index-iso : Iso (⟨ Index x ⟩ → ⟨ K ⟩ → ⟨ Index c ⟩) (⟨ Index (konst K ΠFam.× x) ⟩ → ⟨ Index c ⟩)
+        index-iso =
+          (⟨ Index x ⟩ → ⟨ K ⟩ → ⟨ Index c ⟩) Iso⟨ invIso curryIso ⟩
+          (⟨ Index x ⟩ × ⟨ Index (konst K) ⟩ → ⟨ Index c ⟩) Iso⟨ domIso Σ-swap-Iso ⟩
+          (⟨ Index (konst K) ⟩ × ⟨ Index x ⟩ → ⟨ Index c ⟩) Iso⟨ domIso bool-elim-Iso ⟩
+          ((∀ b → ⟨ Index (bool-elim (konst K) x b) ⟩) → ⟨ Index c ⟩) Iso⟨⟩
+          (⟨ Index (konst K ΠFam.× x) ⟩ → ⟨ Index c ⟩) Iso∎
+
+        el-iso : (j : ⟨ Index x ⟩) → (k : ⟨ K ⟩) → (ic : ⟨ Index c ⟩)
+          → Iso
+            C.Hom[ El x j , El c ic ]
+            C.Hom[ El (konst K ΠFam.× x) (Iso.fun index-iso' (j , k)) , El c ic ]
+        el-iso j k ic =
+          C.Hom[ El x j , El c ic ] Iso⟨ {! !} ⟩
+          C.Hom[ C.terminal C.× El x j , El c ic ] Iso⟨ {! !} ⟩
+          C.Hom[ El (konst K ΠFam.× x) (Iso.fun index-iso' (j , k)) , El c ic ] Iso∎
 
     univ-iso : ∀ x → Iso (Fam [ x , [konst K , c ] ]) (Fam [ konst K ΠFam.× x , c ])
     univ-iso x .Iso.fun = λ f → (Fam.id {x = konst K} ΠFam.×p f) Fam.⋆ eval
     univ-iso x .Iso.inv g .fst = the (⟨ Index x ⟩ → ⟨ K ⟩ → ⟨ Index c ⟩) λ idx k → HomIndex g (bool-elim k idx)
     univ-iso x .Iso.inv g .snd idx = the
       (C.Hom[ El x idx , C.Π K (El c ∘ HomIndex g ∘ λ k → bool-elim k idx) ])
-      {! !}
+      (C.univ-iso K (El c ∘ (HomIndex g ∘ (λ k → bool-elim k idx))) (El x idx) .Iso.inv {!HomEl g!})
     univ-iso x .Iso.rightInv = {! !}
     univ-iso x .Iso.leftInv = {! !}
 
     univ-equiv : ∀ x → Fam [ x , [konst K , c ] ] ≃ Fam [ konst K ΠFam.× x , c ]
     univ-equiv x .fst = λ f → (Fam.id {x = konst K} ΠFam.×p f) Fam.⋆ eval
-    univ-equiv x .snd = {! !}
+    univ-equiv x .snd = {! isoToIsEquiv (univ-iso x) !}
 
     ConstantExponential : Exponential Fam (konst K) c (famBinProducts (konst K))
     ConstantExponential .UniversalElement.vertex = [konst K , c ]

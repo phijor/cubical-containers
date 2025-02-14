@@ -12,14 +12,13 @@ record SymmetricContainer (ℓ : Level) : Type (ℓ-suc ℓ) where
     is-groupoid-shape : isGroupoid Shape
     is-set-pos : ∀ s → isSet (Pos s)
 
-  opaque
-    ShapeGroupoid : hGroupoid ℓ
-    ShapeGroupoid .fst = Shape
-    ShapeGroupoid .snd = is-groupoid-shape
+  ShapeGroupoid : hGroupoid ℓ
+  ShapeGroupoid .fst = Shape
+  ShapeGroupoid .snd = is-groupoid-shape
 
-    PosSet : (s : Shape) → hSet ℓ
-    PosSet s .fst = Pos s
-    PosSet s .snd = is-set-pos s
+  PosSet : (s : Shape) → hSet ℓ
+  PosSet s .fst = Pos s
+  PosSet s .snd = is-set-pos s
 
 mkSymmetricContainer : ∀ {ℓ} → (S : hGroupoid ℓ) (P : ⟨ S ⟩ → hSet ℓ) → SymmetricContainer ℓ
 mkSymmetricContainer S P .SymmetricContainer.Shape = ⟨ S ⟩

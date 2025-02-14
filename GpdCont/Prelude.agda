@@ -48,6 +48,23 @@ module _ where
   flipEquiv : ∀ {C : A → B → Type ℓ} → ((a : A) (b : B) → C a b) ≃ ((b : B) (a : A) → C a b)
   flipEquiv {C} = strictIsoToEquiv (flipIso {C = C})
 
+  toImplicit : {B : A → Type ℓ} → ((a : A) → B a) → ({a : A} → B a)
+  toImplicit f {a} = f a
+  {-# INLINE toImplicit #-}
+
+  fromImplicit : {B : A → Type ℓ} → ({a : A} → B a) → ((a : A) → B a)
+  fromImplicit f a = f {a}
+  {-# INLINE fromImplicit #-}
+
+  implicitExplicitIso : {B : A → Type ℓ} → Iso ({a : A} → B a) ((a : A) → B a)
+  implicitExplicitIso .Iso.fun = fromImplicit
+  implicitExplicitIso .Iso.inv = toImplicit
+  implicitExplicitIso .Iso.rightInv _ = refl
+  implicitExplicitIso .Iso.leftInv _ = refl
+
+  implicit≃Explicit : {B : A → Type ℓ} → ({a : A} → B a) ≃ ((a : A) → B a)
+  implicit≃Explicit = strictIsoToEquiv implicitExplicitIso
+
 module _ where
   infixr 0 _≃⟨⟩_
   _≃⟨⟩_ : ∀ {ℓ ℓ'} (A : Type ℓ) {B : Type ℓ'} → A ≃ B → A ≃ B

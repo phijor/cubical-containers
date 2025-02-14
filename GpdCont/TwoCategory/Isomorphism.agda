@@ -79,6 +79,31 @@ module LocalIso (C : TwoCategory ℓo ℓh ℓr) where
   LocalIso : (f g : C.hom x y) → Type ℓr
   LocalIso f g = Σ[ r ∈ C.rel f g ] hasLocalInverse r
 
+  idLocalIso : (f : C.hom x y) → LocalIso f f
+  idLocalIso f .fst = C.id-rel f
+  idLocalIso f .snd .fst = C.id-rel f
+  idLocalIso f .snd .snd .isLocalInverse.dom-id = C.trans-unit-left (C.id-rel f)
+  idLocalIso f .snd .snd .isLocalInverse.codom-id = C.trans-unit-right (C.id-rel f)
+
+  private opaque
+    cancel-twice : ∀ {f g h : C.hom x y}
+      → {r : C.rel f g} {r' : C.rel g f} (p : r C.∙ᵥ r' ≡ C.id-rel _)
+      → {s : C.rel g h} {s' : C.rel h g} (q : s C.∙ᵥ s' ≡ C.id-rel _)
+      → (r C.∙ᵥ s) C.∙ᵥ (s' C.∙ᵥ r') ≡ C.id-rel _
+    cancel-twice {r} {r'} p {s} {s'} q =
+      ((r C.∙ᵥ s) C.∙ᵥ (s' C.∙ᵥ r')) ≡⟨ C.trans-assoc r s _ ⟩
+      (r C.∙ᵥ (s C.∙ᵥ (s' C.∙ᵥ r'))) ≡⟨ cong (r C.∙ᵥ_) (sym (C.trans-assoc s s' r')) ⟩
+      (r C.∙ᵥ ((s C.∙ᵥ s') C.∙ᵥ r')) ≡⟨ cong (λ - → r C.∙ᵥ (- C.∙ᵥ r')) q ⟩
+      (r C.∙ᵥ (C.id-rel _ C.∙ᵥ r')) ≡⟨ cong (r C.∙ᵥ_) (C.trans-unit-left r') ⟩
+      (r C.∙ᵥ r') ≡⟨ p ⟩
+      C.id-rel _ ∎
+
+  compLocalIso : ∀ {f g h : C.hom x y} → LocalIso f g → LocalIso g h → LocalIso f h
+  compLocalIso (r , (r' , r-iso)) (s , (s' , s-iso)) .fst = r C.∙ᵥ s
+  compLocalIso (r , (r' , r-iso)) (s , (s' , s-iso)) .snd .fst = s' C.∙ᵥ r'
+  compLocalIso (r , r' , r-iso) (s , s' , s-iso) .snd .snd .isLocalInverse.dom-id = cancel-twice (r-iso .isLocalInverse.dom-id) (s-iso .isLocalInverse.dom-id)
+  compLocalIso (r , r' , r-iso) (s , s' , s-iso) .snd .snd .isLocalInverse.codom-id = cancel-twice (s-iso .isLocalInverse.codom-id) (r-iso .isLocalInverse.codom-id)
+
   isLocallyGroupoidal : Type (ℓ-max ℓo (ℓ-max ℓh ℓr))
   isLocallyGroupoidal = ∀ {x y : C.ob} {f g : C.hom x y} (r : C.rel f g) → hasLocalInverse r
 

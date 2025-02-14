@@ -52,6 +52,15 @@ module _ {ℓo ℓh ℓr : Level}
     _∙ᵥ_ = trans
     _∙ₕ_ = comp-rel
 
+    whisker-left : ∀ {x y z : ob} → (f : hom x y) {g₀ g₁ : hom y z} (r : rel g₀ g₁) → rel (f ∙₁ g₀) (f ∙₁ g₁)
+    whisker-left f r = id-rel f ∙ₕ r
+
+    whisker-right : ∀ {x y z : ob} → {f₀ f₁ : hom x y} (r : rel f₀ f₁) (g : hom y z) → rel (f₀ ∙₁ g) (f₁ ∙₁ g)
+    whisker-right r g = r ∙ₕ id-rel g
+
+    _◁_ = whisker-left
+    _▷_ = whisker-right
+
     pathToHom : ∀ {x y : ob} → x ≡ y → hom x y
     pathToHom {x} = J (λ y p → hom x y) $ id-hom x
 

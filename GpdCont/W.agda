@@ -85,7 +85,10 @@ module _ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB} where
     encodeIso x y .Iso.leftInv = decode-encode x y
 
     isPropW : isProp A → isProp (W A B)
-    isPropW is-prop-A (sup-W s x) y = {! !}
+    isPropW is-prop-A (sup-W sx tx) (sup-W sy ty) =
+      cong₂ sup-W
+        (is-prop-A sx sy)
+        (toPathP (funExt λ b → isPropW is-prop-A _ (ty b)))
 
     isOfHLevelPredCover : (n : HLevel) → isOfHLevel (suc n) A → (x y : W A B) → isOfHLevel n (Cover x y)
     isOfHLevelPredCover zero lvl-A x y = {! !}

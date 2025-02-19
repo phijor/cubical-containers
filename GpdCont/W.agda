@@ -91,15 +91,30 @@ module _ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB} where
         (toPathP (funExt λ b → isPropW is-prop-A _ (ty b)))
 
     isOfHLevelPredCover : (n : HLevel) → isOfHLevel (suc n) A → (x y : W A B) → isOfHLevel n (Cover x y)
-    isOfHLevelPredCover zero lvl-A x y = {! !}
-    isOfHLevelPredCover n@(suc _) lvl-A x@(sup-W _ _) y@(sup-W _ _) = isOfHLevelΣ n (lvl-A (shape x) (shape y)) λ p → isOfHLevelPathP n (isOfHLevelΠ n {! !}) {! !} {! !}
+    isOfHLevelSucW : (n : HLevel) → isOfHLevel (suc n) A → isOfHLevel (suc n) (W A B)
 
-    opaque
-      isOfHLevelSucW : (n : HLevel) → isOfHLevel (suc n) A → isOfHLevel (suc n) (W A B)
-      isOfHLevelSucW zero = isPropW
-      isOfHLevelSucW n@(suc _) lvl-A = lemma where
-        lemma : (x y : W A B) → isOfHLevel n (x ≡ y)
-        lemma x y = isOfHLevelRetractFromIso n (encodeIso x y) (isOfHLevelPredCover n lvl-A x y)
+    isOfHLevelPredCover zero is-prop-A x y =
+      isOfHLevelΣ 0
+        (isProp→isContrPath is-prop-A (shape x) (shape y))
+        (λ p → isOfHLevelPathP' 0 (isProp→ (isPropW is-prop-A)) (sub x) (sub y))
+    isOfHLevelPredCover n@(suc k) lvl-A x@(sup-W _ _) y@(sup-W _ _) =
+      isOfHLevelΣ n
+        (lvl-A (shape x) (shape y))
+        (λ p → {! !})
+
+    isOfHLevelSucW zero = isPropW
+    isOfHLevelSucW n@(suc _) lvl-A = lemma where
+      lemma : (x y : W A B) → isOfHLevel n (x ≡ y)
+      lemma x y = isOfHLevelRetractFromIso n (encodeIso x y) (isOfHLevelPredCover n lvl-A x y)
+
+WOfHLevel : ∀ {ℓA ℓB} (n : HLevel) → (A : TypeOfHLevel ℓA (suc n)) → (B : ⟨ A ⟩ → Type ℓB) → TypeOfHLevel _ (suc n)
+WOfHLevel n A B .fst = W ⟨ A ⟩ B
+WOfHLevel n A B .snd = WPath.isOfHLevelSucW n (str A)
+
+WSet : ∀ {ℓA ℓB} (A : hSet ℓA) → (B : ⟨ A ⟩ → Type ℓB) → hSet _
+WSet = WOfHLevel 1
+
+syntax WOfHLevel n A (λ a → B) = W[ n ∣ a ∈ A ] B
 
 record Fix {ℓ} (S : Type ℓ) (Q : S → Type ℓ) : Type (ℓ-suc ℓ) where
   field

@@ -321,8 +321,12 @@ SetBundleΣ₀-section y@((B , _) , F) = sym (Sigma.ΣPathP (TypeOfHLevel≡ 3 b
   base-path : B ≡ Σ ∥ B ∥₂ (fiber ∣_∣₂)
   base-path = ua (componentEquiv B)
 
+  F′ : Σ ∥ B ∥₂ (fiber ∣_∣₂) → hSet _
+  F′ = F ∘ invEq (componentEquiv B)
+
   fiber-path : PathP (λ i → base-path i → hSet _) F (ΣSnd₀ (SetBundleΣ₀⁻¹ y))
-  fiber-path = ua→ λ b → refl′ (F b)
+  -- fiber-path = ua→ λ b → refl′ (F b)
+  fiber-path i baseᵢ = F′ $ ua-unglue (componentEquiv B) i baseᵢ
 
 isSurjection-SetBundleΣ₀ : isSurjection SetBundleΣ.₀
 isSurjection-SetBundleΣ₀ = section→isSurjection SetBundleΣ₀-section

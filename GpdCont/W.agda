@@ -50,21 +50,6 @@ module _ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB} where
     Cover : (x y : W A B) → Type _
     Cover x y = Σ[ p ∈ shapePath x y ] subPath x y p
 
-    Cover' : (x y : W A B) → Type _
-    Cover' x y = W (shapePath x y) {! !}
-
-    toCover : ∀ x y → Cover' x y → Cover x y
-    toCover x@(sup-W sx tx) y@(sup-W sy ty) (sup-W p pᴰ) = p , λ i b → {! toCover !}
-
-    toCover' : ∀ x y → Cover x y → Cover' x y
-    toCover' x@(sup-W sx tx) y@(sup-W sy ty) (p , q) = sup-W p λ ps → toCover' {! !} {! !} {! !}
-
-    data Cover* : (x y : W A B) → Type (ℓ-max ℓA ℓB) where
-      cover : ∀ {sx sy} {tx ty}
-        → (sp : sx ≡ sy)
-        → (∀ {bx : B sx} {by : B sy} → PathP (λ i → B (sp i)) bx by → Cover* (tx bx) (ty by))
-        → Cover* (sup-W sx tx) (sup-W sy ty)
-
     encode : (x y : W A B) → x ≡ y → Cover x y
     encode x y p .fst = cong shape p
     encode x y p .snd = cong sub p
@@ -106,6 +91,50 @@ module _ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB} where
     isOfHLevelSucW n@(suc _) lvl-A = lemma where
       lemma : (x y : W A B) → isOfHLevel n (x ≡ y)
       lemma x y = isOfHLevelRetractFromIso n (encodeIso x y) (isOfHLevelPredCover n lvl-A x y)
+
+    Cover' : (x y : W A B) → Type _
+    Cover' x y = W (shapePath x y) (subPath x y)
+
+    subPath' : (x y : W A B) (p : shapePath x y) → Type _
+    subPath' x y p = Σ[ b₀ ∈ B (shape x) ] Σ[ b₁ ∈ B (shape y) ] PathP (λ i → B (p i)) b₀ b₁
+
+    Cover'' : (x y : W A B) → Type _
+    Cover'' x y = W (shapePath x y) (subPath' x y)
+
+    encode'' : (x y : W A B) → x ≡ y → Cover'' x y
+    decode'' : (x y : W A B) → Cover'' x y → x ≡ y
+
+    encode'' (sup-W sx tx) (sup-W sy ty) p = sup-W (cong shape p) λ where
+      (b₀ , b₁ , pᴰ) → {! cong sub p !}
+    decode'' (sup-W sx tx) (sup-W sy ty) (sup-W p pᴰ) = cong₂ sup-W p {! !} where
+      sub-path : PathP (λ i → B (p i) → W A B) tx ty
+      sub-path i b = {! !}
+
+    reflCover' : (x : W A B) → Cover' x x
+    reflCover' (sup-W s t) = sup-W (refl′ s) λ t≡t → reflCover' {! !}
+
+    encode' : (x y : W A B) → x ≡ y → Cover' x y
+    encodeExt' : (x y : W A B) {p : shape x ≡ shape y}
+      → (∀ b₀ b₁ → PathP (λ i → B (p i)) b₀ b₁ → Cover' (sub x b₀) (sub y b₁))
+      → Cover' x y
+
+    encode' x@(sup-W sx tx) y@(sup-W sy ty) p = sup-W shape-path sub-cover
+      where
+        shape-path : shapePath x y
+        shape-path = cong shape p
+
+        sub-cover-ext : (pᴰ : PathP (λ i → B (shape-path i) → W A B) tx ty)
+          → (b₀ : B sx) (b₁ : B sy) → PathP (λ i → B (shape-path i)) b₀ b₁
+          → Cover' (tx b₀) (ty b₁)
+        sub-cover-ext pᴰ b₀ b₁ b₀≡b₁ = encode' (tx b₀) (ty b₁) (λ i → pᴰ i (b₀≡b₁ i))
+
+        sub-cover : subPath x y shape-path → Cover' x y
+        sub-cover pᴰ = encodeExt' x y (sub-cover-ext pᴰ)
+
+    encodeExt' x y pᴰ = encode' x y {! !}
+
+    decode' : (x y : W A B) → Cover' x y → x ≡ y
+    decode' x@(sup-W sx tx) y@(sup-W sy ty) = {! !}
 
 WOfHLevel : ∀ {ℓA ℓB} (n : HLevel) → (A : TypeOfHLevel ℓA (suc n)) → (B : ⟨ A ⟩ → Type ℓB) → TypeOfHLevel _ (suc n)
 WOfHLevel n A B .fst = W ⟨ A ⟩ B

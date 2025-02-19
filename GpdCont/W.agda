@@ -112,6 +112,10 @@ record Fix {ℓ} (S : Type ℓ) (Q : S → Type ℓ) : Type (ℓ-suc ℓ) where
   unPos : (c : Carrier) → Q (unShape c) → Carrier
   unPos = snd ∘ equivFun fix
 
+fixW : ∀ {ℓ} (S : Type ℓ) (Q : S → Type ℓ) → Fix S Q
+fixW S Q .Fix.Carrier = W S Q
+fixW S Q .Fix.fix = isoToEquiv unfoldWIso
+
 module _ {ℓ} {S : Type ℓ} {Q : S → Type ℓ} (φ : Fix S Q) where
   open Fix φ
 
@@ -157,3 +161,37 @@ module _ {ℓ} {S : Type ℓ} {Q : S → Type ℓ} (φ : Fix S Q) where
 
   isOfHLevelFixᴰ : ∀ {P} {c} → (n : HLevel) → (∀ s → isOfHLevel n (P s)) → isOfHLevel n (Fixᴰ P c)
   isOfHLevelFixᴰ {P} {c} n lvl-P = {!  !}
+
+module _ {ℓ} {S : Type ℓ} {Q : S → Type ℓ} (P : S → Type ℓ) where
+  WFixᴰ : W S Q → Type ℓ
+  WFixᴰ = Fixᴰ (fixW S Q) P
+
+  module _ (leaves : ∀ s → Iso (P s) (P s)) where
+    permuteIsoWFixᴰ : ∀ w → Iso (WFixᴰ w) (WFixᴰ w)
+    permuteIsoWFixᴰ = def where
+      map : (f : ∀ s → P s → P s) → ∀ w → WFixᴰ w → WFixᴰ w
+      map f w@(sup-W s ws) (here p) = here (f s p)
+      map f w@(sup-W s ws) (there q path) = there q (map f (ws q) path)
+
+      to : ∀ w → WFixᴰ w → WFixᴰ w
+      to = map (Iso.fun ∘ leaves)
+
+      from : ∀ w → WFixᴰ w → WFixᴰ w
+      from = map (Iso.inv ∘ leaves)
+
+      rinv : ∀ w → section (to w) (from w)
+      rinv (sup-W s ws) (here p) = cong here (leaves s .Iso.rightInv p)
+      rinv (sup-W s ws) (there q path) = cong (there q) (rinv (ws q) path)
+
+      linv : ∀ w → retract (to w) (from w)
+      linv (sup-W s ws) (here p) = cong here (leaves s .Iso.leftInv p)
+      linv (sup-W s ws) (there q path) = cong (there q) (linv (ws q) path)
+
+      def : ∀ w → Iso _ _
+      def w .Iso.fun = to w
+      def w .Iso.inv = from w
+      def w .Iso.rightInv = rinv w
+      def w .Iso.leftInv = linv w
+
+    permuteWFixᴰ : ∀ w → WFixᴰ w ≃ WFixᴰ w
+    permuteWFixᴰ w = isoToEquiv (permuteIsoWFixᴰ w)

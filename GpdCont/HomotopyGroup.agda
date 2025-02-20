@@ -153,8 +153,39 @@ isPointedConnectedGroupoid (G , G⋆) = isPathConnected ⟨ G ⟩ , isPropIsPath
 hGroup : TwoCategory (ℓ-suc ℓ) ℓ ℓ
 hGroup = Subcategory Pointed isPointedConnectedGroupoid
 
+module hGroup where
+  open TwoCategory hGroup public
+
+  ⌜_⌝ : ob → Type _
+  ⌜ (((G , _) , _) , _) ⌝ = G
+  {-# INJECTIVE_FOR_INFERENCE ⌜_⌝ #-}
+
+  pt : (G : ob) → ⌜ G ⌝
+  pt ((_ , ∙) , _) = ∙
+
+  fun : ∀ {G H : ob} → hom G H → ⌜ G ⌝ → ⌜ H ⌝
+  fun (φ , _) = φ
+  {-# INJECTIVE_FOR_INFERENCE fun #-}
+
 ForgetConnected : StrictFunctor hGroup Pointed
 ForgetConnected = Forget Pointed isPointedConnectedGroupoid
 
 ForgetGroup : StrictFunctor hGroup (hGroupoid ℓ)
 ForgetGroup = compStrictFunctor ForgetConnected ForgetPointed
+
+module _ where
+  open import Cubical.Categories.Category.Base
+
+  postulate
+    isSetHGroupHom : ∀ x y → isSet (hGroup.hom x y)
+    
+
+  hGroupStrict : Category (ℓ-suc ℓ) ℓ
+  hGroupStrict .Category.ob = hGroup.ob
+  hGroupStrict .Category.Hom[_,_] = hGroup.hom
+  hGroupStrict .Category.id {x} = hGroup.id-hom x
+  hGroupStrict .Category._⋆_ {x} {y} {z} = hGroup.comp-hom {x} {y} {z}
+  hGroupStrict .Category.⋆IdL {x} {y} = hGroup.comp-hom-unit-left {x} {y}
+  hGroupStrict .Category.⋆IdR {x} {y} = hGroup.comp-hom-unit-right {x} {y}
+  hGroupStrict .Category.⋆Assoc {x} {y} {z} {w} = hGroup.comp-hom-assoc {x} {y} {z} {w}
+  hGroupStrict .Category.isSetHom {x} {y} = isSetHGroupHom x y

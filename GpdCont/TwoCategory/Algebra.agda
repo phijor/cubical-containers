@@ -68,3 +68,9 @@ Algebra = TotalTwoCategory.∫ C Algebraᴰ
 
 InitialAlgebra : Type _
 InitialAlgebra = Initial Algebra
+
+module Algebra where
+  open TwoCategory Algebra public
+
+  ₁≡ : ∀ {x y : ob} {f g : hom x y} (p : f .fst ≡ g .fst) → PathP (λ i → Algebraᴰ₁ (p i) (x .snd) (y .snd)) (f .snd) (g .snd) → f ≡ g
+  ₁≡ = TotalTwoCategory.∫₁≡ C Algebraᴰ

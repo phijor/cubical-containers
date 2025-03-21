@@ -2,12 +2,16 @@
 module GpdCont.W where
 
 open import GpdCont.Prelude
+open import GpdCont.HomotopySet using (SubSet)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.W.W public
 open import Cubical.Data.Empty
+open import Cubical.Data.Sigma
+import      Cubical.Data.Sum as Sum
 
 W⁺ : ∀ {ℓA ℓB} (A : Type ℓA) (B : A → Type ℓB) → Type _
 W⁺ A B = Σ[ a ∈ A ] (B a → W A B)
@@ -92,6 +96,7 @@ module _ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB} where
       lemma : (x y : W A B) → isOfHLevel n (x ≡ y)
       lemma x y = isOfHLevelRetractFromIso n (encodeIso x y) (isOfHLevelPredCover n lvl-A x y)
 
+    {-
     Cover' : (x y : W A B) → Type _
     Cover' x y = W (shapePath x y) (subPath x y)
 
@@ -135,6 +140,7 @@ module _ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB} where
 
     decode' : (x y : W A B) → Cover' x y → x ≡ y
     decode' x@(sup-W sx tx) y@(sup-W sy ty) = {! !}
+    -}
 
 WOfHLevel : ∀ {ℓA ℓB} (n : HLevel) → (A : TypeOfHLevel ℓA (suc n)) → (B : ⟨ A ⟩ → Type ℓB) → TypeOfHLevel _ (suc n)
 WOfHLevel n A B .fst = W ⟨ A ⟩ B
@@ -144,6 +150,23 @@ WSet : ∀ {ℓA ℓB} (A : hSet ℓA) → (B : ⟨ A ⟩ → Type ℓB) → hSe
 WSet = WOfHLevel 1
 
 syntax WOfHLevel n A (λ a → B) = W[ n ∣ a ∈ A ] B
+
+module _ {ℓA ℓB ℓP}
+  (A : hSet ℓA)
+  (B : ⟨ A ⟩ → Type ℓB)
+  (P : ∀ {a} → (B a → ⟨ WSet A B ⟩) → hProp ℓP)
+  where
+  isIterated : ⟨ WSet A B ⟩ → hProp (ℓ-max ℓB ℓP)
+  isIterated (sup-W a ws) .fst = ⟨ P ws ⟩ × ∀ b → ⟨ isIterated (ws b) ⟩
+  isIterated (sup-W a ws) .snd = isProp× (str (P ws)) $ isPropΠ λ b → str (isIterated (ws b))
+
+  WSubSet : hSet _
+  WSubSet = SubSet (WSet A B) isIterated
+
+WSubSetInd : ∀ {ℓA ℓB ℓP ℓX} {A : hSet ℓA} {B : ⟨ A ⟩ → Type ℓB} {P : ∀ {a} → (B a → ⟨ WSet A B ⟩) → hProp ℓP}
+  → (X : ⟨ WSubSet A B P ⟩ → hSet ℓX)
+  → ∀ w → ⟨ X w ⟩
+WSubSetInd X (sup-W s ws , p , ps) = {! !}
 
 record Fix {ℓ} (S : Type ℓ) (Q : S → Type ℓ) : Type (ℓ-suc ℓ) where
   field
@@ -207,8 +230,44 @@ module _ {ℓ} {S : Type ℓ} {Q : S → Type ℓ} (φ : Fix S Q) where
   isOfHLevelFixᴰ {P} {c} n lvl-P = {!  !}
 
 module _ {ℓ} {S : Type ℓ} {Q : S → Type ℓ} (P : S → Type ℓ) where
+  open import Cubical.Data.Nat using (_+_)
   WFixᴰ : W S Q → Type ℓ
   WFixᴰ = Fixᴰ (fixW S Q) P
+
+  WFixᴰΣ : W S Q → Type ℓ
+  WFixᴰΣ (sup-W s ws) = P s Sum.⊎ (Σ[ q ∈ Q s ] WFixᴰΣ (ws q))
+
+  WFixᴰIsoΣ : (w : W S Q) → Iso (WFixᴰ w) (WFixᴰΣ w)
+  WFixᴰIsoΣ = WIndExplicit the-iso where
+    module _ (s : S) (ws : Q s → W S Q) (rec-iso : ∀ q → Iso (WFixᴰ (ws q)) (WFixᴰΣ (ws q))) where
+      the-iso : Iso _ _
+      the-iso .Iso.fun (here p) = Sum.inl p
+      the-iso .Iso.fun (there q fs) = Sum.inr (q , rec-iso q .Iso.fun fs)
+      the-iso .Iso.inv (Sum.inl p) = here p
+      the-iso .Iso.inv (Sum.inr (q , fs)) = there q (rec-iso q .Iso.inv fs)
+      the-iso .Iso.rightInv (Sum.inl p) = refl
+      the-iso .Iso.rightInv (Sum.inr (q , fs)) i = Sum.inr (q , rec-iso q .Iso.rightInv fs i)
+      the-iso .Iso.leftInv (here p) = refl
+      the-iso .Iso.leftInv (there q fs) i = there q (rec-iso q .Iso.leftInv fs i)
+
+  isOfHLevelWFixᴰΣ : (n : HLevel)
+    → (∀ s → isOfHLevel (2 + n) (P s))
+    → (∀ s → isOfHLevel (2 + n) (Q s))
+    → ∀ w → isOfHLevel (2 + n) (WFixᴰΣ w)
+  isOfHLevelWFixᴰΣ n lvl-P lvl-Q (sup-W s ws) =
+    Sum.isOfHLevel⊎ n
+      (lvl-P s)
+      (isOfHLevelΣ (2 + n)
+        (lvl-Q s)
+        (λ q → isOfHLevelWFixᴰΣ n lvl-P lvl-Q (ws q))
+      )
+
+  isOfHLevelWFixᴰ : (n : HLevel)
+    → (∀ s → isOfHLevel (2 + n) (P s))
+    → (∀ s → isOfHLevel (2 + n) (Q s))
+    → ∀ w → isOfHLevel (2 + n) (WFixᴰ w)
+  isOfHLevelWFixᴰ n lvl-P lvl-Q w = isOfHLevelRetractFromIso (2 + n) (WFixᴰIsoΣ w) (isOfHLevelWFixᴰΣ n lvl-P lvl-Q w)
+
 
   module _ (leaves : ∀ s → Iso (P s) (P s)) where
     permuteIsoWFixᴰ : ∀ w → Iso (WFixᴰ w) (WFixᴰ w)
@@ -239,3 +298,53 @@ module _ {ℓ} {S : Type ℓ} {Q : S → Type ℓ} (P : S → Type ℓ) where
 
     permuteWFixᴰ : ∀ w → WFixᴰ w ≃ WFixᴰ w
     permuteWFixᴰ w = isoToEquiv (permuteIsoWFixᴰ w)
+
+module Connectivity where
+  open import GpdCont.Connectivity
+
+  open import Cubical.Homotopy.Connected
+  open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
+  open import Cubical.HITs.PropositionalTruncation.Monad
+  import      Cubical.Data.Empty as Empty
+  open import Cubical.Relation.Nullary using (¬_)
+
+  private
+    variable
+      ℓA ℓB : Level
+      A : Type ℓA
+      B : A → Type ℓB
+
+  module _ {A : Type ℓA} {B : A → Type ℓB} where
+    hasLeaf : Type _
+    hasLeaf = ∃[ a₀ ∈ A ] ¬ B a₀
+
+    hasLeaf→isInhW : hasLeaf → ∥ W A B ∥₁
+    hasLeaf→isInhW = PT.map λ { (a₀ , ¬b) → sup-W a₀ (rec ∘ ¬b) }
+
+    frob : (∀ a → B a) → ¬ (W A B)
+    frob f (sup-W a ws) = frob f (ws (f a))
+
+  isConnectedW : ∀ {A : Type ℓA} {B : A → Type ℓB} (k : HLevel) → isConnected k A → isConnected k (W A B)
+  isConnectedW⁺ : ∀ {A : Type ℓA} {B : A → Type ℓB} (k : HLevel) → isConnected k A → isConnected k (W⁺ A B)
+
+  isConnectedW⁺ {A} {B} zero conn-A = isConnectedZero (W⁺ A B)
+  isConnectedW⁺ {A} {B} (suc k) conn-A = isConnectedΣ (suc k) conn-A goal where
+    module _ (a : A) where
+      inh-sub : ∥ W A B ∥₁
+      inh-sub = isConnectedSuc→merelyInh k {! !} -- (isConnectedW (suc k) conn-A)
+
+      mere-section : ∥ (B a → W A B) ∥₁
+      mere-section = do
+        w ← inh-sub
+        return $ const w
+
+      lemma-ext : (f g : B a → W A B) → isConnected k (∀ b → f b ≡ g b)
+      lemma-ext f g = AC→isConnectedΠ k {! !} (λ b → isConnectedPath k {! !} {! !} {! !})
+
+      lemma : (f g : B a → W A B) → isConnected k (f ≡ g)
+      lemma f g = isConnectedRetractFromIso k (invIso funExtIso) $ lemma-ext f g
+
+      goal : isConnected (suc k) (B a → W A B)
+      goal = merelyInh×isConnectedPath→isConnectedSuc k mere-section lemma
+
+  isConnectedW {A} {B} k conn-A = isConnectedRetractFromIso k unfoldWIso $ isConnectedW⁺ k conn-A

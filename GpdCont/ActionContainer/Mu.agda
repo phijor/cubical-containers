@@ -1,169 +1,231 @@
-open import GpdCont.Prelude
+{-# OPTIONS --lossy-unification #-}
+open import GpdCont.Prelude hiding (_▷_)
 
-module GpdCont.ActionContainer.Mu (ℓ : Level) where
+module GpdCont.ActionContainer.Mu (ℓ : Level) (Ix : Type ℓ) where
 
 open import GpdCont.W
+open import GpdCont.HomotopySet
+open import GpdCont.Univalence
 open import GpdCont.TwoCategory.Base
+open import GpdCont.TwoCategory.Displayed.Base using (module TotalTwoCategory)
+open import GpdCont.TwoCategory.StrictFunctor
 open import GpdCont.TwoCategory.Family.Base using (Fam)
+open import GpdCont.TwoCategory.Product using (Δ)
+open import GpdCont.TwoCategory.Algebra
+open import GpdCont.TwoCategory.Initial
+open import GpdCont.TwoCategory.Isomorphism using (module LocalIso)
+open import GpdCont.ActionContainer.Parametrized ℓ
+open import GpdCont.ActionContainer.Substitution ℓ Ix
 open import GpdCont.GroupAction.Base
+open import GpdCont.GroupAction.Equivariant using (isEquivariantMap[_][_,_])
+open import GpdCont.GroupAction.Pi using (ΠActionΣ)
+open import GpdCont.GroupAction.Sum using (_⊎Action_)
 open import GpdCont.GroupAction.TwoCategory using (GroupAction)
-open import GpdCont.Group.DirProd using (DirProd)
+open import GpdCont.Group.DirProd using (DirProd ; module DirProd ; mapSndHom)
+open import GpdCont.Group.Pi using (mapΠGroup)
 open import GpdCont.Group.SymmetricGroup using (𝔖)
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Transport using (substEquiv)
+import      Cubical.Data.Equality as Eq
+open import Cubical.Data.Sigma
 open import Cubical.Data.Maybe
+open import Cubical.Data.Sum as Sum
+open import Cubical.HITs.SetQuotients as SQ using (_/_)
 open import Cubical.Algebra.Group
+open import Cubical.Algebra.Group.Morphisms
+open import Cubical.Algebra.Group.MorphismProperties using (idGroupHom)
 open import Cubical.Algebra.Group.Instances.Pi using (ΠGroup)
+open import Cubical.Algebra.Group.GroupPath using (isGroupoidGroup ; uaGroup)
 
-module _ {ℓIx ℓo ℓh ℓr} (Ix : Type ℓIx) (C : TwoCategory ℓo ℓh ℓr) where
-  private module C = TwoCategory C
-  Copy : TwoCategory (ℓ-max ℓIx ℓo) (ℓ-max ℓIx ℓh) (ℓ-max ℓIx ℓr)
-  Copy .TwoCategory.ob = Ix → C.ob
-  Copy .TwoCategory.hom x y = (ix : Ix) → C.hom (x ix) (y ix)
-  Copy .TwoCategory.rel f g = (ix : Ix) → C.rel (f ix) (g ix)
-  Copy .TwoCategory.two-category-structure .TwoCategoryStr.id-hom x ix = C.id-hom (x ix)
-  Copy .TwoCategory.two-category-structure .TwoCategoryStr.comp-hom f g ix = C.comp-hom (f ix) (g ix)
-  Copy .TwoCategory.two-category-structure .TwoCategoryStr.id-rel f ix = C.id-rel (f ix)
-  Copy .TwoCategory.two-category-structure .TwoCategoryStr.trans r s ix = C.trans (r ix) (s ix)
-  Copy .TwoCategory.two-category-structure .TwoCategoryStr.comp-rel r s ix = C.comp-rel (r ix) (s ix)
-  Copy .TwoCategory.is-two-category .IsTwoCategory.is-set-rel f g = isSetΠ λ ix → C.is-set-rel (f ix) (g ix)
-  Copy .TwoCategory.is-two-category .IsTwoCategory.trans-assoc = {! !}
-  Copy .TwoCategory.is-two-category .IsTwoCategory.trans-unit-left = {! !}
-  Copy .TwoCategory.is-two-category .IsTwoCategory.trans-unit-right = {! !}
-  Copy .TwoCategory.is-two-category .IsTwoCategory.comp-rel-id = {! !}
-  Copy .TwoCategory.is-two-category .IsTwoCategory.comp-rel-trans = {! !}
-  Copy .TwoCategory.is-two-category .IsTwoCategory.comp-hom-assoc = {! !}
-  Copy .TwoCategory.is-two-category .IsTwoCategory.comp-hom-unit-left = {! !}
-  Copy .TwoCategory.is-two-category .IsTwoCategory.comp-hom-unit-right = {! !}
-  Copy .TwoCategory.is-two-category .IsTwoCategory.comp-rel-assoc = {! !}
-  Copy .TwoCategory.is-two-category .IsTwoCategory.comp-rel-unit-left = {! !}
-  Copy .TwoCategory.is-two-category .IsTwoCategory.comp-rel-unit-right = {! !}
+private
+  postulate
+    trustme : ∀ {ℓ} {A : Type ℓ} → A
 
-module _ {ℓIx} (Ix : Type ℓIx) where
-  ActCont : TwoCategory (ℓ-max (ℓ-suc ℓ) ℓIx) (ℓ-max ℓ ℓIx) (ℓ-max ℓ ℓIx)
-  ActCont = Fam (Copy Ix (GroupAction ℓ)) ℓ
+  _×Group_ = DirProd
 
-  module ActCont = TwoCategory ActCont
-
-module ActCont₀ {ℓIx} {Ix : Type ℓIx} (F : ActCont.ob Ix) where
-  Shape : hSet _
-  Shape = F .fst
-
-  Symm : Ix → ⟨ Shape ⟩ → Group ℓ
-  Symm ix s = F .snd s ix .fst
-
-  Pos : Ix → ⟨ Shape ⟩ → hSet ℓ
-  Pos ix s = F .snd s ix .snd .fst
-
-  action : (ix : Ix) → (s : ⟨ Shape ⟩) → Action (Symm ix s) (Pos ix s)
-  action ix s = F .snd s ix .snd .snd
-
-module _ {ℓIx} (Ix : Type ℓIx) where
-  ActCont[_+1] : Type _
-  ActCont[_+1] = ActCont.ob (Maybe Ix)
-
-module ActCont+1₀ {ℓIx} {Ix : Type ℓIx} (F : ActCont[ Ix +1]) where
-  open ActCont₀ F public
-
-  Free : ⟨ Shape ⟩ → hSet _
-  Free = Pos nothing
-
-  Param : Ix → ⟨ Shape ⟩ → hSet _
-  Param = Pos ∘ just
-
-module _ {ℓIx} (Ix : Type ℓIx) (F : ActCont[ Ix +1]) where
+module _ (F : ActCont[ Ix +1]) where
   private module F = ActCont+1₀ F
 
+
+  SubstInitial : Type _
+  SubstInitial = InitialAlgebra (Subst F)
+
   μShape : hSet ℓ
-  μShape = W[ 1 ∣ s ∈ F.Shape ] ⟨ F.Free s ⟩
+  μShape = W[ 1 ∣ s ∈ F.Shape ] ⟨ F.Free/ s ⟩
 
-  μPos : ⟨ μShape ⟩ → Ix → hSet ℓ
-  μPos w ix .fst = WFixᴰ (⟨_⟩ ∘ F.Param ix) w
-  μPos w ix .snd = isOfHLevelFixᴰ _ 2 (str ∘ F.Param ix)
+  -- μShape* : hSet ℓ
+  -- μShape* = W[ 1 ∣ s ∈ F.Shape ] ⟨ F.Free s ⟩
 
-  μSymm : ⟨ μShape ⟩ → Ix → Group ℓ
-  μSymm (sup-W s ws) ix = DirProd (F.Symm (just ix) s) (ΠGroup {X = ⟨ F.Free s ⟩} λ pos → μSymm (ws pos) ix)
+  -- TODO: What property of shapes does this encode?
+  -- isWellBehaved : ∀ {s : ⟨ F.Shape ⟩} → (⟨ F.Free s ⟩ → ⟨ WSet F.Shape (⟨_⟩ ∘ F.Free) ⟩) → hProp ℓ
+  -- isWellBehaved {s} μs .fst = isClassFun (F.action free s) μs
+  -- isWellBehaved {s} μs .snd = (isPropIsClassFun (str (WSet _ _)) μs)
 
-  μSymm' : ⟨ μShape ⟩ → Ix → Group ℓ
-  μSymm' (sup-W s ws) ix =
-    DirProd
-      (F.Symm (just ix) s) $
-      DirProd
-        (F.Symm nothing s)
-        (ΠGroup {X = ⟨ F.Free s ⟩} λ pos → μSymm (ws pos) ix)
+  -- μShape : hSet ℓ
+  -- μShape = WSubSet F.Shape (⟨_⟩ ∘ F.Free) isWellBehaved
 
-  μAction : (ix : Ix) → (w : ⟨ μShape ⟩) → Action (μSymm w ix) (μPos w ix)
-  μAction ix = WIndExplicit goal where
-    module _
-      (s : ⟨ F.Shape ⟩) (ws : ⟨ F.Free s ⟩ → ⟨ μShape ⟩)
-      (μ : ∀ free → Action (μSymm (ws free) ix) (μPos (ws free) ix))
-      where
-      w = sup-W s ws
-      module μ {free : ⟨ F.Free s ⟩} = Action (μ free)
+  module _ (ix : Ix) where
+    μPos : ⟨ μShape ⟩ → hSet ℓ
+    μPos w .fst = WFixᴰΣ {S = ⟨ F.Shape ⟩} {Q = ⟨_⟩ ∘ F.Free/} (⟨_⟩ ∘ F.Param ix) w
+    μPos w .snd = isOfHLevelWFixᴰΣ _ 0 (str ∘ F.Param ix) (str ∘ F.Free/) w
 
-      σ : Action _ _
-      σ = F.action (just ix) s
+    μSymm : ⟨ μShape ⟩ → Group ℓ
+    μSymm (sup-W s μs) = (F.Symm (param ix) s) ×Group (ΠGroup {X = ⟨ F.Free/ s ⟩} (μSymm ∘ μs))
 
-      module σ = Action σ
+    μAction : (w : ⟨ μShape ⟩) → Action (μSymm w) (μPos w)
+    μAction = WIndExplicit goal where
+      module _
+        (sꟳ : ⟨ F.Shape ⟩)
+        (sμ : ⟨ F.Free/ sꟳ ⟩ → ⟨ μShape ⟩)
+        (μAction : ∀ free → Action (μSymm (sμ free)) (μPos (sμ free)))
+        where
+        w : ⟨ μShape ⟩
+        w = sup-W sꟳ sμ
 
-      ω-fun : ⟨ F.Symm (just ix) s ⟩ → ((free : ⟨ F.Free s ⟩) → ⟨ μSymm (ws free) ix ⟩) → ⟨ μPos w ix ⟩ → ⟨ μPos w ix ⟩
-      ω-fun g fs (here param) = here $ the ⟨ F.Param ix s ⟩ (g σ.▷ param)
-      ω-fun g fs (there free path) = there free (fs free μ.▷ path)
-
-      ω-inv : ⟨ F.Symm (just ix) s ⟩ → ((free : ⟨ F.Free s ⟩) → ⟨ μSymm (ws free) ix ⟩) → ⟨ μPos w ix ⟩ → ⟨ μPos w ix ⟩
-      ω-inv g fs (here param) = here (invEq (σ.action g) param)
-      ω-inv g fs (there free path) = there free (invEq (μ.action (fs free)) path)
-
-      is-equiv-ω : ∀ g fs → isEquiv (ω-fun g fs)
-      is-equiv-ω g fs = isoToIsEquiv λ where
-        .Iso.fun → ω-fun g fs
-        .Iso.inv → ω-inv g fs
-        .Iso.rightInv (here param) → cong here (secEq (σ.action g) param)
-        .Iso.rightInv (there free path) → cong (there free) (secEq (μ.action (fs free)) path)
-        .Iso.leftInv (here param) → cong here (retEq (σ.action g) param)
-        .Iso.leftInv (there free path) → cong (there free) (retEq (μ.action (fs free)) path)
-
-      ω : ⟨ F.Symm (just ix) s ⟩ × ((free : ⟨ F.Free s ⟩) → ⟨ μSymm (ws free) ix ⟩) → ⟨ μPos w ix ⟩ ≃ ⟨ μPos w ix ⟩
-      ω (g , fs) .fst = ω-fun g fs
-      ω (g , fs) .snd = is-equiv-ω g fs
-
-      goal : Action _ _
-      goal .Action.action = ω
-      goal .Action.pres· (g , fs) (g′ , fs′) = equivEq $ funExt λ where
-        (here param) → cong here $ cong equivFun (σ.pres· g g′) ≡$ param
-        (there free path) → cong (there free) $ cong equivFun (μ.pres· (fs free) (fs′ free)) ≡$ path
-
-  μAction' : (ix : Ix) → (w : ⟨ μShape ⟩) → Action (μSymm' w ix) (μPos w ix)
-  μAction' ix = WIndExplicit goal where
-    module _
-      (s : ⟨ F.Shape ⟩) (ws : ⟨ F.Free s ⟩ → ⟨ μShape ⟩)
-      (μ : ∀ free → Action (μSymm' (ws free) ix) (μPos (ws free) ix))
-      where
-      w = sup-W s ws
-      module μ {free : ⟨ F.Free s ⟩} = Action (μ free)
-
-      σ : Action _ _
-      σ = F.action (just ix) s
-
-      module σ = Action σ
-
-      τ : Action _ _
-      τ = F.action nothing s
-
-      module τ = Action τ
-
-      ω-fun : ⟨ F.Symm (just ix) s ⟩ → ⟨ F.Symm nothing s ⟩ → ((free : ⟨ F.Free s ⟩) → ⟨ μSymm' (ws free) ix ⟩) → ⟨ μPos w ix ⟩ → ⟨ μPos w ix ⟩
-      ω-fun g h fs (here param) = here $ the ⟨ F.Param ix s ⟩ (g σ.▷ param)
-      ω-fun g h fs (there free path) = there (h τ.▷ free) {! fs free μ.▷ _ !}
-
-      goal : Action _ _
-      goal .Action.action = {! !}
-      goal .Action.pres· = {! !}
+        goal : Action (μSymm w) (μPos w)
+        goal = F.action (param ix) sꟳ ⊎Action ΠActionΣ (F.Free/ sꟳ) (μPos ∘ sμ) μAction
 
   μ : ActCont.ob Ix
   μ .fst = μShape
-  μ .snd w ix .fst = μSymm w ix
-  μ .snd w ix .snd .fst = μPos w ix
+  μ .snd w ix .fst = μSymm ix w
+  μ .snd w ix .snd .fst = μPos ix w
   μ .snd w ix .snd .snd = μAction ix w
+
+  private
+    module μ = ActCont₀ μ
+    module F[μ] = ActCont₀ (F [ μ ])
+
+  module _
+    (ix : Ix)
+    (sꟳ : ⟨ F.Shape ⟩)
+    (sμ : ⟨ F.Free/ sꟳ ⟩ → ⟨ μShape ⟩)
+    where
+    μ-fold-symm : GroupHom (F[μ].Symm ix (sꟳ , sμ)) (μ.Symm ix (sup-W sꟳ sμ))
+    μ-fold-symm = idGroupHom
+
+    μ-fold-pos : ⟨ μPos ix (sup-W sꟳ sμ) ⟩ → ⟨ F[μ].Pos ix (sꟳ , sμ) ⟩
+    μ-fold-pos = id _
+
+    μ-fold-is-equivariant : isEquivariantMap[ μ-fold-symm , μ-fold-pos ][ F[μ].action ix (sꟳ , sμ) , μ.action ix (sup-W sꟳ sμ) ]
+    μ-fold-is-equivariant _ = refl
+
+  μ-fold : ActCont.hom Ix (F [ μ ]) μ
+  μ-fold .fst = unfoldWIso .Iso.inv
+  μ-fold .snd (sꟳ , sμ) ix .fst = μ-fold-symm ix sꟳ sμ
+  μ-fold .snd (sꟳ , sμ) ix .snd .fst = μ-fold-pos ix sꟳ sμ
+  μ-fold .snd (sꟳ , sμ) ix .snd .snd = μ-fold-is-equivariant ix sꟳ sμ
+
+  μ-unfold : ActCont.hom Ix μ (F [ μ ])
+  μ-unfold .fst = unfoldWIso .Iso.fun
+  μ-unfold .snd (sup-W sꟳ sμ) ix .fst = idGroupHom
+  μ-unfold .snd (sup-W sꟳ sμ) ix .snd .fst = id _
+  μ-unfold .snd (sup-W sꟳ sμ) ix .snd .snd _ = refl
+
+  FAlg : TwoCategory _ _ _
+  FAlg = Algebra (Subst F)
+
+  private
+    module FAlg = Algebra (Subst F)
+    module μ-fold = ActCont₁ μ-fold
+    module μ-unfold = ActCont₁ μ-unfold
+
+  μ-alg : FAlg.ob
+  μ-alg .fst = μ
+  μ-alg .snd = μ-fold
+
+  μ-cata : (alg : FAlg.ob) → FAlg.hom μ-alg alg
+  μ-cata (A , φ) = cata-hom where
+    module A = ActCont₀ A
+    module F[A] = ActCont₀ (F [ A ])
+    module φ = ActCont₁ φ
+
+    cata-shape : ⟨ μShape ⟩ → ⟨ A.Shape ⟩
+    cata-shape (sup-W sꟳ sμ) = φ.shape-map (sꟳ , sμ ⋆ cata-shape)
+
+    cata-shape-rec : cata-shape ≡ μ-unfold.shape-map ⋆ map-snd (_⋆ cata-shape) ⋆ φ.shape-map
+    cata-shape-rec i (sup-W sꟳ sμ) = φ.shape-map (sꟳ , sμ ⋆ cata-shape)
+
+    cata-symm : ∀ ix w → GroupHom (μSymm ix w) (A.Symm ix (cata-shape w))
+    cata-symm ix w@(sup-W sꟳ sμ) = {! !} where
+      foo : GroupHom (F[A].Symm ix (sꟳ , sμ ⋆ cata-shape)) (A.Symm ix (cata-shape w))
+      foo = φ.symm-map ix (sꟳ , sμ ⋆ cata-shape)
+
+    cata-pos : ∀ ix w → ⟨ A.Pos ix (cata-shape w) ⟩ → ⟨ μPos ix w ⟩
+    cata-pos ix w@(sup-W sꟳ sμ) = foo ⋆ bar  where
+      foo : ⟨ A.Pos ix (cata-shape w) ⟩ → ⟨ F[A].Pos ix (sꟳ , sμ ⋆ cata-shape) ⟩
+      foo = φ.pos-map ix (sꟳ , sμ ⋆ cata-shape)
+
+      bar : ⟨ F[A].Pos ix (sꟳ , sμ ⋆ cata-shape) ⟩ → ⟨ μPos ix w ⟩
+      bar (inl p) = inl p
+      bar (inr (p , pos-A)) = inr (p , cata-pos ix (sμ p) pos-A)
+
+    cata : ActCont.hom Ix μ A
+    cata .fst = cata-shape
+    cata .snd w ix .fst = cata-symm ix w
+    cata .snd w ix .snd .fst = cata-pos ix w
+    cata .snd w ix .snd .snd = {! !}
+
+    cata-is-algebra-hom : ActCont.comp-hom Ix μ-fold cata ≡ ActCont.comp-hom Ix (subst-hom F cata) φ
+    cata-is-algebra-hom = {! !}
+
+    cata-hom : FAlg.hom _ _
+    cata-hom .fst = cata
+    cata-hom .snd = LocalIso.pathToLocalIso (ActCont Ix) cata-is-algebra-hom
+
+{-
+  μ-alg-hom : (alg : FAlg.ob) → FAlg.hom μ-alg alg
+  μ-alg-hom (A , alg) = def where
+    module A = ActCont₀ A
+    module FA = ActCont₀ (F [ A ])
+    module alg = ActCont₁ alg
+
+    ana-shape : ⟨ μShape ⟩ → ⟨ A.Shape ⟩
+    ana-shape (sup-W sꟳ μ-shapes) = alg.shape-map (sꟳ , μ-shapes ⋆ ana-shape)
+
+    ana-symm : (w : ⟨ μShape ⟩) (ix : Ix) → GroupHom (μSymm w ix) (A.Symm ix (ana-shape w))
+    ana-symm (sup-W sꟳ μ-shapes) ix = {! !}
+
+    ana-pos : (w : ⟨ μShape ⟩) (ix : Ix) → ⟨ A.Pos ix (ana-shape w) ⟩ → ⟨ μPos w ix ⟩
+    ana-pos w@(sup-W sꟳ μ-shapes) ix = one ⋆ two where
+      one : ⟨ A.Pos ix (ana-shape w) ⟩ → ⟨ FA.Pos ix (sꟳ , μ-shapes ⋆ ana-shape) ⟩
+      one = alg.pos-map ix (sꟳ , μ-shapes ⋆ ana-shape)
+
+      two : ⟨ FA.Pos ix (sꟳ , μ-shapes ⋆ ana-shape) ⟩ → ⟨ μPos w ix ⟩
+      two (inl x) = here {! !}
+      two (inr x) = {! !}
+
+    ana : ActCont.hom Ix μ A
+    ana .fst = ana-shape
+    ana .snd w ix .fst = ana-symm w ix
+    ana .snd w ix .snd .fst = ana-pos w ix
+    ana .snd w ix .snd .snd = {! !}
+
+    def : FAlg.hom (μ , μ-fold) (A , alg)
+    def .fst = ana
+    def .snd = {! !}
+  -- μ-alg-hom (A , alg) .fst .fst = WIndExplicit λ s _ sub → alg .fst (s , sub)
+  -- μ-alg-hom (A , alg) .fst .snd = WIndExplicit λ s xx f ix → {! f  !}
+  -- μ-alg-hom (A , alg) .snd = {! !}
+
+{-
+  isProp-μ-initial-hom : (alg : FAlg.ob) → isProp (FAlg.hom μ-alg alg)
+  isProp-μ-initial-hom alg f*@(f , is-hom-f) g*@(g , is-hom-g) = FAlg.₁≡ {x = μ-alg} {y = alg} {f = f*} {g = g*} lemma₁ {! !} where
+    lemma₁ : f ≡ g
+    lemma₁ = {! is-hom-f .fst!}
+
+  -- μ-initial-eq : (alg : FAlg.ob) (f g : FAlg.hom μ-alg alg) → f ≡ g
+  -- μ-initial-eq alg f g = ΣPathP (ΣPathP (funExt {! f .snd !} , {! !}) , {! !})
+
+  μ-initial' : (alg : FAlg.ob) (f g : FAlg.hom μ-alg alg) → isContr (f ≡ g)
+  μ-initial' alg = isProp→isContrPath $ isProp-μ-initial-hom alg
+  -- μ-initial' alg f g .fst = μ-initial-eq alg f g
+  -- μ-initial' alg f g .snd = {! !}
+
+  μ-initial : SubstInitial F
+  μ-initial .fst = μ-alg
+  μ-initial .snd alg f g = {! isContrRetract {! !} {! !} {! !} (μ-initial' alg f g) !}
+  -}
+  -}

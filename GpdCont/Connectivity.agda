@@ -8,6 +8,7 @@ open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Path as Path
 open import Cubical.Functions.Surjection using (isSurjection ; isPropIsSurjection)
+open import Cubical.Functions.FunExtEquiv using (funExtIso)
 open import Cubical.Data.Nat.Base
 open import Cubical.Data.Nat.Properties as Nat using ()
 open import Cubical.Data.Sigma.Base
@@ -209,3 +210,40 @@ isConnected→mereLoopSpaceEquiv conn-A a b = do
     open import Cubical.HITs.PropositionalTruncation.Monad
     conjEquiv : (p : a ≡ b) → (a ≡ a) ≃ (b ≡ b)
     conjEquiv p = doubleCompPathEquiv p p
+
+module _ where
+  open import Cubical.HITs.PropositionalTruncation.Monad
+
+  AC→isConnectedΠ : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB} (k : HLevel)
+    → (ac : ∀ (A : Type ℓA) (B : A → Type ℓB) → (∀ a → ∥ B a ∥₁) → ∥ (∀ a → B a) ∥₁)
+    → (∀ a → isConnected k (B a))
+    → isConnected k (∀ a → B a)
+  AC→isConnectedΠ {A} {B} zero _ _ = isConnectedZero (∀ a → B a)
+  AC→isConnectedΠ {A} {B} (suc k) ac is-conn-B = merelyInh×isConnectedPath→isConnectedSuc k mere-section conn-path where
+    mere-section : ∥ (∀ a → B a) ∥₁
+    mere-section = ac A B $ isConnectedSuc→merelyInh k ∘ is-conn-B
+
+    conn-path-ext : (b₀ b₁ : ∀ a → B a) → isConnected k (∀ a → b₀ a ≡ b₁ a)
+    conn-path-ext b₀ b₁ = AC→isConnectedΠ k ac (λ a → isConnectedPath k (is-conn-B a) (b₀ a) (b₁ a))
+
+    conn-path : (b₀ b₁ : ∀ a → B a) → isConnected k (b₀ ≡ b₁)
+    conn-path b₀ b₁ = isConnectedRetractFromIso k (invIso funExtIso) (conn-path-ext b₀ b₁)
+
+  isConnectedΣ : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB} (k : HLevel)
+    → isConnected k A
+    → (∀ a → isConnected k (B a))
+    → isConnected k (Σ A B)
+  isConnectedΣ {A} {B} zero is-conn-A is-conn-B = isConnectedZero (Σ A B)
+  isConnectedΣ {A} {B} (suc k) is-conn-A is-conn-B = merelyInh×isConnectedPath→isConnectedSuc k mere-pair conn-path where
+    mere-pair : ∥ Σ A B ∥₁
+    mere-pair = do
+      a ← isConnectedSuc→merelyInh k is-conn-A
+      b ← isConnectedSuc→merelyInh k (is-conn-B a)
+      return (a , b)
+
+    conn-path-Σ : ∀ {a₀ a₁ : A} {b₀ : B a₀} {b₁ : B a₁}
+      → isConnected k (Σ[ p ∈ a₀ ≡ a₁ ] PathP (λ i → B (p i)) b₀ b₁)
+    conn-path-Σ = isConnectedΣ k (isConnectedPath k is-conn-A _ _) λ _ → isConnectedPathP k (is-conn-B _) _ _
+
+    conn-path : ∀ x y → isConnected k (Path (Σ A B) x y)
+    conn-path x y = isConnectedRetractFromIso k (invIso Sigma.ΣPathPIsoPathPΣ) conn-path-Σ

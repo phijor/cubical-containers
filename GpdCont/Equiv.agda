@@ -9,6 +9,7 @@ open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Univalence using (pathToEquiv ; EquivJ)
 open import Cubical.Foundations.Transport using (transportComposite)
 open import Cubical.Functions.FunExtEquiv using (funExtEquiv)
+open import Cubical.Data.Sigma
 
 private
   variable
@@ -32,6 +33,18 @@ equivΠCodComp : ∀ {ℓ ℓ'} {A : Type ℓ} {F G H : A → Type ℓ'}
   → (β : (a : A) → G a ≃ H a)
   → equivΠCod (λ a → α a ∙ₑ β a) ≡ equivΠCod α ∙ₑ equivΠCod β
 equivΠCodComp α β = equivEq refl
+
+Σ-cong-equiv-comp : ∀ {ℓ ℓ'} {A₀ A₁ A₂ : Type ℓ}
+  {B₀ : A₀ → Type ℓ'}
+  {B₁ : A₁ → Type ℓ'}
+  {B₂ : A₂ → Type ℓ'}
+  → (e : A₀ ≃ A₁) (f : A₁ ≃ A₂)
+  → (eᴰ : ∀ x → B₀ x ≃ B₁ (equivFun e x))
+  → (fᴰ : ∀ y → B₁ y ≃ B₂ (equivFun f y))
+  → Σ-cong-equiv {B' = B₂} (e ∙ₑ f) (λ x → eᴰ x ∙ₑ fᴰ (equivFun e x))
+      ≡
+    Σ-cong-equiv e eᴰ ∙ₑ Σ-cong-equiv f fᴰ
+Σ-cong-equiv-comp e f eᴰ fᴰ = equivEq refl
 
 symEquiv : ∀ {ℓ} {A : Type ℓ} {x y : A} → (x ≡ y) ≃ (y ≡ x)
 symEquiv = strictEquiv sym sym

@@ -7,12 +7,14 @@ module GpdCont.SetBundle.Summation (ℓ : Level) where
 open import GpdCont.SetBundle.Base ℓ
 
 open import GpdCont.Univalence
+open import GpdCont.HomotopySet using (hSet≡)
 open import GpdCont.SetTruncation using (componentEquiv ; setTruncateFstΣ≃ ; PathSetTrunc≃PropTruncPath)
 open import GpdCont.Connectivity as Connectivity using (isPathConnected)
 
 open import GpdCont.TwoCategory.Base using (TwoCategory)
 open import GpdCont.TwoCategory.StrictFunctor using (StrictFunctor)
-open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor using (LocalFunctor)
+open import GpdCont.TwoCategory.StrictFunctor.LocalFunctor using (LocalFunctor ; isLocallyEssentiallySurjective)
+open import GpdCont.TwoCategory.LocalCategory using (LocalCatIso)
 open import GpdCont.TwoCategory.Displayed.Base using (TwoCategoryᴰ)
 open import GpdCont.TwoCategory.Displayed.LocallyThin using (LocallyThinOver ; IntoLocallyThin)
 open import GpdCont.TwoCategory.Displayed.StrictFunctor using (StrictFunctorᴰ)
@@ -28,10 +30,13 @@ import      Cubical.Foundations.Path as Path
 import      Cubical.Foundations.GroupoidLaws as GL
 open import Cubical.Functions.FunExtEquiv as FunExt using (funExtEquiv)
 open import Cubical.Functions.Surjection using (isSurjection ; _↠_ ; section→isSurjection)
+open import Cubical.Categories.Category.Base using (pathToIso)
 open import Cubical.Categories.Functor using (Functor)
 import      Cubical.Data.Sigma as Sigma
 import      Cubical.Data.Equality as Eq
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
+open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
+open import Cubical.HITs.PropositionalTruncation.Monad
 
 {-# INJECTIVE_FOR_INFERENCE ⟨_⟩ #-}
 
@@ -335,6 +340,31 @@ SetBundleΣ₀Surjection : FamSetBundle.ob ↠ SetBundle.ob
 SetBundleΣ₀Surjection .fst = SetBundleΣ.₀
 SetBundleΣ₀Surjection .snd = isSurjection-SetBundleΣ₀
 
+SetBundleΣ₀-mereRetract : ∀ (x @ (J , X) : FamSetBundle.ob)
+  → (conn-base : (j : ⟨ J ⟩) → isPathConnected ⟨ SetBundle.Base (X j) ⟩)
+  → ∥ SetBundleΣ₀⁻¹ (SetBundleΣ.₀ x) ≡ x ∥₁
+SetBundleΣ₀-mereRetract x@(J , X) conn-base = PT.∣ Sigma.ΣPathP (hSet≡ idx-path , ua→ {! !}) ∣₁ where
+  J* = ∥ Σ[ j ∈ ⟨ J ⟩ ] ⟨ SetBundle.Base (X j) ⟩ ∥₂
+
+  idx-equiv : J* ≃ ⟨ J ⟩
+  idx-equiv =
+    ∥ Σ[ j ∈ ⟨ J ⟩ ] ⟨ SetBundle.Base (X j) ⟩ ∥₂ ≃⟨ setTruncateFstΣ≃ (str J) ⟩
+    Σ[ j ∈ ⟨ J ⟩ ] ∥ ⟨ SetBundle.Base (X j) ⟩ ∥₂ ≃⟨ Sigma.Σ-contractSnd conn-base ⟩
+    ⟨ J ⟩ ≃∎
+
+  idx-path : ∥ Σ[ j ∈ ⟨ J ⟩ ] ⟨ SetBundle.Base (X j) ⟩ ∥₂ ≡ ⟨ J ⟩
+  idx-path = ua idx-equiv
+
+  bundle-path-rec-1 : (j : ⟨ J ⟩) → (x : ⟨ SetBundle.Base (X j) ⟩) → ∥ (Σ[ j* ∈ Σ[ j ∈ ⟨ J ⟩ ] ⟨ SetBundle.Base (X j) ⟩ ] ∣ j* ∣₂ ≡ ∣ j , x ∣₂) ≡ ⟨ SetBundle.Base (X j) ⟩ ∥₂
+  bundle-path-rec-1 j x = {! !}
+
+  bundle-path-rec : (j : ⟨ J ⟩) → (x : ⟨ SetBundle.Base (X j) ⟩) → ∥ ((fiber ∣_∣₂ ∣ j , x ∣₂ , {! !}) , λ { ((j , x) , _) → X j .snd x .fst , {! !} }) ≡ X j ∥₂
+  bundle-path-rec = ?
+
+  bundle-path : (j* : J*) → ∥ SetBundleΣ₀⁻¹ (SetBundleΣ.₀ x) .snd j* ≡ X (equivFun idx-equiv j*) ∥₂
+  bundle-path = ST.elim (λ j* → ST.isSetSetTrunc) (uncurry bundle-path-rec)
+
+{-
 SetBundleΣ₁⁻¹ : ∀ (X Y : SetBundle.ob) → SetBundle.hom X Y → FamSetBundle.hom (SetBundleΣ₀⁻¹ X) (SetBundleΣ₀⁻¹ Y)
 SetBundleΣ₁⁻¹ X@((B , is-gpd-B) , F) Y@((D , is-gpd-D) , G) (u , f) = goal where
   open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
@@ -355,3 +385,19 @@ SetBundleΣ₁⁻¹ X@((B , is-gpd-B) , F) Y@((D , is-gpd-D) , G) (u , f) = goal
   goal : FamSetBundle.hom (SetBundleΣ₀⁻¹ X) (SetBundleΣ₀⁻¹ Y)
   goal .fst = ∣u∣
   goal .snd = ∣f∣
+
+isSurjection-SetBundleΣ₁ : ∀ (X Y : FamSetBundle.ob) → isSurjection (SetBundleΣ.₁ {x = X} {y = Y})
+isSurjection-SetBundleΣ₁ X Y g = do
+  (x , x-section) ← isSurjection-SetBundleΣ₀ (SetBundleΣ.₀ X)
+  return {! !}
+  where
+    f : FamSetBundle.hom (SetBundleΣ₀⁻¹ (SetBundleΣ.₀ X)) (SetBundleΣ₀⁻¹ (SetBundleΣ.₀ Y))
+    f = SetBundleΣ₁⁻¹ (SetBundleΣ.₀ X) (SetBundleΣ.₀ Y) g
+
+isLocallyEssentiallySurjectiveΣ : isLocallyEssentiallySurjective SetBundleΣ
+isLocallyEssentiallySurjectiveΣ X Y g = goal where
+  goal : ∃[ f ∈ FamSetBundle.hom X Y ] LocalCatIso SetBundle (SetBundleΣ.₁ f) g
+  goal = do
+    (f , f-section) ← isSurjection-SetBundleΣ₁ X Y g
+    return (f , pathToIso f-section)
+    -}

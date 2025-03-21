@@ -17,7 +17,7 @@ open import Cubical.Categories.Presheaf.Representable
 open import Cubical.Algebra.Group.Base
 open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Algebra.Group.MorphismProperties
-open import Cubical.Algebra.Group.Instances.Pi using (ΠGroup)
+open import Cubical.Algebra.Group.Instances.Pi using (ΠGroup) public
 
 private
   module Group = Category (GroupCategory {ℓ})
@@ -102,3 +102,11 @@ module _ (K : hSet ℓ) (G : ⟨ K ⟩ → Group.ob) where
     univ-inv-coherence = cong Iso.inv univ-coherence
 
 GroupProducts = GroupProduct
+
+mapΠGroup : ∀ {K : Type ℓ} {G G' : K → Group ℓ}
+  → (φ : ∀ k → Group.Hom[ G k , G' k ])
+  → Group.Hom[ ΠGroup G , ΠGroup G' ]
+mapΠGroup φ .fst = λ g k → φ k .fst (g k)
+mapΠGroup φ .snd .IsGroupHom.pres· g₁ g₂ = funExt λ k → φ k .snd .IsGroupHom.pres· (g₁ k) (g₂ k)
+mapΠGroup φ .snd .IsGroupHom.pres1 = funExt λ k → φ k .snd .IsGroupHom.pres1
+mapΠGroup φ .snd .IsGroupHom.presinv g = funExt λ k → φ k .snd .IsGroupHom.presinv (g k)

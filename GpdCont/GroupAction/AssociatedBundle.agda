@@ -1,17 +1,19 @@
 module GpdCont.GroupAction.AssociatedBundle where
 
 open import GpdCont.Prelude hiding (_▷_)
-open import GpdCont.Univalence using (ua ; ua→ua ; ua→uaEquiv ; ua→ ; ua-gluePath)
+open import GpdCont.HLevels using (_→₂_)
+open import GpdCont.Univalence as UA using (ua ; ua→ua ; ua→uaEquiv ; ua→ ; ua-gluePath)
 open import GpdCont.GroupAction.Base using (Action ; _⁺_ ; module ActionProperties)
 open import GpdCont.Delooping using (𝔹)
 open import GpdCont.Delooping.Map using (map)
 open import GpdCont.GroupAction.Equivariant using (isEquivariantMap[_][_,_])
+open import GpdCont.GroupAction.Pi using (preCompAction)
 
 open import Cubical.Foundations.Equiv as Equiv using (equivFun ; invEquiv ; invEquiv-is-rinv ; invEquiv-is-linv ; _∙ₑ_)
 open import Cubical.Foundations.HLevels as HLevels using (hSet)
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Path as Path using ()
-open import Cubical.Functions.FunExtEquiv using (funExtEquiv)
+open import Cubical.Functions.FunExtEquiv using (funExtEquiv ; funExtNonDep)
 open import Cubical.Data.Sigma
 open import Cubical.Algebra.Group.Base using (Group ; GroupStr)
 open import Cubical.Algebra.Group.Morphisms using (GroupHom)
@@ -35,6 +37,29 @@ module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
   -- Over a loop, the action defines the path of type X ≡ X.
   associatedBundle-loop : ∀ g → cong (⟨_⟩ ∘ associatedBundle) (𝔹G.loop g) ≡ ua (σ.action g)
   associatedBundle-loop g = refl
+
+  -- Total space of an associated bundle (Symmetry 4.7.13)
+  ∫ : Type _
+  ∫ = Σ[ x ∈ 𝔹 G ] ⟨ associatedBundle x ⟩
+
+module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) (Y : hSet ℓ) where
+  private
+    module G = GroupStr (str G)
+    module 𝔹G = GpdCont.Delooping G
+    module σ = Action σ
+
+    σ*Y : Action G (⟨ X ⟩ →₂ Y)
+    σ*Y = preCompAction σ Y
+
+  associatedBundlePreCompEquiv : (x : 𝔹 G) → (⟨ associatedBundle σ x ⟩ → ⟨ Y ⟩) ≃ ⟨ associatedBundle σ*Y x ⟩
+  associatedBundlePreCompEquiv = 𝔹G.elimSet (λ x → HLevels.isOfHLevel≃ 2 (HLevels.isSet→ (str Y)) (str $ associatedBundle σ*Y x))
+    (Equiv.idEquiv (⟨ X ⟩ → ⟨ Y ⟩))
+    λ { g → Equiv.equivPathP (funExtNonDep λ {f₀} {f₁} f₀≡f₁ → ua-gluePath (σ*Y .Action.action g) $ lemma f₀ f₁ g $ funExt (UA.ua→⁻ f₀≡f₁)) }
+    where
+      lemma : (f₀ f₁ : ⟨ X ⟩ → ⟨ Y ⟩) (g : ⟨ G ⟩)
+        → f₀ ≡ f₁ ∘ (σ ⁺ g)
+        → f₀ ∘ (σ ⁺ G.inv g) ≡ f₁
+      lemma f₀ f₁ g p = cong (_∘ (σ ⁺ G.inv g)) p ∙ cong (f₁ ∘_) (ActionProperties.action-cancel-left σ g)
 
 module _ {ℓ} {G H : Group ℓ} {X Y : hSet ℓ} where
   private
@@ -84,10 +109,6 @@ module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
     𝔹G = GpdCont.Delooping.𝔹 G
     module 𝔹G = GpdCont.Delooping G
     open module σ = Action σ using (_▷_)
-
-    -- Total space of the associated bundle (Symmetry 4.7.13)
-    ∫σ : Type _
-    ∫σ = Σ[ x ∈ 𝔹G ] ⟨ associatedBundle σ x ⟩
 
   _∼_ : (x y : ⟨ X ⟩) → Type ℓ
   x ∼ y = ∃[ g ∈ ⟨ G ⟩ ] g ▷ x ≡ y

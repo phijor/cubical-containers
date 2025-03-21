@@ -53,6 +53,9 @@ isPropHasConnectedChoice _ _ _ = isPropΠ λ _ → isPropIsConnected
 ACC : (ℓ : Level) (n k : HLevel) → Type _
 ACC ℓ n k = ∀ (X : hSet ℓ) (Y : ⟨ X ⟩ → TypeOfHLevel ℓ n) → hasConnectedChoice n k X Y
 
+AC→ACC : (n k : HLevel) → AC ℓ ℓ n k → ACC ℓ n k
+AC→ACC n k ac X Y conn-Y = Connectivity.isConnectedΠ′ {A = ⟨ X ⟩} {B = ⟨_⟩ ∘ Y} k {! !} conn-Y
+
 -- Again, this is a proposition, whereas AC(m, n) is not:
 isPropACC : ∀ {ℓ} (n k : HLevel) → isProp (ACC ℓ n k)
 isPropACC n k = isPropΠ2 λ X Y → isPropHasConnectedChoice k X Y

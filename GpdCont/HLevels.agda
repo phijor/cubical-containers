@@ -6,6 +6,7 @@ open import Cubical.Foundations.Structure
 open import Cubical.Foundations.Function
 open import Cubical.Data.Empty as Empty using (⊥ ; ⊥*)
 open import Cubical.Data.Sigma
+open import Cubical.Data.Nat.Base
 
 private
   variable
@@ -18,11 +19,18 @@ isProp⊥→ = isContr→isProp Empty.isContr⊥→A
 isProp⊥*→ : ∀ {ℓ⊥} → isProp (⊥* {ℓ⊥} → A)
 isProp⊥*→ = isContr→isProp Empty.isContrΠ⊥*
 
+TypeOfHLevelSuc : {n : HLevel} → TypeOfHLevel ℓA n → TypeOfHLevel ℓA (suc n)
+TypeOfHLevelSuc A .fst = ⟨ A ⟩
+TypeOfHLevelSuc A .snd = isOfHLevelSuc _ (str A)
+
 ΣOfHLevel : (n : HLevel) (A : TypeOfHLevel ℓA n) (B : ⟨ A ⟩ → TypeOfHLevel ℓB n) → TypeOfHLevel (ℓ-max ℓA ℓB) n
 ΣOfHLevel n A B .fst = Σ ⟨ A ⟩ (⟨_⟩ ∘ B)
 ΣOfHLevel n A B .snd = isOfHLevelΣ n (str A) (str ∘ B)
 
 syntax ΣOfHLevel n A (λ a → B) = Σʰ[ n ∣ a ∈ A ] B
+
+×OfHLevel : (n : HLevel) (A : TypeOfHLevel ℓA n) (B : TypeOfHLevel ℓB n) → TypeOfHLevel (ℓ-max ℓA ℓB) n
+×OfHLevel n A B = ΣOfHLevel n A λ _ → B
 
 ΠOfHLevel : (n : HLevel) (A : Type ℓA) (B : A → TypeOfHLevel ℓB n) → TypeOfHLevel (ℓ-max ℓA ℓB) n
 ΠOfHLevel n A B .fst = ∀ a → ⟨ B a ⟩
@@ -35,6 +43,9 @@ syntax ΠOfHLevel n A (λ a → B) = Πʰ[ n ∣ a ∈ A ] B
 →OfHLevel n A B .snd = isOfHLevelΠ n (λ _ → str B)
 
 syntax →OfHLevel n A B = A →[ n ] B
+
+_→₂_ : (A : Type ℓA) → (B : hSet ℓB) → hSet (ℓ-max ℓA ℓB)
+_→₂_ = →OfHLevel 2
 
 _→₃_ : (A : Type ℓA) → (B : hGroupoid ℓB) → hGroupoid (ℓ-max ℓA ℓB)
 _→₃_ = →OfHLevel 3

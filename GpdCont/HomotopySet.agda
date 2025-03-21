@@ -10,6 +10,7 @@ open import Cubical.Data.Sigma as Sigma using (_×_)
 open import Cubical.Data.Sum as Sum using (_⊎_)
 open import Cubical.Data.Empty as Empty using (⊥*)
 open import Cubical.Data.Unit as Unit using (Unit*)
+open import Cubical.HITs.SetQuotients as SQ using (_/_)
 
 private
   variable
@@ -37,6 +38,8 @@ _→Set_ X Y .snd = isSet→ $ str Y
 ΠSet X .fst = ∀ s → ⟨ X s ⟩
 ΠSet X .snd = isSetΠ $ str ∘ X
 
+syntax ΠSet {S = A} (λ a → B) = Π₂[ a ∈ A ] B
+
 ΠSet' : {S : Type ℓ} (X : S → Type ℓ') → (∀ s → isSet (X s)) → hSet _
 ΠSet' X is-set-X = ΠSet λ s → X s , is-set-X s
 
@@ -52,6 +55,11 @@ _⊎Set_ : (X : hSet ℓ) (Y : hSet ℓ') → hSet _
 ΣSet X Y .fst = Σ ⟨ X ⟩ $ ⟨_⟩ ∘ Y
 ΣSet X Y .snd = isSetΣ (str X) (str ∘ Y)
 
+SubSet : (X : hSet ℓ) (P : ⟨ X ⟩ → hProp ℓ') → hSet _
+SubSet X P = ΣSet X λ x → ⟨ P x ⟩ , isProp→isSet (str (P x))
+
+syntax ΣSet A (λ a → B) = Σ₂[ a ∈ A ] B
+
 EmptySet : (ℓ : Level) → hSet ℓ
 EmptySet ℓ .fst = ⊥*
 EmptySet ℓ .snd = isProp→isSet Empty.isProp⊥*
@@ -59,3 +67,7 @@ EmptySet ℓ .snd = isProp→isSet Empty.isProp⊥*
 UnitSet : (ℓ : Level) → hSet ℓ
 UnitSet ℓ .fst = Unit*
 UnitSet ℓ .snd = Unit.isSetUnit*
+
+_/Set_ : (A : Type ℓ) → (R : A → A → Type ℓ') → hSet (ℓ-max ℓ ℓ')
+(A /Set R) .fst = A / R
+(A /Set R) .snd = SQ.squash/

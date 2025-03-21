@@ -85,6 +85,9 @@ module LocalIso (C : TwoCategory ℓo ℓh ℓr) where
   idLocalIso f .snd .snd .isLocalInverse.dom-id = C.trans-unit-left (C.id-rel f)
   idLocalIso f .snd .snd .isLocalInverse.codom-id = C.trans-unit-right (C.id-rel f)
 
+  pathToLocalIso : {f g : C.hom x y} → f ≡ g → LocalIso f g
+  pathToLocalIso {f} = J (λ g p → LocalIso f g) (idLocalIso f)
+
   private opaque
     cancel-twice : ∀ {f g h : C.hom x y}
       → {r : C.rel f g} {r' : C.rel g f} (p : r C.∙ᵥ r' ≡ C.id-rel _)

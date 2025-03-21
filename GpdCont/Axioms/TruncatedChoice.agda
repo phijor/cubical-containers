@@ -20,16 +20,16 @@ private
 --  "the family is pointwise m-inhabited"
 -- implies
 --  "the family has an m-truncated section"
-hasChoice : (n m : HLevel) (X : hSet ℓ) (Y : ⟨ X ⟩ → TypeOfHLevel ℓ n) → Type _
+hasChoice : (n m : HLevel) (X : hSet ℓX) (Y : ⟨ X ⟩ → TypeOfHLevel ℓY n) → Type _
 hasChoice n m X Y = ((x : ⟨ X ⟩) → ∥ ⟨ Y x ⟩ ∥ m) → ∥ ((x : ⟨ X ⟩) → ⟨ Y x ⟩) ∥ m
 
-isOfHLevelHasChoice : ∀ {n} (m : HLevel) (X : hSet ℓ) (Y : ⟨ X ⟩ → TypeOfHLevel ℓ n) → isOfHLevel m (hasChoice n m X Y)
+isOfHLevelHasChoice : ∀ {n} (m : HLevel) (X : hSet ℓX) (Y : ⟨ X ⟩ → TypeOfHLevel ℓY n) → isOfHLevel m (hasChoice n m X Y)
 isOfHLevelHasChoice m _ _ = isOfHLevelΠ m λ _ → Tr.isOfHLevelTrunc m
 
 -- The (n,m) axiom of choice says that all families of n-types
 -- have m-truncated sections whenever they are pointwise m-inhabited.
-AC : (ℓ : Level) (n m : HLevel) → Type _
-AC ℓ n m = ∀ (X : hSet ℓ) (Y : ⟨ X ⟩ → TypeOfHLevel ℓ n) → hasChoice n m X Y
+AC : (ℓX ℓY : Level) (n m : HLevel) → Type _
+AC ℓX ℓY n m = ∀ (X : hSet ℓX) (Y : ⟨ X ⟩ → TypeOfHLevel ℓY n) → hasChoice n m X Y
 
 -- In the special case of (n = 2, m = 1), we recover the content of the usual
 -- axiom of choice for sets: A family of sets has choice if being pointwise
@@ -44,7 +44,7 @@ ASC ℓX ℓY = ∀ (X : hSet ℓX) (Y : ⟨ X ⟩ → hSet ℓY) → hasSetChoi
 isPropHasChoice : (X : hSet ℓ) (Y : ⟨ X ⟩ → hSet ℓ) → isProp (hasSetChoice X Y)
 isPropHasChoice _ _ = isPropΠ λ _ → PT.isPropPropTrunc
 
-hasSetChoice≃hasChoice[2,1] : ∀ (X : hSet ℓ) Y → hasSetChoice X Y ≃ hasChoice 2 1 X Y
+hasSetChoice≃hasChoice[2,1] : ∀ (X : hSet ℓX) (Y : ⟨ X ⟩ → hSet ℓY) → hasSetChoice X Y ≃ hasChoice 2 1 X Y
 hasSetChoice≃hasChoice[2,1] X Y = equiv→ (equivΠCod λ x → Tr.propTrunc≃Trunc1) Tr.propTrunc≃Trunc1
 
 -- A functions is split if it merely has a section.

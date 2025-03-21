@@ -77,6 +77,12 @@ module ActionProperties {ℓX} {G : Group ℓ} {X : hSet ℓX} (σ : Action G X)
   action-inv : ∀ g → (σ ⁺ G.inv g) ≡ invEq (σ.action g)
   action-inv g = cong equivFun (presinv g)
 
+  action-cancel-left : ∀ g → (σ ⁺ G.inv g) ⋆ (σ ⁺ g) ≡ id ⟨ X ⟩
+  action-cancel-left g =
+      (σ ⁺ G.inv g) ⋆ (σ ⁺ g) ≡⟨ cong (_⋆ σ ⁺ g) (action-inv g) ⟩
+      invEq (σ.action g) ⋆ (σ ⁺ g) ≡⟨ funExt (secEq (σ.action g)) ⟩
+      id ⟨ X ⟩ ∎
+
   action-cancel-right : ∀ g → (σ ⁺ g) ⋆ (σ ⁺ G.inv g) ≡ id ⟨ X ⟩
   action-cancel-right g =
       (σ ⁺ g) ⋆ (σ ⁺ G.inv g) ≡⟨ cong (σ ⁺ g ⋆_) (action-inv g) ⟩

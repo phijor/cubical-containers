@@ -42,3 +42,106 @@ private
 
 CyclicList : ActionContainer ℓ-zero
 CyclicList = mkActionContainer ℕSet FinSet (λ n → ℤ) cycle
+
+module Parametrized (Ix : Type) where
+  open import GpdCont.HomotopySet
+  open import GpdCont.ActionContainer.Parametrized ℓ-zero
+  open import GpdCont.ActionContainer.Mu ℓ-zero Ix
+  open import GpdCont.GroupAction.Trivial
+  open import GpdCont.W
+
+  open import Cubical.Data.Empty
+  open import Cubical.Data.Bool
+  open import Cubical.Algebra.Group.Base
+  open import Cubical.Algebra.Group.Instances.Unit
+  open import Cubical.HITs.SetQuotients as SQ using ([_] ; _/_)
+
+  data BinShape : Type where
+    sngl pair : BinShape
+
+  isSetBinShape : isSet BinShape
+  isSetBinShape = {! !}
+
+  private
+    BoolSet : hSet ℓ-zero
+    BoolSet .fst = Bool
+    BoolSet .snd = isSetBool
+
+  BinPos : BinShape → Ix +1 → hSet _
+  BinPos sngl free = EmptySet _
+  BinPos sngl (param ix) = UnitSet _
+  BinPos pair free = BoolSet
+  BinPos pair (param ix) = EmptySet _
+
+  BinSymm : BinShape → Ix +1 → Group _
+  BinSymm sngl _ = UnitGroup₀
+  BinSymm pair free = 𝔖 BoolSet
+  BinSymm pair (param ix) = UnitGroup₀
+
+  BinAction : (b : BinShape) (ix : Ix +1) → Action (BinSymm b ix) (BinPos b ix)
+  BinAction sngl ix = trivialAction UnitGroup₀ (BinPos sngl ix)
+  BinAction pair free .Action.action = id (⟨ BoolSet ⟩ ≃ ⟨ BoolSet ⟩)
+  BinAction pair free .Action.pres· _ _ = refl
+  BinAction pair (param ix) = trivialAction UnitGroup₀ (EmptySet _)
+
+  Bin : ActCont[ Ix +1]
+  Bin .fst .fst = BinShape
+  Bin .fst .snd = isSetBinShape
+  Bin .snd b ix .fst = BinSymm b ix
+  Bin .snd b ix .snd .fst = BinPos b ix
+  Bin .snd b ix .snd .snd = BinAction b ix
+
+  μBin : ActCont.ob Ix
+  μBin = μ Bin
+
+  module μBin = ActCont₀ μBin
+
+  module Mobile where
+    data Shape : Type where
+      leaf : Shape
+      branch : Shape → Shape
+
+    isSetShape : isSet Shape
+    isSetShape = {! !}
+      
+    ShapeSet : hSet _
+    ShapeSet .fst = Shape
+    ShapeSet .snd = isSetShape
+
+    PosSet : Shape → Ix → hSet ℓ-zero
+    PosSet leaf ix = UnitSet _
+    PosSet (branch s) = {! !}
+
+
+  Mobile : ActCont.ob Ix
+  Mobile .fst = Mobile.ShapeSet
+  Mobile .snd s ix .fst = {! !}
+  Mobile .snd s ix .snd .fst = Mobile.PosSet s ix
+  Mobile .snd s ix .snd .snd = {! !}
+
+  fromMobile : ActCont.hom Ix Mobile μBin
+  fromMobile .fst = {! !}
+  fromMobile .snd = {! !}
+
+  shape→ : ⟨ μBin.Shape ⟩ → Mobile.Shape
+  shape→ (sup-W sngl _) = Mobile.leaf
+  shape→ (sup-W pair ws) = Mobile.branch (shape→ (ws [ true ]))
+
+  module _ {ℓ ℓ⊥} {R : ⊥* {ℓ⊥} → ⊥* {ℓ⊥} → Type} {A : Type ℓ} (is-set-A : isSet A) where
+    ⊥/-rec : ⊥* / R → A
+    ⊥/-rec (SQ.squash/ x y p q i j) = is-set-A (⊥/-rec x) (⊥/-rec y) (cong ⊥/-rec p) (cong ⊥/-rec q) i j
+
+  shape← : Mobile.Shape → ⟨ μBin.Shape ⟩
+  shape← Mobile.leaf = sup-W sngl (⊥/-rec (WPath.isOfHLevelSucW 1 isSetBinShape))
+  shape← (Mobile.branch b) = sup-W pair (SQ.rec (WPath.isOfHLevelSucW 1 isSetBinShape) (λ _ → shape← b) (λ _ _ _ → refl))
+
+  shape-retract : ∀ w → shape← (shape→ w) ≡ w
+  shape-retract (sup-W sngl x) = cong (sup-W sngl) $ funExt (SQ.elimProp {! !} (λ ()))
+  shape-retract (sup-W pair x) = cong (sup-W pair) $ funExt (SQ.elimProp {! !} λ br → shape-retract (x [ true ]) ∙ cong x (SQ.eq/ true br {! !}))
+
+  shapeIso : Iso ⟨ μBin.Shape ⟩ Mobile.Shape
+  shapeIso .Iso.fun = shape→
+  shapeIso .Iso.inv = shape←
+  shapeIso .Iso.rightInv Mobile.leaf = refl
+  shapeIso .Iso.rightInv (Mobile.branch b) = cong Mobile.branch (shapeIso .Iso.rightInv b)
+  shapeIso .Iso.leftInv = shape-retract

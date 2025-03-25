@@ -247,3 +247,41 @@ module _ where
 
     conn-path : ∀ x y → isConnected k (Path (Σ A B) x y)
     conn-path x y = isConnectedRetractFromIso k (invIso Sigma.ΣPathPIsoPathPΣ) conn-path-Σ
+
+foo : ∀ {ℓ} {A : Type ℓ} {B : A → Type ℓ}
+  → (a₀ : A)
+  → isPathConnected A
+  → (∀ a → isSet (B a))
+  → (∀ a → B a) ≃ B a₀
+foo {A} {B} a₀ is-conn-A is-set-B = equiv where
+  fun : (∀ a → B a) → B a₀
+  fun f = f a₀
+
+  is-2-conn-path : ∀ a → isConnected 2 (a₀ ≡ a)
+  is-2-conn-path a = {! !}
+
+  bar : ∀ a → isGroupoid A → ∥ a₀ ≡ a ∥₂ ≃ {! !}
+  bar a is-gpd-A =
+    ∥ a₀ ≡ a ∥₂ ≃⟨ ST.setTruncIdempotent≃ (is-gpd-A _ _) ⟩
+    a₀ ≡ a ≃⟨ {! !} ⟩
+    {! !} ≃∎
+
+  fiber-equiv : ∀ b₀ → fiber fun b₀ ≃ singl b₀
+  fiber-equiv b₀ =
+    fiber fun b₀ ≃⟨⟩
+    Σ[ f ∈ (∀ a → B a) ] f a₀ ≡ b₀ ≃⟨ Sigma.Σ-cong-equiv-snd (λ f → invEquiv (Π-contractDom (isContrSingl a₀))) ⟩
+    Σ[ f ∈ (∀ a → B a) ] (((a , p) : singl a₀) → PathP (λ i → B (p (~ i))) (f a) b₀) ≃⟨ Sigma.Σ-cong-equiv-snd (λ f → Sigma.curryEquiv) ⟩
+    Σ[ f ∈ (∀ a → B a) ] ((a : A) → (p : a₀ ≡ a) → PathP (λ i → B (p (~ i))) (f a) b₀) ≃⟨ invEquiv Sigma.Σ-Π-≃ ⟩
+    ((a : A) → Σ[ b ∈ B a ] ((p : a₀ ≡ a) → PathP (λ i → B (p (~ i))) b b₀)) ≃⟨ equivΠCod (λ a → Sigma.Σ-cong-equiv-fst (isConnected→constEquiv {A = a₀ ≡ a} 2 (is-2-conn-path a) (B a , is-set-B a))) ⟩
+    ((a : A) → Σ[ b ∈ (a₀ ≡ a → B a) ] ((p : a₀ ≡ a) → PathP (λ i → B (p (~ i))) (b p) b₀)) ≃⟨ equivΠCod (λ a → invEquiv Sigma.Σ-Π-≃) ⟩
+    ((a : A) → (p : a₀ ≡ a) → Σ[ b ∈ B a ] (PathP (λ i → B (p (~ i))) b b₀)) ≃⟨ invEquiv Sigma.curryEquiv ⟩
+    (((a , p) : singl a₀) → Σ[ b ∈ B a ] (PathP (λ i → B (p (~ i))) b b₀)) ≃⟨ Π-contractDom (isContrSingl a₀) ⟩
+    Σ[ b ∈ B a₀ ] b ≡ b₀ ≃⟨ strictEquiv (Sigma.map-snd sym) (Sigma.map-snd sym) ⟩
+    singl b₀ ≃∎
+
+  is-equiv-fun : isEquiv fun
+  is-equiv-fun .equiv-proof b₀ = isOfHLevelRespectEquiv 0 (invEquiv (fiber-equiv b₀)) (isContrSingl b₀)
+
+  equiv : _ ≃ _
+  equiv .fst = fun
+  equiv .snd = is-equiv-fun

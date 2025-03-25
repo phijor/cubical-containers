@@ -10,7 +10,7 @@ open import Cubical.Foundations.HLevels
 
 private
   variable
-    ℓ : Level
+    ℓ ℓG ℓX : Level
     G H K : Group ℓ
     X Y Z : hSet ℓ
     σ : Action G X
@@ -19,7 +19,7 @@ private
 open Action
 
 private
-  Grp×Setᵒᵖ[_,_] : (G×X H×Y : Group ℓ × hSet ℓ) → Type ℓ
+  Grp×Setᵒᵖ[_,_] : (G×X H×Y : Group ℓG × hSet ℓX) → Type _
   Grp×Setᵒᵖ[ (G , X) , (H , Y) ] = GroupHom G H × (⟨ Y ⟩ → ⟨ X ⟩)
   {-# INJECTIVE_FOR_INFERENCE Grp×Setᵒᵖ[_,_] #-}
 

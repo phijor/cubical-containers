@@ -4,7 +4,7 @@ open import GpdCont.GroupAction.Base
 open import Cubical.Foundations.HLevels
 open import Cubical.Algebra.Group.Base
 
-module GpdCont.GroupAction.Orbit {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
+module GpdCont.GroupAction.Orbit {ℓG ℓX} {G : Group ℓG} {X : hSet ℓX} (σ : Action G X) where
 
 open import Cubical.HITs.SetQuotients as SQ using (_/_)
 
@@ -12,7 +12,7 @@ private
   module G = GroupStr (str G)
   open module σ = Action σ using (_▷_)
 
-_∼_ : (x y : ⟨ X ⟩) → Type ℓ
+_∼_ : (x y : ⟨ X ⟩) → Type _
 x ∼ y = ∃[ g ∈ ⟨ G ⟩ ] g ▷ x ≡ y
 
 ∼-intro-right : (g : ⟨ G ⟩) (x : ⟨ X ⟩) → x ∼ (g ▷ x)

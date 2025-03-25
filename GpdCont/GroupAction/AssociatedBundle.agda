@@ -20,12 +20,18 @@ open import Cubical.Algebra.Group.Morphisms using (GroupHom)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 open import Cubical.HITs.SetQuotients as SQ using (_/_)
 
-module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
+private
+  variable
+    ℓ : Level
+    G H : Group ℓ
+    X Y : hSet ℓ
+
+module _ (σ : Action G X) where
   private
     module 𝔹G = GpdCont.Delooping G
     module σ = Action σ
 
-  associatedBundle : 𝔹 G → hSet ℓ
+  associatedBundle : 𝔹 G → hSet _
   associatedBundle = 𝔹G.rec→hSet X σ.action σ.pres·
 
   {- (Judgemental) computation rules for associated bundles. -}
@@ -42,7 +48,7 @@ module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
   ∫ : Type _
   ∫ = Σ[ x ∈ 𝔹 G ] ⟨ associatedBundle x ⟩
 
-module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) (Y : hSet ℓ) where
+module _ {ℓG ℓX ℓY} {G : Group ℓG} {X : hSet ℓX} (σ : Action G X) (Y : hSet ℓY) where
   private
     module G = GroupStr (str G)
     module 𝔹G = GpdCont.Delooping G

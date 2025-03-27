@@ -10,7 +10,7 @@ open import GpdCont.TwoCategory.Displayed.LocallyThin as LT using (IsLocallyThin
 open import GpdCont.TwoCategory.HomotopyGroupoid renaming (hGpdCat to hGroupoid)
 open import GpdCont.Connectivity using (isPathConnected ; isPropIsPathConnected)
 
-open import Cubical.Foundations.Equiv.Base using (fiber)
+open import Cubical.Foundations.Equiv.Base using (fiber ; equivFun)
 open import Cubical.Foundations.HLevels hiding (hGroupoid)
 open import Cubical.Foundations.Isomorphism using (section)
 open import Cubical.Foundations.Path as Path using (compPath→Square)
@@ -189,3 +189,32 @@ module _ where
   hGroupStrict .Category.⋆IdR {x} {y} = hGroup.comp-hom-unit-right {x} {y}
   hGroupStrict .Category.⋆Assoc {x} {y} {z} {w} = hGroup.comp-hom-assoc {x} {y} {z} {w}
   hGroupStrict .Category.isSetHom {x} {y} = isSetHGroupHom x y
+
+  module hGroupStrict = Category hGroupStrict
+
+module _ where
+  open import Cubical.Categories.Functor.Base
+  open import Cubical.Categories.Instances.Groups
+  open import Cubical.Algebra.Group.Base
+  open import Cubical.Algebra.Group.Morphisms
+  open import Cubical.Algebra.Group.MorphismProperties
+
+  open import GpdCont.Group.FundamentalGroup using (π₁)
+
+  private
+    π₁-ob : hGroupStrict.ob → Group _
+    π₁-ob ((X , x₀) , _) = π₁ X x₀
+
+    π₁-map : ∀ {X Y : hGroupStrict.ob}
+      → hGroupStrict.Hom[ X , Y ]
+      → GroupHom (π₁-ob X) (π₁-ob Y)
+    π₁-map (f , fx₀≡y₀) .fst p = (sym fx₀≡y₀) ∙∙ cong f p ∙∙ fx₀≡y₀
+    π₁-map (f , fx₀≡y₀) .snd .IsGroupHom.pres· = {! !}
+    π₁-map (f , fx₀≡y₀) .snd .IsGroupHom.pres1 = {! !}
+    π₁-map (f , fx₀≡y₀) .snd .IsGroupHom.presinv = {! !}
+
+  Ω : Functor hGroupStrict (GroupCategory {ℓ})
+  Ω .Functor.F-ob = π₁-ob
+  Ω .Functor.F-hom {x} {y} = π₁-map {x} {y}
+  Ω .Functor.F-id {x} = GroupHom≡ $ funExt λ p → sym (doubleCompPath-filler refl p refl)
+  Ω .Functor.F-seq f g = {! !}

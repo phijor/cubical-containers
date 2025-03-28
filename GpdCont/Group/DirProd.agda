@@ -1,6 +1,7 @@
 module GpdCont.Group.DirProd where
 
 open import GpdCont.Prelude
+open import GpdCont.Group.Prelude
 
 open import Cubical.Data.Sigma
 
@@ -25,7 +26,7 @@ module DirProd {ℓ} (G H : Group ℓ) where
   sndHom .snd .presinv _ = refl
 
   pairingHom : {K : Group ℓ} (φ : GroupHom K G) (ψ : GroupHom K H) → GroupHom K (DirProd G H)
-  pairingHom φ ψ .fst = λ k → φ .fst k , ψ .fst k
+  pairingHom φ ψ .fst = λ k → (φ # k) , (ψ # k)
   pairingHom φ ψ .snd .pres· k₁ k₂ = ≡-× (φ .snd .pres· k₁ k₂) (ψ .snd .pres· k₁ k₂)
   pairingHom φ ψ .snd .pres1 = ≡-× (φ .snd .pres1) (ψ .snd .pres1)
   pairingHom φ ψ .snd .presinv k = ≡-× (φ .snd .presinv k) (ψ .snd .presinv k)

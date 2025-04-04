@@ -10,7 +10,7 @@ open import Cubical.Foundations.Function
   public
 open import Cubical.Foundations.Structure public using (⟨_⟩ ; str)
 open import Cubical.Foundations.Equiv using (_≃_ ; _≃⟨_⟩_) renaming (_■ to _≃∎) public
-open import Cubical.Foundations.Equiv using (equivFun ; invEq ; isEquiv ; _∙ₑ_)
+open import Cubical.Foundations.Equiv using (fiber ; equivFun ; invEq ; isEquiv ; _∙ₑ_)
 open import Cubical.Foundations.Equiv.Properties using (equivAdjointEquiv ; preCompEquiv ; congEquiv)
 open import Cubical.Foundations.HLevels as HLevels using ()
 open import Cubical.Foundations.Isomorphism as Isomorphism using (Iso ; _Iso⟨_⟩_) renaming (_∎Iso to _Iso∎) public
@@ -394,6 +394,15 @@ isGroupoid→isPropSquare gpd-A sq₁ sq₂ = HLevels.isGroupoid→isGroupoid' g
 
 isProp∃ : ∀ {ℓ ℓ'} (A : Type ℓ) (B : A → Type ℓ') → isProp (∃[ a ∈ A ] B a)
 isProp∃ A B = PT.isPropPropTrunc {A = Σ A B}
+
+module _ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'} where
+  open HLevels
+  isOfHLevelFiber : (n : HLevel)
+    → isOfHLevel n A
+    → isOfHLevel (suc n) B
+    → (f : A → B)
+    → ∀ y → isOfHLevel n (fiber f y)
+  isOfHLevelFiber n is-trunc-A is-trunc-B f y = isOfHLevelΣ n is-trunc-A λ x → isOfHLevelPathP' n is-trunc-B (f x) y
 
 module _ where
   private

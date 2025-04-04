@@ -154,6 +154,14 @@ isOfHLevel×isConnected→isContr (suc k) A suc-k-level-A suc-k-conn-A = is-cont
   is-contr-A : isContr A
   is-contr-A = isOfHLevelRespectEquiv 0 universal-property-trunc suc-k-conn-A
 
+isTruncFun×isConnectedFun→isEquiv : (k : HLevel)
+  → (f : A → B)
+  → (∀ y → isOfHLevel k (fiber f y))
+  → (isConnectedFun k f)
+  → isEquiv f
+isTruncFun×isConnectedFun→isEquiv k f trunc-fib conn-fib .equiv-proof y =
+  isOfHLevel×isConnected→isContr k (fiber f y) (trunc-fib y) (conn-fib y)
+
 -- For an n-connected type A and n-truncated B, the map `(λ b → (λ a → b)) : B → (A → B)` is an equivalence.
 -- This is [HoTT book, Corollary 7.5.9].
 conType→indMapEquiv : ∀ {ℓ} {A : Type ℓ} (n : HLevel)

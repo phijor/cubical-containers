@@ -149,7 +149,7 @@ module _ (G H : StrictGroupoid ℓ) where
 
   private module _ (φ ψ : StrictFun) where
     Code : Type ℓ
-    Code = Σ[ p ∈ φ #_ ≡ ψ #_ ] PathP (λ i → StrictFunStr (p i)) (φ .snd) (ψ .snd)
+    Code = Σ[ p ∈ φ #_ ≡ ψ #_ ] PathP (λ i → StrictFunStr (p i)) (strict-fun-str φ) (strict-fun-str ψ)
 
     CodeEquiv : Code ≃ (φ ≡ ψ)
     CodeEquiv = ΣPathP≃PathPΣ
@@ -159,23 +159,65 @@ module _ (G H : StrictGroupoid ℓ) where
       is-prop-is-strict-fun-path : (p : φ #_ ≡ ψ #_) → isProp $ PathP (λ i → StrictFunStr (p i)) (strict-fun-str φ) (strict-fun-str ψ)
       is-prop-is-strict-fun-path p = isOfHLevelPathP' 1 (isSetStrictFunStr (ψ #_)) _ _
 
-      module _ (x : ∥ ⟨ G ⟩ ∥₂) where
-        based : Square {A = ∥ ⟨ H ⟩ ∥₂} (λ i → (ST.map (p₁ i) x)) (λ i → (ST.map (p₂ i) x)) (refl′ $ (ST.map (_#_ φ) x)) (refl′ $ (ST.map (_#_ ψ) x))
-        based = isSet→SquareP (λ _ _ → ST.isSetSetTrunc {A = ⟨ H ⟩}) _ _ _ _
-
-        base : Square (λ i → H.pt (ST.map (p₁ i) x)) (λ i → H.pt (ST.map (p₂ i) x)) (refl′ $ H.pt (ST.map (_#_ φ) x)) (refl′ $ H.pt (ST.map (_#_ ψ) x))
-        base i j = H.pt $ based i j
-
-        lemma : Square (p₁ ≡$ G.pt x) (p₂ ≡$ G.pt x) (refl′ $ φ # G.pt x) (refl′ $ ψ # G.pt x)
-        lemma i j = hcomp sides (base i j) where
-          sides : (k : I) → Partial (∂² i j) ⟨ H ⟩
-          sides k (i = i0) = q₁ j k x
-          sides k (i = i1) = q₂ j k x
-          sides k (j = i0) = strict-fun-str φ k x
-          sides k (j = i1) = strict-fun-str ψ k x
-
+      -- Let (p₁ p₂ : φ #_ ≡ ψ #_).  To show that there is always an identification p₁ ≡ p₂, it suffices
+      -- to give an identification over the points of G, i.e.
+      --
+      --    pointwise : cong (_ ∘ G.pt) p₁ ≡ cong (_ ∘ G.pt) p₂
+      --
+      -- Why? The goal is given by function extensionality of squares of functions G → H.
+      -- But squares in the codomain are propositions (as H is a groupoid), hence it is enough
+      -- to build the square on points of G (that is, ∥ G ∥₂).
       goal : p₁ ≡ p₂
-      goal = funExtSquare (elimProp G (λ g → isGroupoid→isPropSquare H.is-groupoid) lemma)
+      goal = funExtSquare $ elimProp G (λ g → isGroupoid→isPropSquare H.is-groupoid) $ funExtSquare⁻ pointwise where
+        -- Denote by g* and h* the pre- and postcomposition with points of G and H, respectively:
+        g* : (⟨ G ⟩ → ⟨ H ⟩) → (∥ ⟨ G ⟩ ∥₂ → ⟨ H ⟩)
+        g* ρ = ρ ∘ G.pt
+
+        h* : (⟨ G ⟩ → ⟨ H ⟩) → (∥ ⟨ G ⟩ ∥₂ → ⟨ H ⟩)
+        h* ρ = H.pt ∘ ST.map ρ
+
+        -- `pointwise` is build from the composition of three squares.
+        -- The first two are q₁ and q₂, i.e. the evidence that p₁ and p₂ are
+        -- identifications of point-preserving maps:
+        _ : Square _ _ (cong h* p₁) (cong g* p₁)
+        _ = q₁
+        _ : Square _ _ (cong h* p₂) (cong g* p₂)
+        _ = q₂
+
+        -- The third square is obtained by noticing that h* factors through a set:
+        --
+        --                  h*
+        --    (G → H) ------------> (∥ G ∥₂ → H)
+        --       |                        ^
+        --   map |                        | H.pt ∘_
+        --       |                        |
+        --       '--> (∥ G ∥₂ → ∥ H ∥₂) --'
+        --
+        -- ... therefore collapses paths:
+        base : cong h* p₁ ≡ cong h* p₂
+        base i j = H.pt ∘ trunc-base i j where
+          trunc-base : Square {A = ∥ ⟨ G ⟩ ∥₂ → ∥ ⟨ H ⟩ ∥₂} (cong ST.map p₁) (cong ST.map p₂) refl refl
+          trunc-base = funExtSquare λ _ → ST.isSetSetTrunc _ _ _ _
+
+        -- Finally, we compose the three squares as follows:
+        --     g* φ -------(g* p₁)------- g* ψ
+        --       |  \        q₁         /  |
+        --       |   \                 /   |
+        --       |  h* φ --(h* p₂)-- h* ψ  |
+        --       |    |               |    |
+        --       |    |     base      |    |
+        --       |    |               |    |
+        --       |  h* φ --(h* p₁)-- h* ψ  |
+        --       |   /                 \   |
+        --       |  /        q₂         \  |
+        --     g* φ -------(g* p₁)------- g* ψ
+        pointwise : cong g* p₁ ≡ cong g* p₂
+        pointwise i j = hcomp sides (base i j) where
+          sides : (k : I) → Partial (∂² i j) (∥ ⟨ G ⟩ ∥₂ → ⟨ H ⟩)
+          sides k (i = i0) = q₁ j k
+          sides k (i = i1) = q₂ j k
+          sides k (j = i0) = strict-fun-str φ k
+          sides k (j = i1) = strict-fun-str ψ k
 
   isSetStrictGroupoidMap : isSet StrictFun
   isSetStrictGroupoidMap φ ψ = isOfHLevelRespectEquiv 1 (CodeEquiv φ ψ) (isPropCode φ ψ)

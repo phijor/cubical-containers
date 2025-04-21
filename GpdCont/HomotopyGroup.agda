@@ -8,6 +8,7 @@ open import GpdCont.TwoCategory.StrictFunctor
 open import GpdCont.TwoCategory.Displayed.Base
 open import GpdCont.TwoCategory.Displayed.LocallyThin as LT using (IsLocallyThinOver ; LocallyThinOver)
 open import GpdCont.TwoCategory.HomotopyGroupoid renaming (hGpdCat to hGroupoid)
+import      GpdCont.Univalence as Univalence
 open import GpdCont.Connectivity using (isPathConnected ; isPropIsPathConnected)
 
 open import Cubical.Foundations.Equiv.Base using (fiber ; equivFun)
@@ -15,6 +16,7 @@ open import Cubical.Foundations.HLevels hiding (hGroupoid)
 open import Cubical.Foundations.Isomorphism using (section)
 open import Cubical.Foundations.Path as Path using (compPath→Square)
 import      Cubical.Foundations.GroupoidLaws as GL
+open import Cubical.Data.Sigma using (Σ≡Prop ; ΣPathP)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 
 {-# INJECTIVE_FOR_INFERENCE ⟨_⟩ #-}
@@ -160,12 +162,22 @@ module hGroup where
   ⌜ (((G , _) , _) , _) ⌝ = G
   {-# INJECTIVE_FOR_INFERENCE ⌜_⌝ #-}
 
+  is-groupoid : (G : ob) → isGroupoid ⌜ G ⌝
+  is-groupoid (((_ , p) , _) , _) = p
+
+  is-connected : (G : ob) → isPathConnected ⌜ G ⌝
+  is-connected = snd
+
   pt : (G : ob) → ⌜ G ⌝
   pt ((_ , ∙) , _) = ∙
 
   fun : ∀ {G H : ob} → hom G H → ⌜ G ⌝ → ⌜ H ⌝
   fun (φ , _) = φ
   {-# INJECTIVE_FOR_INFERENCE fun #-}
+
+  ua : {G H : ob} → (e : ⌜ G ⌝ ≃ ⌜ H ⌝) → equivFun e (pt G) ≡ pt H → G ≡ H
+  ua e p = Σ≡Prop (str ∘ isPointedConnectedGroupoid) (ΣPathP (TypeOfHLevel≡ 3 (Univalence.ua e) , Univalence.ua-gluePath e p))
+  {-# INJECTIVE_FOR_INFERENCE ua #-}
 
 ForgetConnected : StrictFunctor hGroup Pointed
 ForgetConnected = Forget Pointed isPointedConnectedGroupoid
@@ -178,6 +190,7 @@ module _ where
 
   postulate
     isSetHGroupHom : ∀ x y → isSet (hGroup.hom x y)
+    isGroupoidHGroup : isGroupoid hGroup.ob
     
 
   hGroupStrict : Category (ℓ-suc ℓ) ℓ
@@ -193,28 +206,85 @@ module _ where
   module hGroupStrict = Category hGroupStrict
 
 module _ where
+  open import Cubical.Categories.Category.Base
   open import Cubical.Categories.Functor.Base
   open import Cubical.Categories.Instances.Groups
+  open import Cubical.Categories.NaturalTransformation.Base as NT using (_≅ᶜ_)
+  open import Cubical.Categories.Equivalence.AdjointEquivalence
   open import Cubical.Algebra.Group.Base
   open import Cubical.Algebra.Group.Morphisms
   open import Cubical.Algebra.Group.MorphismProperties
 
   open import GpdCont.Group.FundamentalGroup using (π₁)
+  import      GpdCont.Delooping as Delooping
+  import      GpdCont.Delooping.Map as Map
 
   private
-    π₁-ob : hGroupStrict.ob → Group _
-    π₁-ob ((X , x₀) , _) = π₁ X x₀
+    module GroupCategory = Category (GroupCategory {ℓ})
+    Ω₀ : hGroupStrict.ob → Group _
+    Ω₀ ((X , x₀) , _) = π₁ X x₀
 
-    π₁-map : ∀ {X Y : hGroupStrict.ob}
+    Ω₁ : ∀ {X Y : hGroupStrict.ob}
       → hGroupStrict.Hom[ X , Y ]
-      → GroupHom (π₁-ob X) (π₁-ob Y)
-    π₁-map (f , fx₀≡y₀) .fst p = (sym fx₀≡y₀) ∙∙ cong f p ∙∙ fx₀≡y₀
-    π₁-map (f , fx₀≡y₀) .snd .IsGroupHom.pres· = {! !}
-    π₁-map (f , fx₀≡y₀) .snd .IsGroupHom.pres1 = {! !}
-    π₁-map (f , fx₀≡y₀) .snd .IsGroupHom.presinv = {! !}
+      → GroupHom (Ω₀ X) (Ω₀ Y)
+    Ω₁ (f , fx₀≡y₀) .fst p = (sym fx₀≡y₀) ∙∙ cong f p ∙∙ fx₀≡y₀
+    Ω₁ (f , fx₀≡y₀) .snd .IsGroupHom.pres· = {! !}
+    Ω₁ (f , fx₀≡y₀) .snd .IsGroupHom.pres1 = {! !}
+    Ω₁ (f , fx₀≡y₀) .snd .IsGroupHom.presinv = {! !}
 
   Ω : Functor hGroupStrict (GroupCategory {ℓ})
-  Ω .Functor.F-ob = π₁-ob
-  Ω .Functor.F-hom {x} {y} = π₁-map {x} {y}
+  Ω .Functor.F-ob = Ω₀
+  Ω .Functor.F-hom {x} {y} = Ω₁ {x} {y}
   Ω .Functor.F-id {x} = GroupHom≡ $ funExt λ p → sym (doubleCompPath-filler refl p refl)
   Ω .Functor.F-seq f g = {! !}
+
+  private
+    𝔹₀ : Group ℓ → hGroup.ob
+    𝔹₀ G .fst .fst .fst = Delooping.𝔹 G
+    𝔹₀ G .fst .fst .snd = Delooping.isGroupoid𝔹
+    𝔹₀ G .fst .snd = Delooping.⋆
+    𝔹₀ G .snd = Delooping.isConnectedDelooping G
+
+    𝔹₁ : ∀ {G H : Group ℓ} → GroupHom G H → hGroup.hom (𝔹₀ G) (𝔹₀ H)
+    𝔹₁ φ .fst = Map.map φ
+    𝔹₁ φ .snd = refl
+
+  𝔹 : Functor (GroupCategory {ℓ}) hGroupStrict
+  𝔹 .Functor.F-ob = 𝔹₀
+  𝔹 .Functor.F-hom = 𝔹₁
+  𝔹 .Functor.F-id {x = G} i .fst = Map.map-id G i
+  𝔹 .Functor.F-id {x = G} i .snd j = Delooping.⋆
+  𝔹 .Functor.F-seq φ ψ i .fst = Map.map-comp φ ψ i
+  𝔹 .Functor.F-seq φ ψ i .snd j = doubleCompPath-filler {x = Delooping.⋆} refl refl refl i j
+
+  η₀ : (G : Group ℓ) → GroupHom G (Ω₀ (𝔹₀ G))
+  η₀ G = Delooping.loopHom G
+
+  η₁ : ∀ {G H : Group ℓ} → (φ : GroupHom G H) → φ GroupCategory.⋆ (η₀ H) ≡ η₀ G GroupCategory.⋆ (Ω₁ {X = 𝔹₀ G} {Y = 𝔹₀ H} (𝔹₁ φ))
+  η₁ φ = GroupHom≡ λ i g → doubleCompPath-filler {x = (Map.map φ Delooping.⋆)} refl (cong (Map.map φ) (Delooping.loop g)) refl i
+
+  isIso-η : ∀ G → isIso GroupCategory (η₀ G)
+  isIso-η G .isIso.inv = Delooping.unloopGroupHom G
+  isIso-η G .isIso.sec = GroupHom≡ $ funExt $ Delooping.encodeDecodeIso G .Iso.leftInv
+  isIso-η G .isIso.ret = GroupHom≡ $ funExt $ Delooping.encodeDecodeIso G {y = Delooping.⋆} .Iso.rightInv
+
+  η : 𝟙⟨ GroupCategory ⟩ ≅ᶜ Ω ∘F 𝔹
+  η .NT.NatIso.trans .NT.NatTrans.N-ob = η₀
+  η .NT.NatIso.trans .NT.NatTrans.N-hom {x} {y} φ = η₁ {x} {y} φ
+  η .NT.NatIso.nIso = isIso-η
+
+  ε₀ : (G : hGroup.ob) → hGroup.hom (𝔹₀ (Ω₀ G)) G
+  ε₀ G .fst = Delooping.rec (Ω₀ G) (G .fst .fst .snd) (hGroup.pt G) (id _) pathComp→compSquareFiller
+  ε₀ G .snd = refl
+
+  ε : 𝔹 ∘F Ω ≅ᶜ 𝟙⟨ hGroupStrict ⟩
+  ε .NT.NatIso.trans .NT.NatTrans.N-ob = ε₀
+  ε .NT.NatIso.trans .NT.NatTrans.N-hom = {! !}
+  ε .NT.NatIso.nIso = {! !}
+
+  DeloopingEquiv : AdjointEquivalence (GroupCategory {ℓ}) hGroupStrict
+  DeloopingEquiv .AdjointEquivalence.fun = 𝔹
+  DeloopingEquiv .AdjointEquivalence.inv = Ω
+  DeloopingEquiv .AdjointEquivalence.η = η
+  DeloopingEquiv .AdjointEquivalence.ε = ε
+  DeloopingEquiv .AdjointEquivalence.triangleIdentities = {! !}

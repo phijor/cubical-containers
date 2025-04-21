@@ -1,4 +1,5 @@
 open import GpdCont.Prelude
+open import GpdCont.Categories.Functor using (isSplitEssentiallySurjective)
 open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.StrictFunctor
 open import GpdCont.TwoCategory.LocalCategory
@@ -37,11 +38,7 @@ module GpdCont.TwoCategory.StrictFunctor.LocalFunctor
     isLocallyEssentiallySurjective = Locally Functor.isEssentiallySurj
 
     isLocallySplitEssentiallySurjective : Type _
-    isLocallySplitEssentiallySurjective = Locally isSplitEssentiallySurjective where
-      isSplitEssentiallySurjective : ∀ {C : Category ℓh ℓr} {D : Category ℓh′ ℓr′} → Functor C D → Type _
-      isSplitEssentiallySurjective {C} {D} F = (d : D .ob) → Σ[ c ∈ C .ob ] CatIso D (F .F-ob c) d where
-        open Category
-        open Functor
+    isLocallySplitEssentiallySurjective = Locally isSplitEssentiallySurjective
 
     localEmbedding : isLocallyFullyFaithful
       → ∀ {x y : C.ob} (f g : C.hom x y)

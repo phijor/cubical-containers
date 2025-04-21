@@ -1,0 +1,132 @@
+module GpdCont.StrictGroupoid.Base where
+
+open import GpdCont.Prelude
+open import GpdCont.HomotopySet
+open import GpdCont.SetTruncation using (isConnected-fiber-∣-∣₂ ; setTruncateFstΣ≃ ; setTruncate⊎≃)
+open import GpdCont.Connectivity
+open import GpdCont.Axioms.TruncatedChoice using (hasSetChoice)
+
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Equiv.Properties using (hasSection ; isEquiv→isContrHasSection)
+open import Cubical.Foundations.Structure
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Data.Sigma
+open import Cubical.Data.Sum as Sum using (_⊎_ ; inl ; inr)
+open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
+open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
+open import Cubical.HITs.PropositionalTruncation.Monad using (_>>=_ ; return)
+
+private
+  variable
+    ℓ : Level
+    A : Type ℓ
+
+mkTruncSection : (pt : ∥ A ∥₂ → A) → (∀ a → ∥ pt ∣ a ∣₂ ≡ a ∥₁) → section ∣_∣₂ pt
+mkTruncSection pt mere-retract = ST.elim (λ _ → ST.isSetPathImplicit) goal where
+  goal : ∀ a → ∣ (pt ∣ a ∣₂) ∣₂ ≡ ∣ a ∣₂
+  goal a = ST.PathIdTrunc₀Iso .Iso.inv $ mere-retract a
+
+isPropHasSection-∣-∣₂ : (pt : ∥ A ∥₂ → A) → isProp (section ∣_∣₂ pt)
+isPropHasSection-∣-∣₂ pt = isPropΠ λ x → ST.isSetSetTrunc ∣ pt x ∣₂ x
+
+record StrictGroupoidStr (A : Type ℓ) : Type ℓ where
+  field
+    is-groupoid : isGroupoid A
+    pt : ∥ A ∥₂ → A
+    pt-section : section ∣_∣₂ pt
+
+  pt-at : A → A
+  pt-at a = pt ∣ a ∣₂
+
+  mere-retract : ∀ a → ∥ pt ∣ a ∣₂ ≡ a ∥₁
+  mere-retract a = ST.PathIdTrunc₀Iso .Iso.fun (pt-section ∣ a ∣₂)
+
+  Components : hSet ℓ
+  Components .fst = ∥ A ∥₂
+  Components .snd = ST.isSetSetTrunc
+
+unquoteDecl StrictGroupoidStrIsoΣ = declareRecordIsoΣ StrictGroupoidStrIsoΣ (quote StrictGroupoidStr)
+
+instance
+  StrictGroupoidStrToΣ : RecordToΣ (StrictGroupoidStr A)
+  StrictGroupoidStrToΣ = toΣ StrictGroupoidStrIsoΣ
+
+inhFibTrunc→StrictStr : isGroupoid A → ((x : ∥ A ∥₂) → fiber ∣_∣₂ x) → StrictGroupoidStr A
+inhFibTrunc→StrictStr is-groupoid-A inh-fib .StrictGroupoidStr.is-groupoid = is-groupoid-A
+inhFibTrunc→StrictStr is-groupoid-A inh-fib .StrictGroupoidStr.pt = fst ∘ inh-fib
+inhFibTrunc→StrictStr is-groupoid-A inh-fib .StrictGroupoidStr.pt-section = snd ∘ inh-fib
+
+StrictGroupoidStr' : (A : Type ℓ) → Type ℓ
+StrictGroupoidStr' A = hasSection {A = A} ∣_∣₂ × isGroupoid A
+
+StrictGroupoidStr'' : (A : Type ℓ) → Type ℓ
+StrictGroupoidStr'' A = Σ[ pt ∈ (∥ A ∥₂ → A) ] (∀ a → ∥ pt ∣ a ∣₂ ≡ a ∥₁)
+
+StrictGroupoid : (ℓ : Level) → Type (ℓ-suc ℓ)
+StrictGroupoid ℓ = TypeWithStr ℓ StrictGroupoidStr
+
+StrictGroupoid→hGroupoid : StrictGroupoid ℓ → hGroupoid ℓ
+StrictGroupoid→hGroupoid (G , is-strict-G) .fst = G
+StrictGroupoid→hGroupoid (G , is-strict-G) .snd = StrictGroupoidStr.is-groupoid is-strict-G
+
+is2GroupoidStrictGroupoid : is2Groupoid (StrictGroupoid ℓ)
+is2GroupoidStrictGroupoid = isOfHLevelRespectEquiv 4 shuffle is2GroupoidStrictGroupoid' where
+  StrictGroupoid' : Type (ℓ-suc ℓ)
+  StrictGroupoid' = Σ[ G ∈ hGroupoid _ ] hasSection (∣_∣₂ {A = ⟨ G ⟩})
+
+  to : StrictGroupoid' → StrictGroupoid ℓ
+  to ((G , is-groupoid-G) , pt , pt-section) .fst = G
+  to ((G , is-groupoid-G) , pt , pt-section) .snd .StrictGroupoidStr.is-groupoid = is-groupoid-G
+  to ((G , is-groupoid-G) , pt , pt-section) .snd .StrictGroupoidStr.pt = pt
+  to ((G , is-groupoid-G) , pt , pt-section) .snd .StrictGroupoidStr.pt-section = pt-section
+
+  from : StrictGroupoid ℓ → StrictGroupoid'
+  from (G , G-str) .fst .fst = G
+  from (G , G-str) .fst .snd = StrictGroupoidStr.is-groupoid G-str
+  from (G , G-str) .snd .fst = StrictGroupoidStr.pt G-str
+  from (G , G-str) .snd .snd = StrictGroupoidStr.pt-section G-str
+
+  shuffle : StrictGroupoid' ≃ StrictGroupoid ℓ
+  shuffle = strictEquiv to from
+
+  is2GroupoidStrictGroupoid' : is2Groupoid StrictGroupoid'
+  is2GroupoidStrictGroupoid' = is2GroupoidΣ (isOfHLevelTypeOfHLevel 3)
+    λ G → isOfHLevelSuc 3 (isGroupoidΣ (isGroupoidΠ λ _ → str G)
+    λ pt → isProp→isOfHLevelSuc 2 (isPropHasSection-∣-∣₂ pt))
+
+module _ (G : StrictGroupoid ℓ) where
+  private module G = StrictGroupoidStr (str G)
+
+  component-pt : (j : ⟨ G.Components ⟩) → fiber ∣_∣₂ j
+  component-pt j .fst = G.pt j
+  component-pt j .snd = G.pt-section j
+
+  Component≡ : ∀ {j : ⟨ G.Components ⟩} → {x y : fiber ∣_∣₂ j} → x .fst ≡ y .fst → x ≡ y
+  Component≡ = Σ≡Prop λ g → ST.isSetSetTrunc ∣ g ∣₂ _
+
+  GroupAt : ⟨ G.Components ⟩ → StrictGroupoid ℓ
+  GroupAt j .fst = fiber ∣_∣₂ j
+  GroupAt j .snd .StrictGroupoidStr.is-groupoid = isGroupoidΣ G.is-groupoid (λ g → isProp→isOfHLevelSuc 2 (ST.isSetSetTrunc _ j))
+  GroupAt j .snd .StrictGroupoidStr.pt = const $ component-pt j
+  GroupAt j .snd .StrictGroupoidStr.pt-section = mkTruncSection _ mere-retract where
+    mere-retract : (x : fiber ∣_∣₂ j) → ∥ component-pt j ≡ x ∥₁
+    mere-retract  = isPathConnected→merePath (isConnected-fiber-∣-∣₂ j) (component-pt j)
+
+  isHGroupGroupAt : ∀ j → isPathConnected ⟨ GroupAt j ⟩
+  isHGroupGroupAt = isConnected-fiber-∣-∣₂
+
+module _ (G : StrictGroupoid ℓ) where
+  private module G = StrictGroupoidStr (str G)
+  elimProp : ∀ {ℓP} {P : ⟨ G ⟩ → Type ℓP}
+    → (∀ g → isProp (P g))
+    → (f* : (x : ∥ ⟨ G ⟩ ∥₂) → P (G.pt x))
+    → (∀ g → P g)
+  elimProp {P} is-prop-P f* g = equivFun (PT.propTruncIdempotent≃ (is-prop-P g)) ∣p∣ where
+    p' : P (G.pt-at g)
+    p' = f* ST.∣ g ∣₂
+
+    ∣p∣ : ∥ P g ∥₁
+    ∣p∣ = do
+      q ← G.mere-retract g
+      return $ subst P (the (G.pt-at g ≡ g) q) p'

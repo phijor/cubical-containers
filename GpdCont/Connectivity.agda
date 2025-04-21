@@ -15,7 +15,7 @@ open import Cubical.Data.Sigma.Properties as Sigma using ()
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
 open import Cubical.HITs.Truncation as Tr using (∥_∥_)
-open import Cubical.Homotopy.Connected as Connected
+open import Cubical.Homotopy.Connected as Connected public
 
 private
   variable

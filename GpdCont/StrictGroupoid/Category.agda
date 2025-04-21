@@ -11,7 +11,7 @@ open import GpdCont.SetTruncation
 open import GpdCont.HomotopySet
 open import GpdCont.Univalence
 open import GpdCont.PropositionalTruncation using (propTruncFstΣ≃)
-open import GpdCont.Equiv using (precomposeSection ; equivΠDomain)
+open import GpdCont.Equiv using (equivΠDomain)
 
 open import Cubical.Foundations.Equiv
 import      Cubical.Foundations.GroupoidLaws as GL

@@ -404,6 +404,9 @@ module _ where
       B′ : A′ → Type ℓᴰ
       B″ : A″ → Type ℓᴰ
 
+  Σ→∃ : Σ A B → ∃ A B
+  Σ→∃ = PT.∣_∣₁
+
   ∃-intro : (a : A) (b : B a) → ∃[ a ∈ A ] B a
   ∃-intro a b = PT.∣ a , b ∣₁
 

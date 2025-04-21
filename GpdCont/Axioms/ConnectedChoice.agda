@@ -91,7 +91,13 @@ ACC[+1,+1]→ACC : (n k : HLevel) → ACC ℓ (suc n) (suc k) → ACC ℓ n k
 ACC[+1,+1]→ACC n k acc-suc X Y conn-Y = {!acc-suc _ _ _ !}
 
 ACC→ACC[+1,+1] : (n k : HLevel) → ACC ℓ n k → ACC ℓ (suc n) (suc k)
-ACC→ACC[+1,+1] n k acc X Y conn-Y = {!acc _ _ _ !}
+ACC→ACC[+1,+1] n k acc X Y conn-Y = {! !}
+
+ACC→ACC[_-1,_] : (n k : HLevel) → ACC ℓ (suc n) k → ACC ℓ n k
+ACC→ACC[_-1,_] n k acc X Y conn-Y = acc X Y' conn-Y where
+  Y' : ⟨ X ⟩ → TypeOfHLevel _ (suc n)
+  Y' x .fst = ⟨ Y x ⟩
+  Y' x .snd = isOfHLevelSuc n (str (Y x))
 
 -- Being "split" can similarly be generalized to higher h-levels:
 -- A function is k-split if it has an k-connected type of sections.
@@ -374,3 +380,23 @@ ACC[n,1]×ACC[n,-]→ACC[n,suc-] n k acc-set acc X Y conn-Y = is-suc-connected-s
     inh-section
     is-connected-path
 
+ACC[n,1]→ACC[n,suc-] : (n k : HLevel) → ACC ℓ n 1 → ACC ℓ n (suc k)
+ACC[n,1]→ACC[n,suc-] n zero acc-set = acc-set
+ACC[n,1]→ACC[n,suc-] n (suc k) acc-set = acc-2+k where
+  acc-1+k : ACC _ n (1 + k)
+  acc-1+k = ACC[n,1]→ACC[n,suc-] n k acc-set
+
+  acc-2+k : ACC _ n (2 + k)
+  acc-2+k = ACC[n,1]×ACC[n,-]→ACC[n,suc-] n (suc k) acc-set acc-1+k
+
+ACC[n,1]→ACC[n,-] : (n k : HLevel) → ACC ℓ n 1 → ACC ℓ n k
+ACC[n,1]→ACC[n,-] n zero acc-set = ACC[ n ,0]
+ACC[n,1]→ACC[n,-] n (suc k) acc-set = ACC[n,1]→ACC[n,suc-] n k acc-set
+
+AllSurjectionsSplit→ACC[2,-] : (k : HLevel) → AllSurjectionsSplit ℓ → ACC ℓ 2 k
+AllSurjectionsSplit→ACC[2,-] k = ACC[n,1]→ACC[n,-] 2 k
+  ∘ ConnectedFunsHaveConnectedSections→ACC 2 1
+  ∘ equivFun AllSurjectionsSplit≃ConnectedFunsHaveConnectedSections₂₁
+
+AllSurjectionsSplit→CFCS[2,-] : (k : HLevel) → AllSurjectionsSplit ℓ → ConnectedFunsHaveConnectedSections ℓ 2 k
+AllSurjectionsSplit→CFCS[2,-] k = ACC→ConnectedFunsHaveConnectedSections 2 k ∘ AllSurjectionsSplit→ACC[2,-] k

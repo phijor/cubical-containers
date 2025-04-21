@@ -1,5 +1,5 @@
 open import GpdCont.Prelude hiding (J)
-open import Cubical.Categories.Category.Base using (Category ; _[_,_])
+open import Cubical.Categories.Category.Base
 
 module GpdCont.Categories.Family (ℓ : Level) {ℓo ℓh} (C : Category ℓo ℓh) where
 
@@ -10,6 +10,7 @@ import      GpdCont.Categories.Products as Pr
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma
 
 open import Cubical.Categories.Instances.Sets using (SET)
@@ -49,6 +50,12 @@ module _ where
   FamHom≡ p q i .fst = p i
   FamHom≡ p q i .snd j = q j i
 
+  FamIsoOverId : ∀ {X} {c d : ⟨ X ⟩ → C.ob} (f : ∀ j → CatIso C (c j) (d j)) → CatIso Fam (X , c) (X , d)
+  FamIsoOverId f .fst = (id _ , fst ∘ f)
+  FamIsoOverId f .snd .isIso.inv = (id _ , isIso.inv ∘ snd ∘ f)
+  FamIsoOverId f .snd .isIso.sec i = id _ , λ j → (isIso.sec $ snd $ f j) i
+  FamIsoOverId f .snd .isIso.ret i = id _ , λ j → (isIso.ret $ snd $ f j) i
+
 private
   module Fam = Category Fam
 
@@ -70,6 +77,20 @@ module Notation where
 
 open Notation
 
+module Univalent (is-univalent : isUnivalent C) where
+  private
+    module C = Category C
+
+    univ-equiv : (x y : Fam.ob) → (x ≡ y) ≃ CatIso Fam x y
+    univ-equiv x@(J , c) y@(K , d) =
+      ((J , c) ≡ (K , d)) ≃⟨ invEquiv ΣPath≃PathΣ ⟩
+      Σ[ p ∈ J ≡ K ] PathP (λ i → ⟨ p i ⟩ → C.ob) c d ≃⟨ Σ-cong-equiv-snd (λ p → invEquiv funExtNonDepEquiv) ⟩
+      Σ[ p ∈ J ≡ K ] ({j : ⟨ J ⟩} {k : ⟨ K ⟩} → PathP (λ i → ⟨ p i ⟩) j k → c j ≡ d k) ≃⟨ {! !} ⟩
+      CatIso Fam (J , c) (K , d) ≃∎
+      
+
+  isUnivalentFam : isUnivalent Fam
+  isUnivalentFam .isUnivalent.univ x y = subst isEquiv {! !} (equivIsEquiv (univ-equiv x y))
 
 module Coproducts where
   open import GpdCont.Categories.Coproducts Fam ℓ as FamCoproduct

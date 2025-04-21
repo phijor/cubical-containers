@@ -19,6 +19,7 @@ private
     open Category C public
     open Diagonal C ℓ public
 
+open C using (Δ) public
 
 Coproduct : (K : hSet ℓ) → (c : ⟨ K ⟩ → C.ob) → Type _
 Coproduct K = LeftAdjointAt' _ _ (C.Δ K)

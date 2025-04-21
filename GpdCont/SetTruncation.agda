@@ -14,6 +14,7 @@ open import Cubical.Foundations.Univalence using (pathToEquiv)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
 open import Cubical.Data.Sigma
+open import Cubical.Data.Sum as Sum
 open import Cubical.Functions.Embedding
 open import Cubical.Functions.Surjection
 open import Cubical.Functions.Fibration
@@ -23,6 +24,9 @@ private
     ℓA ℓB : Level
     A : Type ℓA
     B : A → Type ℓB
+
+setTruncMapId : ST.map (id A) ≡ id ∥ A ∥₂
+setTruncMapId = funExt $ ST.elim (λ x → ST.isSetPathImplicit) λ a → refl
 
 IsoSetTruncateFstΣ : isSet A → Iso ∥ Σ A B ∥₂ (Σ A (∥_∥₂ ∘ B))
 IsoSetTruncateFstΣ {A} {B} is-set-A = go where
@@ -36,6 +40,20 @@ IsoSetTruncateFstΣ {A} {B} is-set-A = go where
 
 setTruncateFstΣ≃ : isSet A → ∥ Σ A B ∥₂ ≃ (Σ A (∥_∥₂ ∘ B))
 setTruncateFstΣ≃ = isoToEquiv ∘ IsoSetTruncateFstΣ
+
+setTruncate⊎≃ : ∀ {B : Type ℓB} → ∥ A ⊎ B ∥₂ ≃ ∥ A ∥₂ ⊎ ∥ B ∥₂
+setTruncate⊎≃ {A} {B} = isoToEquiv trunc-iso where
+  is-set-sum : isSet (∥ A ∥₂ ⊎ ∥ B ∥₂)
+  is-set-sum = isOfHLevel⊎ 0 ST.isSetSetTrunc ST.isSetSetTrunc
+
+  trunc-iso : Iso _ _
+  trunc-iso .Iso.fun = ST.rec is-set-sum (Sum.map ∣_∣₂ ∣_∣₂)
+  trunc-iso .Iso.inv = Sum.rec (ST.map inl) (ST.map inr)
+  trunc-iso .Iso.rightInv = Sum.elim
+    (ST.elim (λ _ → isOfHLevelPath 2 is-set-sum _ _) λ _ → refl)
+    (ST.elim (λ _ → isOfHLevelPath 2 is-set-sum _ _) λ _ → refl)
+  trunc-iso .Iso.leftInv = ST.elim (λ _ → ST.isSetPathImplicit) $
+    Sum.elim (λ _ → refl) (λ _ → refl)
 
 setTruncEquiv : ∀ {B : Type ℓB} → A ≃ B → ∥ A ∥₂ ≃ ∥ B ∥₂
 setTruncEquiv = isoToEquiv ∘ ST.setTruncIso ∘ equivToIso

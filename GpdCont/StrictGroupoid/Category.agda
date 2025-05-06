@@ -5,6 +5,8 @@ module GpdCont.StrictGroupoid.Category (ℓ : Level) where
 open import GpdCont.StrictGroupoid.Base renaming (StrictGroupoid to StrictGroupoid₀)
 open import GpdCont.StrictGroupoid.Morphism
 open import GpdCont.StrictGroupoid.Equiv
+open import GpdCont.StrictGroupoid.Properties
+open import GpdCont.StrictGroupoid.HomotopyGroup hiding (hGroup)
 
 open import GpdCont.Connectivity
 open import GpdCont.SetTruncation
@@ -56,12 +58,6 @@ isUnivalentStrictGroupoidCat = {! !}
 isGroupoidStrictGroupoid : isGroupoid StrictGroupoid.ob
 isGroupoidStrictGroupoid = isUnivalent.isGroupoid-ob isUnivalentStrictGroupoidCat
 
-isHGroup : StrictGroupoid.ob → Type _
-isHGroup G = isPathConnected ⟨ G ⟩
-
-isPropIsHGroup : ∀ G → isProp (isHGroup G)
-isPropIsHGroup G = isPropIsPathConnected ⟨ G ⟩
-
 hGroup : Category (ℓ-suc ℓ) ℓ
 hGroup = FullSubcategory StrictGroupoid isHGroup
 
@@ -74,9 +70,6 @@ opaque
 
   isGroupoidHGroup : isGroupoid hGroup.ob
   isGroupoidHGroup = isUnivalent.isGroupoid-ob isUnivalentHGroup
-
-hGroup≡ : ∀ {G H : hGroup.ob} → G .fst ≡ H .fst → G ≡ H
-hGroup≡ = Σ≡Prop isPropIsHGroup
 
 ForgetGroup : Functor hGroup StrictGroupoid
 ForgetGroup = FullInclusion StrictGroupoid isHGroup

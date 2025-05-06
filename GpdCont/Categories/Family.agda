@@ -43,6 +43,11 @@ module _ where
   Fam≡ p q i .fst = p i
   Fam≡ p q i .snd = q i
 
+  uaFam : ∀ {x@(J , X) y@(K , Y) : Category.ob Fam}
+    → (e : ⟨ J ⟩ ≃ ⟨ K ⟩)
+    → (eᴰ : ∀ j → X j ≡ Y (equivFun e j)) → x ≡ y
+  uaFam e q = Fam≡ (hSet≡ (ua e)) (ua→ q)
+
   FamHom≡ : ∀ {X Y} {f×φ@(f , φ) g×ψ@(g , ψ) : Fam [ X , Y ]}
     → (p : f ≡ g)
     → (∀ j → PathP (λ i → C [ X .snd j , Y .snd (p i j) ]) (φ j) (ψ j))

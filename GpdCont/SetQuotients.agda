@@ -2,7 +2,7 @@ module GpdCont.SetQuotients where
 
 open import GpdCont.Prelude
 
-open import Cubical.Foundations.Equiv using (equivToIso)
+open import Cubical.Foundations.Equiv using (equivToIso ; invEq)
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Function using (_∘_)
 
@@ -51,6 +51,18 @@ relIso→QuotIdIso rel-iso = relBiimpl→QuotIdIso (rel-iso .fun) (rel-iso .inv)
 
 relEquiv→QuotIdEquiv : {R S : A → A → Type ℓ'} → (∀ {a a'} → (R a a') ≃ (S a a')) → (A / R) ≃ (A / S)
 relEquiv→QuotIdEquiv rel-equiv = isoToEquiv (relIso→QuotIdIso (equivToIso rel-equiv))
+
+pullbackRel : (f : A → B) (S : B → B → Type ℓ') → (A → A → Type ℓ')
+pullbackRel f S = λ a a′ → S (f a) (f a′)
+
+pullbackQuotIso : (i : Iso A B) → Iso (A / R) (B / pullbackRel (i .inv) R)
+pullbackQuotIso {R} i = relBiimpl→QuotIso i ret-rel (id $ R (g _) (g _)) where
+  open module i = Iso i renaming (fun to f ; inv to g) using ()
+  ret-rel : ∀ {a a'} → R a a' → R (g (f a)) (g (f a'))
+  ret-rel {a} {a'} = subst2 R (sym (i.leftInv a)) (sym (i.leftInv a'))
+
+pullbackQuotEquiv : (e : A ≃ B) → (A / R) ≃ (B / pullbackRel (invEq e) R)
+pullbackQuotEquiv e = isoToEquiv (pullbackQuotIso (equivToIso e))
 
 SetTruncSetQuotientPathIso : Iso ∥ A ∥₂ (A / _≡_)
 SetTruncSetQuotientPathIso .Iso.fun = ST.rec SQ.squash/ SQ.[_]

@@ -138,8 +138,13 @@ module Elim {ℓ ℓo ℓh ℓo' ℓh'}
           D.ι _ _ _              ≡[ i ]⟨ D.⋆IdR (D.ι _ _ _) (~ i) ⟩
           D.ι _ _ _ D.⋆ D.id ∎
 
+      elim₁-seq : (x y z : Fam.ob) (f : Fam [ x , y ]) (g : Fam [ y , z ])
+        → elim₁ x z (f Fam.⋆ g) ≡ elim₁ x y f D.⋆ elim₁ y z g
+      elim₁-seq = ?
+
   elimFunctor : Functor Fam D
   elimFunctor .Functor.F-ob = elim₀
   elimFunctor .Functor.F-hom {x} {y} = elim₁ x y
   elimFunctor .Functor.F-id {x} = elim₁-id x
-  elimFunctor .Functor.F-seq = {! !}
+  elimFunctor .Functor.F-seq {x} {y} {z} = elim₁-seq x y z
+  {-# INJECTIVE_FOR_INFERENCE elimFunctor #-}

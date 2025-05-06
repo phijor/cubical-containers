@@ -70,6 +70,12 @@ StrictGroupoidStr'' A = Σ[ pt ∈ (∥ A ∥₂ → A) ] (∀ a → ∥ pt ∣ 
 StrictGroupoid : (ℓ : Level) → Type (ℓ-suc ℓ)
 StrictGroupoid ℓ = TypeWithStr ℓ StrictGroupoidStr
 
+StrictGroupoid≡ : {G H : StrictGroupoid ℓ}
+  → (p : ⟨ G ⟩ ≡ ⟨ H ⟩)
+  → (q : PathP (λ i → StrictGroupoidStr (p i)) (str G) (str H))
+  → G ≡ H
+StrictGroupoid≡ = curry ΣPathP
+
 StrictGroupoid→hGroupoid : StrictGroupoid ℓ → hGroupoid ℓ
 StrictGroupoid→hGroupoid (G , is-strict-G) .fst = G
 StrictGroupoid→hGroupoid (G , is-strict-G) .snd = StrictGroupoidStr.is-groupoid is-strict-G

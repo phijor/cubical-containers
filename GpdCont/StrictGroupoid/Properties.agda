@@ -178,6 +178,42 @@ StrictGroupoidΣSet A B .fst = Σ[ a ∈ ⟨ A ⟩ ] ⟨ B a ⟩
 StrictGroupoidΣSet A B .snd = StrictGroupoidStrΣSet (str A) (str ∘ B)
 {-# INJECTIVE_FOR_INFERENCE StrictGroupoidΣSet #-}
 
+StrictGroupoidStrΣSndHGroup : ∀ {A : Type ℓA} {B : A → Type ℓB}
+  → StrictGroupoidStr A
+  → (∀ a → StrictGroupoidStr (B a))
+  → (∀ a → isPathConnected (B a))
+  → StrictGroupoidStr (Σ A B)
+StrictGroupoidStrΣSndHGroup {A} {B} strict-A strict-B conn-B = strict-Σ where
+  module A = StrictGroupoidStr strict-A
+  module B a where
+    open StrictGroupoidStr (strict-B a) public
+
+    base : ∥ B a ∥₂
+    base = conn-B a .fst
+
+    ptᴰ : B a
+    ptᴰ = pt base
+
+  is-groupoid-Σ : isGroupoid (Σ A B)
+  is-groupoid-Σ = isGroupoidΣ A.is-groupoid B.is-groupoid
+
+  pt′ : ∥ A ∥₂ → Σ A B
+  pt′ x .fst = A.pt x
+  pt′ x .snd = B.ptᴰ (A.pt x)
+
+  pt-equiv : ∥ Σ A B ∥₂ ≃ ∥ A ∥₂
+  pt-equiv =
+    ∥ Σ A B ∥₂ ≃⟨ isoToEquiv ST.setSigmaIso ⟩
+    ∥ Σ A (∥_∥₂ ∘ B) ∥₂ ≃⟨ setTruncEquiv (Σ-contractSnd conn-B) ⟩
+    ∥ A ∥₂ ≃∎
+
+  strict-Σ : StrictGroupoidStr (Σ A B)
+  strict-Σ = componentEquiv→StrictGroupoidStr
+    ∥ A ∥₂ ST.isSetSetTrunc
+    is-groupoid-Σ
+    pt-equiv
+    pt′ A.pt-section
+
 {-
 StrictGroupoidStrΠ : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}
   → (∀ a → StrictGroupoidStr (B a))

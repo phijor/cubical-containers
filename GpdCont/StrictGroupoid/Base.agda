@@ -39,6 +39,10 @@ record StrictGroupoidStr (A : Type ℓ) : Type ℓ where
   pt-at : A → A
   pt-at a = pt ∣ a ∣₂
 
+  pt-fiber : (x : ∥ A ∥₂) → fiber ∣_∣₂ x
+  pt-fiber x .fst = pt x
+  pt-fiber x .snd = pt-section x
+
   mere-retract : ∀ a → ∥ pt ∣ a ∣₂ ≡ a ∥₁
   mere-retract a = ST.PathIdTrunc₀Iso .Iso.fun (pt-section ∣ a ∣₂)
 

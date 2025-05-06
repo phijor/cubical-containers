@@ -1,17 +1,18 @@
 module GpdCont.StrictGroupoid.Properties where
 
 open import GpdCont.StrictGroupoid.Base
+open import GpdCont.StrictGroupoid.HomotopyGroup
 
 open import GpdCont.Prelude
 open import GpdCont.HomotopySet
-open import GpdCont.SetTruncation using (isSurjection-∣-∣₂ ; isConnected-fiber-∣-∣₂ ; setTruncateFstΣ≃ ; setTruncate⊎≃)
+open import GpdCont.SetTruncation
 open import GpdCont.Connectivity
 open import GpdCont.Axioms.TruncatedChoice using (hasSetChoice ; ASC)
 open import GpdCont.Axioms.ConnectedChoice using (ConnectedFunsHaveConnectedSections ; AllSurjectionsSplit→CFCS[2,-])
 open import GpdCont.Axioms.Cover using (AllSurjectionsSplitω)
 
 open import Cubical.Foundations.Equiv
-open import Cubical.Foundations.Equiv.Properties using (hasSection ; isEquiv→isContrHasSection)
+open import Cubical.Foundations.Equiv.Properties using (hasSection ; isEquiv→isContrHasSection ; congEquiv)
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
@@ -52,6 +53,27 @@ ACω→mereStricStr split A*@(A , is-groupoid-A) = do
     ∥A∥₂ : hSet _
     ∥A∥₂ .fst = ∥ A ∥₂
     ∥A∥₂ .snd = ST.isSetSetTrunc
+
+componentEquiv→StrictGroupoidStr : ∀ (A₀ : Type ℓ)
+  → isSet A₀
+  → isGroupoid A
+  → (e : ∥ A ∥₂ ≃ A₀)
+  → (pt₀ : A₀ → A)
+  → (pt₀-section : section (equivFun e ∘ ∣_∣₂) pt₀)
+  → StrictGroupoidStr A
+componentEquiv→StrictGroupoidStr {A} A₀ is-set-A₀ is-groupoid-A (e , is-equiv-e) pt₀ pt₀-section = strict-A where
+  pt : ∥ A ∥₂ → A
+  pt = pt₀ ∘ e
+
+  pt-section : section ∣_∣₂ pt
+  pt-section x = invEq (congEquiv (e , is-equiv-e)) p where
+    p : e ∣ pt₀ (e x) ∣₂ ≡ e x
+    p = pt₀-section (e x)
+
+  strict-A : StrictGroupoidStr A
+  strict-A .StrictGroupoidStr.is-groupoid = is-groupoid-A
+  strict-A .StrictGroupoidStr.pt = pt
+  strict-A .StrictGroupoidStr.pt-section = pt-section
 
 StrictGroupoidStr× :
     StrictGroupoidStr A

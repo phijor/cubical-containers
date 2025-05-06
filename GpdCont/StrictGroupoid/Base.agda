@@ -115,13 +115,16 @@ module _ (G : StrictGroupoid ℓ) where
   Component≡ : ∀ {j : ⟨ G.Components ⟩} → {x y : fiber ∣_∣₂ j} → x .fst ≡ y .fst → x ≡ y
   Component≡ = Σ≡Prop λ g → ST.isSetSetTrunc ∣ g ∣₂ _
 
-  GroupAt : ⟨ G.Components ⟩ → StrictGroupoid ℓ
-  GroupAt j .fst = fiber ∣_∣₂ j
-  GroupAt j .snd .StrictGroupoidStr.is-groupoid = isGroupoidΣ G.is-groupoid (λ g → isProp→isOfHLevelSuc 2 (ST.isSetSetTrunc _ j))
-  GroupAt j .snd .StrictGroupoidStr.pt = const $ component-pt j
-  GroupAt j .snd .StrictGroupoidStr.pt-section = mkTruncSection _ mere-retract where
+  GroupAtStr : (j : ⟨ G.Components ⟩) → StrictGroupoidStr (fiber ∣_∣₂ j)
+  GroupAtStr j .StrictGroupoidStr.is-groupoid = isGroupoidΣ G.is-groupoid (λ g → isProp→isOfHLevelSuc 2 (ST.isSetSetTrunc _ j))
+  GroupAtStr j .StrictGroupoidStr.pt = const $ component-pt j
+  GroupAtStr j .StrictGroupoidStr.pt-section = mkTruncSection _ mere-retract where
     mere-retract : (x : fiber ∣_∣₂ j) → ∥ component-pt j ≡ x ∥₁
     mere-retract  = isPathConnected→merePath (isConnected-fiber-∣-∣₂ j) (component-pt j)
+
+  GroupAt : ⟨ G.Components ⟩ → StrictGroupoid ℓ
+  GroupAt j .fst = fiber ∣_∣₂ j
+  GroupAt j .snd = GroupAtStr j
 
   isHGroupGroupAt : ∀ j → isPathConnected ⟨ GroupAt j ⟩
   isHGroupGroupAt = isConnected-fiber-∣-∣₂

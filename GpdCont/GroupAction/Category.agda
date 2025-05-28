@@ -6,6 +6,8 @@ open import GpdCont.HomotopySet using (_→Set_)
 open import GpdCont.GroupAction.Base
 open import GpdCont.GroupAction.Equivariant
 open import GpdCont.Categories.Family using (Fam ; Famᴰ)
+open import GpdCont.Categories.ProductCategory using (isUnivalentProductCategory)
+open import GpdCont.Categories.Fiber using (isUnivalentFiber→isUnivalentTotalCategory)
 open import GpdCont.Group.DeloopingCategory using (DeloopingCategory ; ∫DeloopingCategory)
 open import GpdCont.Group.MapConjugator using (Conjugatorsᴰ ; ConjugatorStr)
 
@@ -17,10 +19,10 @@ open import Cubical.Algebra.Group.Base
 open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Algebra.Group.MorphismProperties using (idGroupHom)
 
-open import Cubical.Categories.Category.Base using (Category ; _^op ; _[_,_] ; seq')
+open import Cubical.Categories.Category.Base using (Category ; _^op ; _[_,_] ; seq' ; isUnivalent)
 open import Cubical.Categories.Functor.Base using (Functor)
 open import Cubical.Categories.Instances.Groups using (GroupCategory)
-open import Cubical.Categories.Instances.Sets using (SET)
+open import Cubical.Categories.Instances.Sets using (SET ; isUnivalentSET)
 open import Cubical.Categories.Constructions.TotalCategory.Base using (∫C)
 open import Cubical.Categories.Constructions.TotalCategory.Properties using (Fst)
 open import Cubical.Categories.Constructions.BinProduct as Prod using (_×C_)
@@ -85,6 +87,9 @@ GroupActionHom≡ {G×X} {H×Y} = Sigma.Σ≡Prop (λ φ×f → EquivariantMapSt
 
 private
   module GroupAction = Category GroupAction
+
+isUnivalentGroupAction : isUnivalent GroupAction
+isUnivalentGroupAction = isUnivalentFiber→isUnivalentTotalCategory Grp×Setᵒᵖ GroupActionᴰ (isUnivalentProductCategory {!isUnivalentSET !} {! !}) {! !}
 
 module LocalCategory (σ*@((G , X) , σ) τ*@((H , Y), τ): GroupAction.ob) where
   private

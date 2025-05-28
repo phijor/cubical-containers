@@ -10,7 +10,10 @@ open import Cubical.Algebra.Group.Morphisms using (GroupHom ; IsGroupHom)
 
 open import Cubical.Algebra.Group.DirProd using (DirProd) public
 
-module DirProd {ℓ} (G H : Group ℓ) where
+infixl 5 _⊗_
+_⊗_ = DirProd
+
+module DirProd {ℓG ℓH} (G : Group ℓG) (H : Group ℓH) where
   open IsGroupHom
 
   fstHom : GroupHom (DirProd G H) G
@@ -25,8 +28,14 @@ module DirProd {ℓ} (G H : Group ℓ) where
   sndHom .snd .pres1 = refl
   sndHom .snd .presinv _ = refl
 
-  pairingHom : {K : Group ℓ} (φ : GroupHom K G) (ψ : GroupHom K H) → GroupHom K (DirProd G H)
+  pairingHom : ∀ {ℓK} {K : Group ℓK} (φ : GroupHom K G) (ψ : GroupHom K H) → GroupHom K (DirProd G H)
   pairingHom φ ψ .fst = λ k → (φ # k) , (ψ # k)
   pairingHom φ ψ .snd .pres· k₁ k₂ = ≡-× (φ .snd .pres· k₁ k₂) (ψ .snd .pres· k₁ k₂)
   pairingHom φ ψ .snd .pres1 = ≡-× (φ .snd .pres1) (ψ .snd .pres1)
   pairingHom φ ψ .snd .presinv k = ≡-× (φ .snd .presinv k) (ψ .snd .presinv k)
+
+  mapRight : ∀ {ℓK} {K : Group ℓK} → (φ : GroupHom H K) → GroupHom (DirProd G H) (DirProd G K)
+  mapRight φ .fst = map-snd (φ .fst)
+  mapRight φ .snd .pres· (g , h) (g' , h') = cong (_ ,_) (φ .snd .pres· h h')
+  mapRight φ .snd .pres1 = cong (_ ,_) (φ .snd .pres1)
+  mapRight φ .snd .presinv (g , h) = cong (_ ,_) (φ .snd .presinv h)

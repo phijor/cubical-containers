@@ -17,7 +17,7 @@ open import Cubical.Categories.Presheaf.Representable
 open import Cubical.Algebra.Group.Base
 open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Algebra.Group.MorphismProperties
-open import Cubical.Algebra.Group.Instances.Pi using (ΠGroup)
+open import Cubical.Algebra.Group.Instances.Pi using (ΠGroup) public
 
 private
   module Group = Category (GroupCategory {ℓ})

@@ -83,6 +83,13 @@ merelyInh×isConnectedPath→isConnectedSuc k = PT.rec
   (isProp→ isPropIsConnected)
   (pointed×isConnectedPath→isConnectedSuc k)
 
+pointed×merePath→isPathConnected : (a₀ : A) → ((a b : A) → ∥ a ≡ b ∥₁) → isPathConnected A
+pointed×merePath→isPathConnected {A} a₀ mere-path .fst = ST.∣ a₀ ∣₂
+pointed×merePath→isPathConnected {A} a₀ mere-path .snd = ST.elim (λ _ → ST.isSetPathImplicit) $ λ a → merePath→pathSetTrunc (mere-path a₀ a)
+
+merelyInh×merePath→isPathConnected : ∥ A ∥₁ → ((a b : A) → ∥ a ≡ b ∥₁) → isPathConnected A
+merelyInh×merePath→isPathConnected {A} = PT.rec (isProp→ (isPropIsPathConnected A)) pointed×merePath→isPathConnected
+
 isConnectedSuc→merelyInh×isConnectedPath : (k : HLevel)
   → isConnected (suc k) A
   → ∥ A ∥₁ × ((a b : A) → isConnected k (a ≡ b))

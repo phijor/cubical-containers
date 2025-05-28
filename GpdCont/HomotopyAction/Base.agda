@@ -3,7 +3,7 @@ open import GpdCont.Prelude
 module GpdCont.HomotopyAction.Base (ℓ : Level) where
 
 open import GpdCont.HomotopySet
-open import GpdCont.HomotopyGroup ℓ as HomotopyGroup using (module hGroup) renaming (hGroupStrict to hGroup)
+open import GpdCont.HomotopyGroup ℓ as HomotopyGroup using (module hGroup ; hGroupStrict)
 open import GpdCont.Connectivity
 open import GpdCont.WildCat.TypeOfHLevel using (hGroupoidCat)
 open import GpdCont.TwoCategory.Base
@@ -31,7 +31,7 @@ private
   EndoGpd = GroupoidEndo.Endo ℓ
   module EndoGpd = TwoCategory EndoGpd
 
-Actionᴰ : Categoryᴰ hGroup (ℓ-suc ℓ) ℓ
+Actionᴰ : Categoryᴰ hGroupStrict (ℓ-suc ℓ) ℓ
 Actionᴰ .Categoryᴰ.ob[_] G = hGroup.⌜ G ⌝ → hSet ℓ
 Actionᴰ .Categoryᴰ.Hom[_][_,_] {x = G} {y = H} (φ , _) xᴰ yᴰ = (g : hGroup.⌜ G ⌝) → ⟨ yᴰ (φ g) ⟩ → ⟨ xᴰ g ⟩
 Actionᴰ .Categoryᴰ.idᴰ = λ g → id _

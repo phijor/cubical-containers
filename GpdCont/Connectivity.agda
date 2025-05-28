@@ -222,3 +222,14 @@ isConnected→mereLoopSpaceEquiv conn-A a b = do
     open import Cubical.HITs.PropositionalTruncation.Monad
     conjEquiv : (p : a ≡ b) → (a ≡ a) ≃ (b ≡ b)
     conjEquiv p = doubleCompPathEquiv p p
+
+isPathConnectedΣ : ∀ {B : A → Type ℓ}
+  → isPathConnected A
+  → (∀ a → isPathConnected (B a))
+  → isPathConnected (Σ A B)
+isPathConnectedΣ {A} {B} is-conn-A is-conn-B = isOfHLevelRespectEquiv 0 (invEquiv contr-equiv) is-conn-A where
+  contr-equiv : ∥ Σ A B ∥₂ ≃ ∥ A ∥₂
+  contr-equiv =
+    ∥ Σ[ a ∈ A ] B a ∥₂ ≃⟨ setTruncateSndΣ≃ ⟩
+    ∥ Σ[ a ∈ A ] ∥ B a ∥₂ ∥₂ ≃⟨ setTruncEquiv (Sigma.Σ-contractSnd is-conn-B) ⟩
+    ∥ A ∥₂ ■

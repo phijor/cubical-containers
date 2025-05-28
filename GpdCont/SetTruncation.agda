@@ -1,6 +1,7 @@
 module GpdCont.SetTruncation where
 
 open import GpdCont.Prelude
+open import GpdCont.Prelude.Square
 open import GpdCont.Equiv using (symEquiv)
 
 open import Cubical.Foundations.Equiv
@@ -41,6 +42,9 @@ IsoSetTruncateFstΣ {A} {B} is-set-A = go where
 setTruncateFstΣ≃ : isSet A → ∥ Σ A B ∥₂ ≃ (Σ A (∥_∥₂ ∘ B))
 setTruncateFstΣ≃ = isoToEquiv ∘ IsoSetTruncateFstΣ
 
+setTruncateSndΣ≃ : ∥ Σ A B ∥₂ ≃ ∥ (Σ A (∥_∥₂ ∘ B)) ∥₂
+setTruncateSndΣ≃ = isoToEquiv ST.IsoSetTruncateSndΣ
+
 setTruncate⊎≃ : ∀ {B : Type ℓB} → ∥ A ⊎ B ∥₂ ≃ ∥ A ∥₂ ⊎ ∥ B ∥₂
 setTruncate⊎≃ {A} {B} = isoToEquiv trunc-iso where
   is-set-sum : isSet (∥ A ∥₂ ⊎ ∥ B ∥₂)
@@ -58,8 +62,61 @@ setTruncate⊎≃ {A} {B} = isoToEquiv trunc-iso where
 setTruncEquiv : ∀ {B : Type ℓB} → A ≃ B → ∥ A ∥₂ ≃ ∥ B ∥₂
 setTruncEquiv = isoToEquiv ∘ ST.setTruncIso ∘ equivToIso
 
+squash-cong : ∀ {a a' : A} (p q : a ≡ a') → Square {A = ∥ A ∥₂} (cong ∣_∣₂ p) (cong ∣_∣₂ q) refl refl
+squash-cong {a} {a'} p q = ST.squash₂ ∣ a ∣₂ ∣ a' ∣₂ (cong ∣_∣₂ p) (cong ∣_∣₂ q)
+
+module elim→Gpd {B : ∥ A ∥₂ → Type ℓB}
+  (is-groupoid-B : ∀ a → isGroupoid (B a))
+  (f : ∀ a → B ∣ a ∣₂)
+  (cong-f-const : ∀ a a' (p q : a ≡ a') → SquareP (λ i j → B (squash-cong p q i j)) (cong f p) (cong f q) refl refl)
+  where
+  fun-Σ : ∥ A ∥₂ → Σ[ x ∈ ∥ A ∥₂ ] B x
+  fun-Σ = ST.rec→Gpd.fun (isGroupoidΣ (isSet→isGroupoid ST.isSetSetTrunc) is-groupoid-B) [-]* const-square
+    where
+      [-]* : A → Σ[ x ∈ ∥ A ∥₂ ] B x
+      [-]* a .fst = ∣ a ∣₂
+      [-]* a .snd = f a
+
+      module _ (a a' : A) (p q : a ≡ a') where
+        const-square : Square (cong [-]* p) (cong [-]* q) refl refl
+        const-square = ΣSquare (squash-cong p q , cong-f-const a a' p q)
+
+  rep : ∥ A ∥₂ → ∥ A ∥₂
+  rep = fst ∘ fun-Σ
+
+  repᵝ : (x : ∥ A ∥₂) → (rep x) ≡ x
+  repᵝ = ST.elim (λ x → ST.isSetPathImplicit) λ a → refl′ ∣ a ∣₂
+
+  fun' : (x : ∥ A ∥₂) → B (rep x)
+  fun' = snd ∘ fun-Σ
+
+  fun : (x : ∥ A ∥₂) → B x
+  fun x = subst B (repᵝ x) (fun' x)
+
+  fun-filler : (x : ∥ A ∥₂) → PathP (λ i → B (repᵝ x i)) (fun' x) (fun x)
+  fun-filler x = subst-filler B (repᵝ x) (snd (fun-Σ x))
+
+  funᵝ : (a : A) → fun ∣ a ∣₂ ≡ f a
+  funᵝ a = transportRefl (fun' ∣ a ∣₂)
+
+open elim→Gpd
+  using ()
+  renaming (fun to elim→Gpd ; funᵝ to elim→Gpdᵝ)
+  public
+
 PathSetTrunc≃PropTruncPath : {a b : A} → (∣ a ∣₂ ≡ ∣ b ∣₂) ≃ ∥ a ≡ b ∥₁
 PathSetTrunc≃PropTruncPath = isoToEquiv ST.PathIdTrunc₀Iso
+
+merePath→pathSetTrunc : {a b : A} → ∥ a ≡ b ∥₁ → ∣ a ∣₂ ≡ ∣ b ∣₂
+merePath→pathSetTrunc = Iso.inv ST.PathIdTrunc₀Iso
+
+pathSetTrunc→merePath : {a b : A} → ∣ a ∣₂ ≡ ∣ b ∣₂ → ∥ a ≡ b ∥₁
+pathSetTrunc→merePath = Iso.fun ST.PathIdTrunc₀Iso
+
+pathSetTrunc→recProp : ∀ {ℓP} {P : Type ℓP} → isProp P
+  → {a b : A} → (f : a ≡ b → P)
+  → ∣ a ∣₂ ≡ ∣ b ∣₂ → P
+pathSetTrunc→recProp {P} is-prop-P f p = PT.rec is-prop-P f (pathSetTrunc→merePath p)
 
 componentEquiv : (A : Type ℓA) → A ≃ (Σ[ x ∈ ∥ A ∥₂ ] fiber ∣_∣₂ x)
 componentEquiv A = totalEquiv {B = ∥ A ∥₂} {E = A} ∣_∣₂

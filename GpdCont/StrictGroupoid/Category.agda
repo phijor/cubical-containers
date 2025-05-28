@@ -8,6 +8,7 @@ open import GpdCont.StrictGroupoid.Equiv
 open import GpdCont.StrictGroupoid.Properties
 open import GpdCont.StrictGroupoid.HomotopyGroup hiding (hGroup)
 
+open import GpdCont.Prelude.Square
 open import GpdCont.Connectivity
 open import GpdCont.SetTruncation
 open import GpdCont.HomotopySet

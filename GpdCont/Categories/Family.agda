@@ -6,14 +6,18 @@ module GpdCont.Categories.Family (ℓ : Level) {ℓo ℓh} (C : Category ℓo �
 open import GpdCont.Univalence
 open import GpdCont.HomotopySet
 import      GpdCont.Categories.Products as Pr
+import      GpdCont.Categories.Diagonal as Diagonal
+import GpdCont.Categories.Fiber as Fiber
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Isomorphism hiding (isIso)
+open import Cubical.Foundations.Transport using (substEquiv)
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma
 
-open import Cubical.Categories.Instances.Sets using (SET)
+open import Cubical.Categories.Category.Path
+open import Cubical.Categories.Instances.Sets using (SET ; isUnivalentSET)
 open import Cubical.Categories.Constructions.TotalCategory.Base using (∫C)
 open import Cubical.Categories.Displayed.Base as Disp using (Categoryᴰ)
 open import Cubical.Categories.Presheaf.Representable
@@ -84,18 +88,27 @@ open Notation
 
 module Univalent (is-univalent : isUnivalent C) where
   private
-    module C = Category C
+    module C where
+      open Category C public
+      open isUnivalent is-univalent public
 
-    univ-equiv : (x y : Fam.ob) → (x ≡ y) ≃ CatIso Fam x y
-    univ-equiv x@(J , c) y@(K , d) =
-      ((J , c) ≡ (K , d)) ≃⟨ invEquiv ΣPath≃PathΣ ⟩
-      Σ[ p ∈ J ≡ K ] PathP (λ i → ⟨ p i ⟩ → C.ob) c d ≃⟨ Σ-cong-equiv-snd (λ p → invEquiv funExtNonDepEquiv) ⟩
-      Σ[ p ∈ J ≡ K ] ({j : ⟨ J ⟩} {k : ⟨ K ⟩} → PathP (λ i → ⟨ p i ⟩) j k → c j ≡ d k) ≃⟨ {! !} ⟩
-      CatIso Fam (J , c) (K , d) ≃∎
-      
+    open Fiber (SET ℓ) Famᴰ
+
+    fiber-cat-path : ∀ J → FiberCategory J ≡ Diagonal.ΠC C _ J
+    fiber-cat-path J = CategoryPath.mk≡ path where
+      path : CategoryPath _ _
+      path .CategoryPath.ob≡ = refl
+      path .CategoryPath.Hom≡ = refl
+      path .CategoryPath.id≡ = refl
+      path .CategoryPath.⋆≡ i f g = transportRefl (λ j → f j C.⋆ g j) i
+
+    is-univalent-Diagonal : ∀ J → isUnivalent (Diagonal.ΠC C ℓ J)
+    is-univalent-Diagonal = Diagonal.isUnivalentΠ C _ is-univalent
 
   isUnivalentFam : isUnivalent Fam
-  isUnivalentFam .isUnivalent.univ x y = subst isEquiv {! !} (equivIsEquiv (univ-equiv x y))
+  isUnivalentFam = isUnivalentFiber→isUnivalentTotalCategory isUnivalentSET univ-fam-fiber where
+    univ-fam-fiber : (J : hSet ℓ) → isUnivalent (FiberCategory J)
+    univ-fam-fiber J = subst isUnivalent (sym (fiber-cat-path J)) (is-univalent-Diagonal J)
 
 module Coproducts where
   open import GpdCont.Categories.Coproducts Fam ℓ as FamCoproduct

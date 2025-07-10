@@ -7,7 +7,9 @@ open import GpdCont.Group.Equivs using (conjEquiv ; conjHom)
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Univalence using (pathToEquiv)
 open import Cubical.Foundations.Powerset as ℙ using (ℙ)
+open import Cubical.Functions.Logic using (_⇔_ ; ⇔-id ; ⊓-comm)
 open import Cubical.Data.Sigma
 open import Cubical.Algebra.Group.Base
 open import Cubical.Algebra.Group.Morphisms
@@ -95,10 +97,48 @@ module Setwise {ℓG ℓX} (G : Group ℓG) (X : hSet ℓX) (σ : Action G X) wh
       open Action σ public
       open ActionProperties σ public
 
+    ℙ→Σ : ℙ ⟨ X ⟩ → hSet _
+    ℙ→Σ S .fst = Σ ⟨ X ⟩ (⟨_⟩ ∘ S)
+    ℙ→Σ S .snd = isSetΣSndProp (str X) (str ∘ S)
+
   open Stabilizer G _ ℙσ public
+
+  module _ (S : ℙ ⟨ X ⟩) where
+    isStabilizer' : ⟨ G ⟩ → Type _
+    isStabilizer' g = ∀ x → ⟨ S (g σ.▷ x) ⇔ S x ⟩
+
+    isPropIsStabilizer' : ∀ g → isProp (isStabilizer' g)
+    isPropIsStabilizer' g = isPropΠ λ x → str (S (g σ.▷ x) ⇔ S x)
+
+    stab-act : ∀ g → isStabilizer' g → ∀ x → ⟨ S x ⟩ ≃ ⟨ S (g σ.▷ x) ⟩
+    stab-act g p x = propBiimpl→Equiv (str (S x)) (str (S (g σ.▷ x)))
+      (p x .snd)
+      (p x .fst)
+
+    StabilizerSubroup' : Subgroup G (ℓ-max ℓG ℓX)
+    StabilizerSubroup' = isClosedSubset→Subgroup G isStabilizer' isPropIsStabilizer'
+      (λ { x → subst (λ - → ⟨ S - ⇔ S x ⟩) (sym (σ.action-1-id ≡$ x)) (⇔-id (S x)) })
+      {! !}
+      λ { {g} stab-g x → let (p , q) = (stab-g (G.inv g σ.▷ x)) in subst (λ - → ⟨ S (G.inv g σ.▷ x) ⇔ S - ⟩) {! σ.action-inv !} (q , p) }
+
+    StabilizerGroup' : Group (ℓ-max ℓG ℓX)
+    StabilizerGroup' = StabilizerSubroup' .fst
+
+    SubsetAction' : Action StabilizerGroup' (ℙ→Σ S)
+    SubsetAction' .Action.action (g , p) = Σ-cong-equiv (σ.action g) (stab-act g p)
+    SubsetAction' .Action.pres· (g , p) (h , q) = equivEq $ funExt λ (x , _) → Σ≡Prop (str ∘ S) $ σ.action-comp g h ≡$ x
 
   SetwiseStabilizerSubgroup : (S : ℙ ⟨ X ⟩) → Subgroup G (ℓ-max ℓG (ℓ-suc ℓX))
   SetwiseStabilizerSubgroup = StabilizerSubgroup
+
+  SubsetAction : (S : ℙ ⟨ X ⟩) → Action (StabilizerGroup S) (ℙ→Σ S)
+  SubsetAction S .Action.action (g , p) = Σ-cong-equiv (σ.action g) λ x → pathToEquiv $
+    let p-ext = S ≡[ i ]⟨ S ∘ (λ x → retEq (σ.action g) x (~ i)) ⟩
+                S ∘ (σ ⁻ g) ∘ (σ ⁺ g) ≡[ i ]⟨ S ∘ σ.action-inv g (~ i) ∘ (σ ⁺ g) ⟩
+                S ∘ (σ ⁺ G.inv g) ∘ (σ ⁺ g) ≡[ i ]⟨ p i ∘ (σ ⁺ g) ⟩
+                (S ∘ σ ⁺ g) ∎
+    in cong ⟨_⟩ $ p-ext ≡$ x
+  SubsetAction S .Action.pres· (g , p) (h , q) = equivEq $ funExt λ (x , _) → Σ≡Prop (str ∘ S) $ σ.action-comp g h ≡$ x
 
   module _ (S R : ℙ ⟨ X ⟩) (g₀ : ⟨ G ⟩) (p : S ≡ R ∘ (σ ⁺ g₀)) where
     private
@@ -159,17 +199,32 @@ module Setwise {ℓG ℓX} (G : Group ℓG) (X : hSet ℓX) (σ : Action G X) wh
         (to g)
         (from g)
 
-      equiv : (Σ[ g ∈ ⟨ G ⟩ ] S ∘ (σ ⁺ G.inv g) ≡ S) ≃ (Σ[ g ∈ ⟨ G ⟩ ] R ∘ (σ ⁺ G.inv g) ≡ R)
-      equiv = Σ-cong-equiv (conjEquiv G g₀) equivᴰ
+    equiv : (Σ[ g ∈ ⟨ G ⟩ ] S ∘ (σ ⁺ G.inv g) ≡ S) ≃ (Σ[ g ∈ ⟨ G ⟩ ] R ∘ (σ ⁺ G.inv g) ≡ R)
+    equiv = Σ-cong-equiv (conjEquiv G g₀) equivᴰ
 
-      opaque
-        equiv-hom : IsGroupHom (str $ StabilizerGroup S) (equivFun equiv) (str $ StabilizerGroup R)
-        equiv-hom = makeIsGroupHom λ where
-          (g , p) (h , q) → ΣPathP (conjHom G g₀ .snd .IsGroupHom.pres· g h , {! !})
+    opaque
+      equiv-hom : IsGroupHom (str $ StabilizerGroup S) (equivFun equiv) (str $ StabilizerGroup R)
+      equiv-hom = makeIsGroupHom λ where
+        (g , p) (h , q) → ΣPathP (conjHom G g₀ .snd .IsGroupHom.pres· g h , {! !})
 
     equivSubset→GroupEquiv : GroupEquiv (StabilizerGroup S) (StabilizerGroup R)
     equivSubset→GroupEquiv .fst = equiv
     equivSubset→GroupEquiv .snd = equiv-hom
+
+    private
+      to' : ∀ {g} → isStabilizer' S g → isStabilizer' R (G.inv g₀ · g · g₀)
+      to' {g} stab-g x .fst r = subst ⟨_⟩ ({- cong S (σ.action-inv g₀ ≡$ x) ∙ -} (p⁻ ≡$ x)) $ the ⟨ S (g₀ σ.▷⁻ x) ⟩ $
+        stab-g _ .fst {!r!}
+      to' {g} stab-g x .snd = {! !}
+
+      equiv'ᴰ : ∀ g → isStabilizer' S g ≃ isStabilizer' R (G.inv g₀ · g · g₀)
+      equiv'ᴰ g = propBiimpl→Equiv (isPropIsStabilizer' S _) (isPropIsStabilizer' R _)
+        to'
+        {! !}
+
+    equivSubset→GroupEquiv' : GroupEquiv (StabilizerGroup' S) (StabilizerGroup' R)
+    equivSubset→GroupEquiv' .fst = Σ-cong-equiv (conjEquiv G g₀) equiv'ᴰ
+    equivSubset→GroupEquiv' .snd = {! !}
 
     equivSubset→GroupPath : StabilizerGroup S ≡ StabilizerGroup R
     equivSubset→GroupPath = equivFun (GroupPath _ _) equivSubset→GroupEquiv

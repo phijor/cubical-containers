@@ -26,6 +26,9 @@ record Action {ℓG ℓX} (G : Group ℓG) (X : hSet ℓX) : Type (ℓ-max ℓG 
   _▷_ : (g : ⟨ G ⟩) → ⟨ X ⟩ → ⟨ X ⟩
   _▷_ g = equivFun (action g)
 
+  _▷⁻_ : (g : ⟨ G ⟩) → ⟨ X ⟩ → ⟨ X ⟩
+  _▷⁻_ g = invEq (action g)
+
 open Action using (action ; pres·)
 
 unquoteDecl ActionIsoΣ = declareRecordIsoΣ ActionIsoΣ (quote Action)

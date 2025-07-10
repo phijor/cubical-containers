@@ -404,6 +404,31 @@ module _ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'} where
     → ∀ y → isOfHLevel n (fiber f y)
   isOfHLevelFiber n is-trunc-A is-trunc-B f y = isOfHLevelΣ n is-trunc-A λ x → isOfHLevelPathP' n is-trunc-B (f x) y
 
+  isOfHLevelFunOfImage→isOfHLevelFun : (n : HLevel)
+    → (f : A → B)
+    → (∀ a → isOfHLevel (suc n) (fiber f (f a)))
+    → isOfHLevelFun (suc n) f
+  isOfHLevelFunOfImage→isOfHLevelFun zero f fiber-lvl b (a₀ , fa₀≡b) (a₁ , fa₁≡b) = subst (λ - → isProp (fiber f -)) fa₀≡b (fiber-lvl a₀) _ _
+  isOfHLevelFunOfImage→isOfHLevelFun n@(suc _) f fiber-lvl b (a₀ , fa₀≡b) (a₁ , fa₁≡b) = subst (λ - → isOfHLevel (suc n) (fiber f -)) fa₀≡b (fiber-lvl a₀) _ _
+
+  isOfHLevelFunSuc : (n : HLevel) {f : A → B} → isOfHLevelFun n f → isOfHLevelFun (suc n) f
+  isOfHLevelFunSuc n {f} f-lvl b = isOfHLevelSuc n $ f-lvl b
+
+  isOfHLevelFunComp : ∀ {ℓ''} {C : Type ℓ''} (n : HLevel)
+    → (g : B → C)
+    → (f : A → B)
+    → isOfHLevelFun n g
+    → isOfHLevelFun n f
+    → isOfHLevelFun n (g ∘ f)
+  isOfHLevelFunComp n g f g-lvl f-lvl c = isOfHLevelRespectEquiv n fiber-equiv (isOfHLevelΣ n (g-lvl c) (λ (b , _) → f-lvl b)) where
+    open import Cubical.Data.Sigma
+    fiber-equiv : (Σ[ (b , _) ∈ fiber g c ] fiber f b) ≃ fiber (g ∘ f) c
+    fiber-equiv =
+      Σ[ (b , _) ∈ fiber g c ] fiber f b ≃⟨ strictEquiv (λ { ((b , q) , (a , p)) → (a , (b , p) , q) }) (λ { (a , (b , p) , q) → ((b , q) , (a , p)) }) ⟩
+      Σ[ a ∈ A ] Σ[ (b , _) ∈ singl (f a) ] g b ≡ c ≃⟨ Σ-cong-equiv-snd (λ a → Σ-contractFst (isContrSingl (f a))) ⟩
+      Σ[ a ∈ A ] g (f a) ≡ c ≃⟨⟩
+      fiber (g ∘ f) c ≃∎
+
 module _ where
   private
     variable

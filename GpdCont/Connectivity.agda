@@ -29,6 +29,12 @@ isPathConnected A = isContr ∥ A ∥₂
 isPropIsPathConnected : (A : Type ℓ) → isProp (isPathConnected A)
 isPropIsPathConnected A = isPropIsContr
 
+isPathConnectedRespectEquiv : A ≃ B → isPathConnected A → isPathConnected B
+isPathConnectedRespectEquiv e = isOfHLevelRespectEquiv 0 (setTruncEquiv e)
+
+isPathConnectedRespectEquiv' : isPathConnected A → (B ≃ A) → isPathConnected B
+isPathConnectedRespectEquiv' conn-A e = isPathConnectedRespectEquiv (invEquiv e) conn-A
+
 isPathConnectedFun : (f : A → B) → Type _
 isPathConnectedFun {B} f = (b : B) →  isPathConnected (fiber f b)
 

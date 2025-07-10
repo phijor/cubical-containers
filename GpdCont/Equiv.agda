@@ -7,13 +7,18 @@ open import Cubical.Foundations.Equiv.Properties using (equivAdjointEquiv ; domI
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Univalence using (pathToEquiv ; EquivJ)
+open import Cubical.Foundations.Path using (compPathlEquiv)
 open import Cubical.Foundations.Transport using (transportComposite)
+open import Cubical.Data.Sigma.Properties using (Σ≡PropEquiv ; Σ-cong-equiv)
 open import Cubical.Functions.FunExtEquiv using (funExtEquiv)
 
 private
   variable
     ℓ : Level
     A B : Type ℓ
+
+equivPathEquiv : (e f : A ≃ B) → (equivFun e ≡ equivFun f) ≃ (e ≡ f)
+equivPathEquiv e f = Σ≡PropEquiv isPropIsEquiv
 
 pathToEquivSym : ∀ {ℓ} {A B : Type ℓ}
   → (p : A ≡ B)
@@ -69,6 +74,23 @@ equivΠDomain : ∀ {ℓ₀ ℓ₁ ℓB} {A₀ : Type ℓ₀} {A₁ : Type ℓ�
   → (e : A₀ ≃ A₁)
   → ((a₁ : A₁) → B a₁) ≃ ((a₀ : A₀) → B (equivFun e a₀))
 equivΠDomain e = isoToEquiv (domIsoDep (equivToIso e))
+
+equiv→Domain : ∀ {ℓ₀ ℓ₁} {A₀ : Type ℓ₀} {A₁ : Type ℓ₁}
+  → (e : A₀ ≃ A₁)
+  → (A₀ → B) ≃ (A₁ → B)
+equiv→Domain e = isoToEquiv (domIso (equivToIso e))
+
+equiv→Codomain : ∀ {ℓ₀ ℓ₁} {B₀ : Type ℓ₀} {B₁ : Type ℓ₁}
+  → (e : B₀ ≃ B₁)
+  → (A → B₀) ≃ (A → B₁)
+equiv→Codomain e = isoToEquiv (codomainIso (equivToIso e))
+
+fiberEquiv : ∀ {ℓ₀ ℓ₁} {A₀ : Type ℓ₀} {A₁ : Type ℓ₁}
+  → {f₀ : A₀ → B} {f₁ : A₁ → B}
+  → (e : A₀ ≃ A₁)
+  → (comm : f₀ ≡ f₁ ∘ equivFun e)
+  → ∀ b → fiber f₀ b ≃ fiber f₁ b
+fiberEquiv {f₀} {f₁} e comm b = Σ-cong-equiv e λ a₀ → compPathlEquiv (sym (comm ≡$ a₀))
 
 isSet→section-equivToIso : isSet A → isSet B → section (equivToIso {A = A} {B = B}) isoToEquiv
 isSet→section-equivToIso set-A set-B = retIsEq {f = isoToEquiv} (isSet→isEquiv-isoToPath set-A set-B)

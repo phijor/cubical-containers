@@ -23,7 +23,7 @@ import Cubical.Algebra.Group.Subgroup as Alt
 
 private variable
   ℓ ℓG ℓH : Level
-  G H : Group ℓ
+  G H K : Group ℓ
   φ : GroupHom G H
 
 isContrKer : (φ : GroupHom G H) → Type _
@@ -35,12 +35,26 @@ isPropIsContrKer φ = isPropIsContr
 isContrKerId : (G : Group ℓG) → isContrKer (idGroupHom {G = G})
 isContrKerId G = isOfHLevelRespectEquiv 0 (Σ-cong-equiv-snd λ g → symEquiv) (isContrSingl (GroupStr.1g (str G)))
 
+isPropKer→isContrKer : (φ : GroupHom G H) → isProp (Ker φ) → isContr (Ker φ)
+isPropKer→isContrKer {G} φ = inhProp→isContr (GroupStr.1g (str G) , φ .snd .IsGroupHom.pres1)
+
 opaque
   isContrKer→isEmbedding : (φ : GroupHom G H) → isContrKer φ → isEmbedding (fst φ)
   isContrKer→isEmbedding {H} φ = injEmbedding (str H .GroupStr.is-set) ∘ isInjective→isMono φ ∘ isContrKer→isInjective φ
 
 isEmbedding→isContrKer : (φ : GroupHom G H) → isEmbedding (fst φ) → isContrKer φ
 isEmbedding→isContrKer φ is-emb = isInjective→isContrKer φ λ g φg≡1 → invEq (_ , is-emb _ _) $ φg≡1 ∙ sym (φ .snd .IsGroupHom.pres1)
+
+isEquiv→isContrKer : (φ : GroupEquiv G H) → isContrKer (GroupEquiv→GroupHom φ)
+isEquiv→isContrKer ((φ , φ-is-equiv) , φ-hom) = isEmbedding→isContrKer (φ , φ-hom) $ isEquiv→isEmbedding φ-is-equiv
+
+opaque
+  isContrKerComp : (φ : GroupHom G H) (ψ : GroupHom H K)
+    → isContrKer φ
+    → isContrKer ψ
+    → isContrKer (compGroupHom φ ψ)
+  isContrKerComp φ ψ φ-emb ψ-emb = isEmbedding→isContrKer (compGroupHom φ ψ) $
+    isEmbedding-∘ {f = ψ .fst} {h = φ .fst} (isContrKer→isEmbedding ψ ψ-emb) (isContrKer→isEmbedding φ φ-emb)
 
 isEmbedding→Injection' : ∀ {ℓA ℓB ℓC} {A : Type ℓA} {B : Type ℓB} {C : Type ℓC}
   → (f : A → B)
@@ -97,6 +111,16 @@ opaque
   isSetIsSubgroup : isSet (isSubgroup G H)
   isSetIsSubgroup = recordIsOfHLevel 2 $ isSetΣSndProp isSetGroupHom isPropIsContrKer
 
+mkSubgroupPathP : ∀ {G₀ G₁ : Group ℓG} {G : G₀ ≡ G₁}
+  → {H₀ : Subgroup G₀ ℓ}
+  → {H₁ : Subgroup G₁ ℓ}
+  → (p : H₀ .fst ≡ H₁ .fst)
+  → (q : PathP (λ i → GroupHom (p i) (G i)) (isSubgroup.inc (H₀ .snd)) (isSubgroup.inc (H₁ .snd)))
+  → PathP (λ i → Subgroup (G i) ℓ) H₀ H₁
+mkSubgroupPathP p q i .fst = p i
+mkSubgroupPathP p q i .snd .isSubgroup.inc = q i
+mkSubgroupPathP {H₀ = H₀ , η₀} {H₁ = H₁ , η₁} p q i .snd .isSubgroup.is-contr-ker-inc = isProp→PathP (λ i → isPropIsContrKer (q i)) (η₀ .isSubgroup.is-contr-ker-inc) (η₁ .isSubgroup.is-contr-ker-inc) i
+
 SubgroupPath : (H K : Subgroup G ℓ) → Type _
 SubgroupPath (H , is-sub-H) (K , is-sub-K) = Σ[ e ∈ GroupEquiv H K ] H.inc .fst ≡ K.inc .fst ∘ groupEquivFun e where
   module H = isSubgroup is-sub-H
@@ -115,6 +139,94 @@ isPropSubgroupPath {G} (H , is-sub-H) (K , is-sub-K) (((e , e-equiv) , e-group-h
 
   equiv-eq : e ≡ f
   equiv-eq = isEmbedding→Injection' K.inc-fun K.is-embedding-inc-fun e f comm-lemma
+
+module isSubgroupPathP'
+  {G₀ G₁ : Group ℓG}
+  (G : G₀ ≡ G₁)
+  (H₀ H₁ : Group ℓH)
+  (inc₀ : H₀ ≤ G₀)
+  (inc₁ : H₁ ≤ G₁)
+  (p : H₀ ≡ H₁)
+  where
+  private
+    module H₀ = isSubgroup inc₀
+    module H₁ = isSubgroup inc₁
+
+  isSubgroupPathP :
+      PathP (λ i → ⟨ p i ⟩ → ⟨ G i ⟩) H₀.inc-fun H₁.inc-fun
+    → PathP (λ i → (p i) ≤ G i) inc₀ inc₁
+  isSubgroupPathP pᴰ = inc-path where
+    hom-path : PathP (λ i → GroupHom (p i) (G i)) H₀.inc H₁.inc
+    hom-path i .fst = pᴰ i
+    hom-path i .snd = isProp→PathP (λ i → isPropIsGroupHom (p i) (G i) {f = pᴰ i}) H₀.is-hom H₁.is-hom i
+
+    inc-path : PathP (λ i → (p i) ≤ G i) inc₀ inc₁
+    inc-path i .isSubgroup.inc = hom-path i
+    inc-path i .isSubgroup.is-contr-ker-inc = isProp→PathP (λ i → isPropIsContrKer (hom-path i)) H₀.is-contr-ker-inc H₁.is-contr-ker-inc i
+
+
+  isSubgroupPathPEquiv :
+    PathP (λ i → ⟨ p i ⟩ → ⟨ G i ⟩) H₀.inc-fun H₁.inc-fun
+      ≃
+    PathP (λ i → (p i) ≤ G i) inc₀ inc₁
+  isSubgroupPathPEquiv = propBiimpl→Equiv
+    (isOfHLevelPathP' 1 (isSet→ (str G₁ .GroupStr.is-set)) H₀.inc-fun H₁.inc-fun)
+    (isOfHLevelPathP' 1 isSetIsSubgroup _ _)
+    isSubgroupPathP
+    (congP (λ i → isSubgroup.inc-fun))
+
+SubgroupPathP : {G₀ G₁ : Group ℓG} (G : G₀ ≡ G₁)
+  → {H₀ : Subgroup G₀ ℓ} {H₁ : Subgroup G₁ ℓ}
+  → (H : H₀ .fst ≡ H₁ .fst)
+  → PathP (λ i → ⟨ H i ⟩ → ⟨ G i ⟩) (isSubgroup.inc-fun (H₀ .snd)) (isSubgroup.inc-fun (H₁ .snd))
+  → PathP (λ i → Subgroup (G i) ℓ) H₀ H₁
+SubgroupPathP G H inc i .fst = H i
+SubgroupPathP G {H₀ = H₀ , inc₀} {H₁ = H₁ , inc₁} H inc i .snd = isSubgroupPathP'.isSubgroupPathP G H₀ H₁ inc₀ inc₁ H inc i
+
+module _
+  {G₀ G₁ : Group ℓG}
+  (γ : GroupEquiv G₀ G₁)
+  {H₀ H₁ : Group ℓ}
+  (η : GroupEquiv H₀ H₁)
+  (inc₀ : H₀ ≤ G₀)
+  (inc₁ : H₁ ≤ G₁)
+  where
+  private
+    γ→ = equivFun (γ .fst)
+    η→ = equivFun (η .fst)
+    module H₀ = isSubgroup inc₀
+    module H₁ = isSubgroup inc₁
+
+  GroupEquiv→isSubgroupPathP :
+    ((h₀ : ⟨ H₀ ⟩) → γ→ (H₀.inc-fun h₀) ≡ H₁.inc-fun (η→ h₀))
+      →
+    PathP (λ i → (uaGroup η i) ≤ (uaGroup γ i)) inc₀ inc₁
+  GroupEquiv→isSubgroupPathP comm = isSubgroupPathP'.isSubgroupPathP
+    (uaGroup γ)
+    H₀
+    H₁
+    inc₀
+    inc₁
+    (uaGroup η)
+    (ua→ua comm)
+
+module _
+  {G₀ G₁ : Group ℓG} {γ : GroupEquiv G₀ G₁}
+  (H₀ : Subgroup G₀ ℓ)
+  (H₁ : Subgroup G₁ ℓ)
+  (η : GroupEquiv (H₀ .fst) (H₁ .fst))
+  where
+  private
+    γ→ = equivFun (γ .fst)
+    η→ = equivFun (η .fst)
+    module H₀ = isSubgroup (H₀ .snd)
+    module H₁ = isSubgroup (H₁ .snd)
+
+  GroupEquiv→SubgroupPathP :
+    ((h₀ : ⟨ H₀ .fst ⟩) → γ→ (H₀.inc-fun h₀) ≡ H₁.inc-fun (η→ h₀))
+    → PathP (λ i → Subgroup (uaGroup γ i) ℓ) H₀ H₁
+  GroupEquiv→SubgroupPathP comm i .fst = uaGroup η i
+  GroupEquiv→SubgroupPathP comm i .snd = GroupEquiv→isSubgroupPathP γ η (H₀ .snd) (H₁ .snd) comm i
 
 module isSubgroupPathP
   (H K : Group ℓ)
@@ -168,6 +280,17 @@ SubgroupPathEquiv {G} H*@(H , H≤G) K*@(K , K≤G) =
 
 isSetSubgroup : isSet (Subgroup G ℓH)
 isSetSubgroup H K = isOfHLevelRespectEquiv 1 (SubgroupPathEquiv H K) (isPropSubgroupPath H K)
+
+postCompEquiv→isSubgroup : ∀ {ℓK} {K : Group ℓK} → (φ : GroupEquiv G K) → H ≤ G → H ≤ K
+postCompEquiv→isSubgroup {H} {K} φ ι = sub where
+  module ι = isSubgroup ι
+
+  sub : H ≤ K
+  sub .isSubgroup.inc = compGroupHom ι.inc (GroupEquiv→GroupHom φ)
+  sub .isSubgroup.is-contr-ker-inc = isContrKerComp ι.inc (GroupEquiv→GroupHom φ) ι.is-contr-ker-inc (isEquiv→isContrKer φ)
+
+postCompEquiv→Subgroup : ∀ {ℓK} {K : Group ℓK} → (φ : GroupEquiv G K) → Subgroup G ℓH → Subgroup K ℓH
+postCompEquiv→Subgroup φ = map-snd (postCompEquiv→isSubgroup φ)
 
 SubgroupDirProdRight : ∀ {ℓK} (G : Group ℓG) (K : Subgroup H ℓK) → Subgroup (DirProd G H) (ℓ-max ℓG ℓK)
 SubgroupDirProdRight {H = H} G (K , K≤H) = G×K , G×K≤GH where

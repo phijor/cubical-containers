@@ -22,6 +22,24 @@ open import Cubical.Algebra.Group.Instances.Pi using (ΠGroup) public
 private
   module Group = Category (GroupCategory {ℓ})
 
+ΠGroupEquiv : ∀ {ℓK} {K : Type ℓK} {G H : K → Group ℓ}
+  → (e : ∀ k → GroupEquiv (G k) (H k))
+  → GroupEquiv (ΠGroup G) (ΠGroup H)
+ΠGroupEquiv {G} {H} e = goal where
+  Πe : (∀ k → ⟨ G k ⟩) ≃ (∀ k → ⟨ H k ⟩)
+  Πe = equivΠCod (fst ∘ e)
+
+  module e k = IsGroupHom (e k .snd)
+
+  is-hom-Πe : IsGroupHom (str $ ΠGroup G) (equivFun Πe) (str $ ΠGroup H)
+  is-hom-Πe .IsGroupHom.pres· g₀ g₁ = funExt λ k → e.pres· k (g₀ k) (g₁ k)
+  is-hom-Πe .IsGroupHom.pres1 = funExt e.pres1
+  is-hom-Πe .IsGroupHom.presinv g = funExt λ k → e.presinv k (g k)
+
+  goal : GroupEquiv _ _
+  goal .fst = Πe
+  goal .snd = is-hom-Πe
+
 module _ (K : hSet ℓ) (G : ⟨ K ⟩ → Group.ob) where
   open import GpdCont.Categories.Products (GroupCategory {ℓ}) ℓ
 

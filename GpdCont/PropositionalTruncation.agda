@@ -5,6 +5,8 @@ open import GpdCont.Prelude
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
+open import Cubical.HITs.PropositionalTruncation public
+open import Cubical.HITs.PropositionalTruncation.Monad public
 
 private
   variable
@@ -31,3 +33,6 @@ propTruncFstΣ≃ {A} {B} is-prop-A = isoToEquiv trunc-iso where
   trunc-iso .Iso.inv = uncurry λ a → PT.map (a ,_)
   trunc-iso .Iso.rightInv = uncurry λ a → PT.elim (λ _ → isOfHLevelPath 1 is-prop-Σ _ _) λ _ → refl
   trunc-iso .Iso.leftInv = PT.elim (λ _ → isOfHLevelPath 1 PT.isPropPropTrunc _ _) λ _ → refl
+
+untrunc : isProp A → ∥ A ∥₁ → A
+untrunc is-prop-A = PT.rec is-prop-A (id _)

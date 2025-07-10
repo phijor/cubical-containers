@@ -4,9 +4,12 @@ open import GpdCont.StrictGroupoid.Base
 open import GpdCont.StrictGroupoid.HomotopyGroup
 
 open import GpdCont.Prelude
+open import GpdCont.Prelude.Square
 open import GpdCont.HomotopySet
 open import GpdCont.SetTruncation
 open import GpdCont.Connectivity
+open import GpdCont.Univalence
+import      GpdCont.SetTruncation as ST
 open import GpdCont.Axioms.TruncatedChoice using (hasSetChoice ; ASC)
 open import GpdCont.Axioms.ConnectedChoice using (ConnectedFunsHaveConnectedSections ; AllSurjectionsSplit→CFCS[2,-])
 open import GpdCont.Axioms.Cover using (AllSurjectionsSplitω)
@@ -16,6 +19,8 @@ open import Cubical.Foundations.Equiv.Properties using (hasSection ; isEquiv→i
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Pointed using (Pointed)
+open import Cubical.Data.Empty using (⊥)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Sum as Sum using (_⊎_ ; inl ; inr)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
@@ -27,7 +32,8 @@ private
     ℓ ℓA ℓB : Level
     A B : Type ℓ
 
-CFCS₃₂→mereStrictStr : ConnectedFunsHaveConnectedSections ℓ 3 2 → (A : hGroupoid ℓ) → ∥ StrictGroupoidStr ⟨ A ⟩ ∥₁
+CFCS₃₂→mereStrictStr : ConnectedFunsHaveConnectedSections ℓ 3 2
+  → (A : hGroupoid ℓ) → ∥ StrictGroupoidStr ⟨ A ⟩ ∥₁
 CFCS₃₂→mereStrictStr cfcs A*@(A , is-groupoid-A) = PT.map mk mere-section where
   
   mk : hasSection {A = A} ∣_∣₂ → StrictGroupoidStr A
@@ -41,6 +47,12 @@ CFCS₃₂→mereStrictStr cfcs A*@(A , is-groupoid-A) = PT.map mk mere-section 
 
   mere-section : ∃[ pt ∈ (∥ A ∥₂ → A) ] section ∣_∣₂ pt
   mere-section = isConnectedSuc→merelyInh 1 is-connected-hasSection-∣-∣₂
+
+CFCS₃₂≃mereStrictStr : ConnectedFunsHaveConnectedSections ℓ 3 2 ≃ ((A : hGroupoid ℓ) → ∥ StrictGroupoidStr ⟨ A ⟩ ∥₁)
+CFCS₃₂≃mereStrictStr {ℓ} =
+  ConnectedFunsHaveConnectedSections ℓ 3 2 ≃⟨ {! !} ⟩
+  ((A : hGroupoid ℓ) → ∥ hasSection ∣_∣₂ ∥₁) ≃⟨ equivΠCod (λ { (A , is-groupoid-A) → propBiimpl→Equiv {! !} {! !} {! !} {! !} } ) ⟩
+  ((A : hGroupoid ℓ) → ∥ StrictGroupoidStr ⟨ A ⟩ ∥₁) ≃∎
 
 ACω→mereStricStr : AllSurjectionsSplitω ℓ → (A : hGroupoid ℓ) → ∥ StrictGroupoidStr ⟨ A ⟩ ∥₁
 ACω→mereStricStr split A*@(A , is-groupoid-A) = do
@@ -178,6 +190,48 @@ StrictGroupoidΣSet A B .fst = Σ[ a ∈ ⟨ A ⟩ ] ⟨ B a ⟩
 StrictGroupoidΣSet A B .snd = StrictGroupoidStrΣSet (str A) (str ∘ B)
 {-# INJECTIVE_FOR_INFERENCE StrictGroupoidΣSet #-}
 
+-- anti-Σ-snd : ∀ {A : Type ℓA} {B : A → Type ℓB}
+--   → StrictGroupoidStr (Σ A B)
+--   → StrictGroupoidStr A
+--   → (∀ a → isSet (B a))
+
+StrictGroupoidStrΣSnd : ∀ {A : Type ℓA} {B : A → Type ℓB}
+  → StrictGroupoidStr A
+  → (∀ a → isSet (B a))
+  → StrictGroupoidStr (Σ A B)
+StrictGroupoidStrΣSnd {A} {B} strict-A is-set-B = strict-Σ where
+  module A = StrictGroupoidStr strict-A
+
+  is-groupoid-Σ : isGroupoid (Σ A B)
+  is-groupoid-Σ = isGroupoidΣ A.is-groupoid $ isSet→isGroupoid ∘ is-set-B
+
+  inh-fib : ∥ Σ A B ∥₂ → Σ[ x ∈ ∥ Σ A B ∥₂ ] fiber ∣_∣₂ x
+  inh-fib = ST.rec→Gpd.fun (isGroupoidΣ (isSet→isGroupoid ST.isSetSetTrunc) λ x → isGroupoidΣ is-groupoid-Σ {! !})
+    {! !}
+    {! !}
+    where
+      pt-B : (a : A) → ∥ a ≡ A.pt-at a ∥₁ → (b : B a) → B (A.pt-at a)
+      pt-B a = PT.elim→Set (λ _ → isSet→ (is-set-B _)) (subst B) λ p q → funExt λ b → {!subst-filler B p b !}
+
+      fib* : Σ A B → Σ[ x ∈ ∥ Σ A B ∥₂ ] fiber ∣_∣₂ x
+      fib* (a , b) .fst = ∣ a , b ∣₂
+      fib* (a , b) .snd .fst = A.pt-at a , {! !}
+      fib* (a , b) .snd .snd = {! !}
+
+  pt : ∥ Σ A B ∥₂ → Σ A B
+  pt = ST.rec→Gpd.fun is-groupoid-Σ pt* {! !} where
+    pt* : Σ A B → Σ A B
+    pt* (a , b) .fst = A.pt-at a
+    pt* (a , b) .snd = {! !}
+
+  pt-section : section ∣_∣₂ pt
+  pt-section = {! !}
+
+  strict-Σ : StrictGroupoidStr _
+  strict-Σ .StrictGroupoidStr.is-groupoid = is-groupoid-Σ
+  strict-Σ .StrictGroupoidStr.pt = pt
+  strict-Σ .StrictGroupoidStr.pt-section = pt-section
+  
 StrictGroupoidStrΣSndHGroup : ∀ {A : Type ℓA} {B : A → Type ℓB}
   → StrictGroupoidStr A
   → (∀ a → StrictGroupoidStr (B a))
@@ -213,6 +267,166 @@ StrictGroupoidStrΣSndHGroup {A} {B} strict-A strict-B conn-B = strict-Σ where
     is-groupoid-Σ
     pt-equiv
     pt′ A.pt-section
+
+_⋉ˢ_ : ∀ {ℓA ℓB} → (A : StrictGroupoid ℓA) → (B : ⟨ A ⟩ → hGroup ℓB) → StrictGroupoid (ℓ-max ℓA ℓB)
+((A , strict-A) ⋉ˢ B) .fst = Σ[ a ∈ A ] ⟨ B a .fst ⟩
+((A , strict-A) ⋉ˢ B) .snd = StrictGroupoidStrΣSndHGroup strict-A (str ∘ fst ∘ B) (snd ∘ B)
+
+-- Semidirect product of groups:
+isHGroup-⋉ˢ : ∀ {ℓA ℓB}
+  → (A : StrictGroupoid ℓA)
+  → (B : ⟨ A ⟩ → hGroup ℓB)
+  → isHGroup A
+  → isHGroup (A ⋉ˢ B)
+isHGroup-⋉ˢ A B is-group-A = isPathConnectedΣ is-group-A (snd ∘ B)
+
+-- XXX: This does work if B has at least one component
+_⋉*_ : ∀ {ℓA ℓB} → (A : StrictGroupoid ℓA) → (B : ⟨ A ⟩ → StrictGroupoid ℓB) → StrictGroupoid (ℓ-max ℓA ℓB)
+A ⋉* B = A ⋉ˢ B' where module _ (a : ⟨ A ⟩) where
+  open StrictGroupoidStr (str (B a))
+
+  B∙ : Pointed _
+  B∙ .fst = ⟨ B a ⟩
+  B∙ .snd = pt {! !}
+
+  B' : hGroup _
+  B' = Aut∙ B∙ is-groupoid
+
+Autˢ : (A : hGroupoid ℓA) (pt : ∥ ⟨ A ⟩ ∥₂ → ⟨ A ⟩) → StrictGroupoid ℓA
+Autˢ A pt .fst = Σ[ a ∈ ⟨ A ⟩ ] ∥ pt ∣ a ∣₂ ≡ a ∥₁
+Autˢ A pt .snd = inhFibTrunc→StrictStr
+  (isGroupoidΣ (str A) (λ a → isProp→isOfHLevelSuc 2 PT.isPropPropTrunc))
+  (ST.elim→Gpd {! !} f {! !})
+  where
+    Aᶜ = Σ[ a ∈ ⟨ A ⟩ ] ∥ pt ∣ a ∣₂ ≡ a ∥₁
+
+    f : (y : Aᶜ) → Σ[ x ∈ Aᶜ ] ∣ x ∣₂ ≡ ∣ y ∣₂
+    f (a , h) .fst = a , h
+    f (a , h) .snd = refl
+
+    wd : (x y : Aᶜ) (p q : x ≡ y) → SquareP (λ i j → fiber ∣_∣₂ (squash-cong p q i j)) (cong f p) (cong f q) refl refl
+    wd (a₀ , h₀) (a₁ , h₁) p q = ΣSquarePSet ? (ΣSquarePProp (λ _ → PT.isPropPropTrunc) {! !})
+-- Autˢ A pt .snd .StrictGroupoidStr.is-groupoid = 
+-- Autˢ A pt .snd .StrictGroupoidStr.pt = λ { x → {! !} }
+-- Autˢ A pt .snd .StrictGroupoidStr.pt-section = {! !}
+
+_⋉ᴬ_ : ∀ {ℓA ℓB} → (A : StrictGroupoid ℓA) → (B : ⟨ A ⟩ → StrictGroupoid ℓB) → StrictGroupoid (ℓ-max ℓA ℓB)
+A ⋉ᴬ B = {! Aut !}
+
+-- _⋉_ : ∀ {ℓA ℓB} → (A : hGroup ℓA) → (B : ⟨ A .fst ⟩ → hGroup ℓB) → hGroup _
+-- ((A , _) ⋉ B) .fst = A ⋉ˢ B
+-- ((A , is-group-A) ⋉ B) .snd = isHGroup-⋉ˢ A B is-group-A
+
+module _ {ℓG ℓH ℓX}
+  (G : StrictGroupoid ℓG)
+  (X : ⟨ G ⟩ → hSet ℓX)
+  where
+  private module G = StrictGroupoidStr (str G)
+
+  module _ (H : ∀ g → ⟨ X g ⟩ → hGroup ℓH) where
+
+    private
+      module H g x = StrictGroupoidStr (str (H g x .fst))
+
+      is-conn-H : ∀ g (x : ⟨ X g ⟩) → isPathConnected ⟨ H g x .fst ⟩
+      is-conn-H g x = H g x .snd
+
+      X[_]→H : ⟨ G ⟩ → hGroupoid _
+      X[_]→H g .fst = (x : ⟨ X g ⟩) → ⟨ H g x .fst ⟩
+      X[_]→H g .snd = isGroupoidΠ (H.is-groupoid g)
+
+      f₀ : ∀ g → ⟨ X[ g ]→H ⟩
+      f₀ g x = H.pt g x (is-conn-H g x .fst)
+
+      ΠH : ⟨ G ⟩ → hGroup _
+      ΠH g = Aut X[ g ]→H (f₀ g)
+
+    Wrˢ : StrictGroupoid _
+    Wrˢ = G ⋉ˢ ΠH
+
+    isHGroup-Wrˢ : isHGroup G → isHGroup Wrˢ
+    isHGroup-Wrˢ = isHGroup-⋉ˢ G ΠH
+
+-- Wr : ∀ {ℓG ℓH ℓX}
+--   → (G : hGroup ℓG)
+--   → (X : ⟨ G .fst ⟩ → hSet ℓX)
+--   → (H : ∀ g → ⟨ X g ⟩ → hGroup ℓH)
+--   → hGroup _
+-- Wr G X H .fst = Wrˢ (G .fst) X H
+-- Wr G X H .snd = isHGroup-Wrˢ (G .fst) X H (G .snd)
+
+module Test {ℓG ℓH ℓX}
+  (G : StrictGroupoid ℓG)
+  (X : ⟨ G ⟩ → hSet ℓX)
+  (H : ∀ g → ⟨ X g ⟩ → hGroup ℓH)
+  where
+
+  module FinSet where
+    open import Cubical.Data.FinSet public
+    open import Cubical.Data.FinSet.FiniteChoice public
+
+  open FinSet using (isFinSet ; FinSet)
+
+  module H where
+    [_,_] : (g : ⟨ G ⟩) (x : ⟨ X g ⟩) → Type _
+    [_,_] = λ g x → ⟨ H g x .fst ⟩
+
+    pt : (g : ⟨ G ⟩) (x : ⟨ X g ⟩)
+      → ∥ [ g , x ] ∥₂
+      → [ g , x ]
+    pt g x = StrictGroupoidStr.pt $ str (H g x .fst)
+
+    is-connected : (g : ⟨ G ⟩) (x : ⟨ X g ⟩) → isPathConnected [ g , x ]
+    is-connected g x = H g x .snd
+
+    pt-at : (g : ⟨ G ⟩) (x : ⟨ X g ⟩) → [ g , x ]
+    pt-at g x = pt g x (is-connected g x .fst)
+
+  test : ⟨ Wrˢ G X H ⟩ ≡ (Σ[ g ∈ ⟨ G ⟩ ] Σ[ f ∈ ((x : ⟨ X g ⟩) → H.[ g , x ]) ] (∣ f ∣₂ ≡ ∣ H.pt-at g ∣₂))
+  test = refl
+
+  isFiniteAction : (∀ g → isFinSet ⟨ X g ⟩) → ⟨ Wrˢ G X H ⟩ ≃ (Σ[ g ∈ ⟨ G ⟩ ] (∀ x → H.[ g , x ]))
+  isFiniteAction is-finset-X = Σ-cong-equiv-snd $ Σ-contractSnd ∘ is-contr-pres-strict where
+    Xᶠ : ⟨ G ⟩ → FinSet ℓX
+    Xᶠ g .fst = ⟨ X g ⟩
+    Xᶠ g .snd = is-finset-X g
+
+    module _ (g : ⟨ G ⟩) (f : ∀ x → H.[ g , x ]) where
+      mere-htpy : ∀ x → ∥ f x ≡ H.pt-at g x ∥₁
+      mere-htpy x = isPathConnected→merePath (H.is-connected g x) (f x) (H.pt-at g x)
+
+      lemma : ∣ f ∣₂ ≡ ∣ H.pt-at g ∣₂
+      lemma = merePath→pathSetTrunc do
+        htpy ← FinSet.choice (Xᶠ g) (λ x → f x ≡ H.pt-at g x) mere-htpy
+        return $ funExt htpy
+
+      is-contr-pres-strict : isContr (∣ f ∣₂ ≡ ∣ H.pt-at g ∣₂)
+      is-contr-pres-strict = inhProp→isContr lemma (ST.isSetSetTrunc _ _)
+
+module Wrᴰ {ℓ}
+  (G : StrictGroupoid ℓ)
+  (H : ⟨ G ⟩ → StrictGroupoid ℓ)
+  where
+  private module G = StrictGroupoidStr (str G)
+
+  private
+    module H g = StrictGroupoidStr (str (H g))
+
+    Huh : (g : ⟨ G ⟩) → ⟨ H g ⟩ → Type ℓ
+    Huh g h = {! !}
+
+    is-prop-Huh : ∀ g (h : ⟨ H g ⟩) → isProp (Huh g h)
+    is-prop-Huh = {! !}
+
+    K : ⟨ G ⟩ → hGroup ℓ
+    K g = {! !} ⋉ {! !}
+
+  Wrᴰ : StrictGroupoid _
+  Wrᴰ = G ⋉ˢ K
+  -- Wrᴰ .fst = Σ[ g ∈ ⟨ G ⟩ ] Σ[ h ∈ ⟨ H g ⟩ ] Huh g h
+  -- Wrᴰ .snd .StrictGroupoidStr.is-groupoid = isGroupoidΣ G.is-groupoid $ λ g → isGroupoidΣ (H.is-groupoid g) (λ h → isProp→isOfHLevelSuc 2 $ is-prop-Huh g h)
+  -- Wrᴰ .snd .StrictGroupoidStr.pt = {! !}
+  -- Wrᴰ .snd .StrictGroupoidStr.pt-section = {! !}
 
 {-
 StrictGroupoidStrΠ : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}
@@ -254,6 +468,25 @@ StrictGroupoidStrFun {A} {B} strict-A strict-B = strict-fun where
   strict-fun .StrictGroupoidStr.pt = {! !}
   strict-fun .StrictGroupoidStr.pt-section = {! !}
 -}
+
+isStrictΣ : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}
+  → ∥ StrictGroupoidStr A ∥₁
+  → (∀ a → ∥ StrictGroupoidStr (B a) ∥₁)
+  → ∥ StrictGroupoidStr (Σ A B) ∥₁
+isStrictΣ {A} {B} is-strict-A is-strict-B = do
+  inh-fib ← isSurjection-∣-∣₂ (Σ A B) {! !}
+  return $ inhFibTrunc→StrictStr is-groupoid-Σ {! !}
+  where
+
+  is-groupoid-Σ : isGroupoid (Σ A B)
+  is-groupoid-Σ = equivFun (PT.propTruncIdempotent≃ isPropIsGroupoid) $ do
+    strict-A ← is-strict-A
+    let is-groupoid-A = strict-A .StrictGroupoidStr.is-groupoid
+    return $ isGroupoidΣ is-groupoid-A λ a → equivFun (PT.propTruncIdempotent≃ isPropIsGroupoid) $
+      PT.map StrictGroupoidStr.is-groupoid (is-strict-B a)
+
+  fib : ∥ ((x : ∥ Σ A B ∥₂) → fiber ∣_∣₂ x) ∥₁
+  fib = {! !}
 
 StrictGroupoidStrΣ : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}
   → StrictGroupoidStr A

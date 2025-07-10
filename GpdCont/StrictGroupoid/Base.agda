@@ -31,6 +31,7 @@ isPropHasSection-∣-∣₂ : (pt : ∥ A ∥₂ → A) → isProp (section ∣_
 isPropHasSection-∣-∣₂ pt = isPropΠ λ x → ST.isSetSetTrunc ∣ pt x ∣₂ x
 
 record StrictGroupoidStr (A : Type ℓ) : Type ℓ where
+  no-eta-equality
   field
     is-groupoid : isGroupoid A
     pt : ∥ A ∥₂ → A
@@ -46,9 +47,16 @@ record StrictGroupoidStr (A : Type ℓ) : Type ℓ where
   mere-retract : ∀ a → ∥ pt ∣ a ∣₂ ≡ a ∥₁
   mere-retract a = ST.PathIdTrunc₀Iso .Iso.fun (pt-section ∣ a ∣₂)
 
+  as-groupoid : hGroupoid ℓ
+  as-groupoid .fst = A
+  as-groupoid .snd = is-groupoid
+
   Components : hSet ℓ
   Components .fst = ∥ A ∥₂
   Components .snd = ST.isSetSetTrunc
+
+  isSetTruncFunPt : isOfHLevelFun 2 pt
+  isSetTruncFunPt a = isSetΣ ST.isSetSetTrunc λ x → is-groupoid (pt x) a
 
 unquoteDecl StrictGroupoidStrIsoΣ = declareRecordIsoΣ StrictGroupoidStrIsoΣ (quote StrictGroupoidStr)
 
@@ -98,7 +106,17 @@ is2GroupoidStrictGroupoid = isOfHLevelRespectEquiv 4 shuffle is2GroupoidStrictGr
   from (G , G-str) .snd .snd = StrictGroupoidStr.pt-section G-str
 
   shuffle : StrictGroupoid' ≃ StrictGroupoid ℓ
-  shuffle = strictEquiv to from
+  shuffle = isoToEquiv λ where
+    .Iso.fun → to
+    .Iso.inv → from
+    .Iso.leftInv ((G , is-groupoid-G) , pt , pt-section) i .fst .fst → G
+    .Iso.leftInv ((G , is-groupoid-G) , pt , pt-section) i .fst .snd → is-groupoid-G
+    .Iso.leftInv ((G , is-groupoid-G) , pt , pt-section) i .snd .fst → pt
+    .Iso.leftInv ((G , is-groupoid-G) , pt , pt-section) i .snd .snd → pt-section
+    .Iso.rightInv (G , G-str) i .fst → G
+    .Iso.rightInv (G , G-str) i .snd .StrictGroupoidStr.is-groupoid → G-str .StrictGroupoidStr.is-groupoid
+    .Iso.rightInv (G , G-str) i .snd .StrictGroupoidStr.pt → G-str .StrictGroupoidStr.pt
+    .Iso.rightInv (G , G-str) i .snd .StrictGroupoidStr.pt-section → G-str .StrictGroupoidStr.pt-section
 
   is2GroupoidStrictGroupoid' : is2Groupoid StrictGroupoid'
   is2GroupoidStrictGroupoid' = is2GroupoidΣ (isOfHLevelTypeOfHLevel 3)
@@ -143,3 +161,45 @@ module _ (G : StrictGroupoid ℓ) where
     ∣p∣ = do
       q ← G.mere-retract g
       return $ subst P (the (G.pt-at g ≡ g) q) p'
+
+  open import Cubical.Foundations.Interpolate
+
+  {-
+  recSetEquiv : ∀ {ℓY} {Y : Type ℓY}
+    → isSet Y
+    → (f : ⟨ G.Components ⟩ → Y)
+    → ⟨ G ⟩ → Y
+  recSetEquiv {Y} is-set-Y = {! !} where
+    equiv : (x₀ : ⟨ G.Components ⟩) → Y ≃ ((Σ[ g ∈ ⟨ G ⟩ ] ∣ g ∣₂ ≡ x₀) → Y)
+    equiv x₀ = isPathConnected→constEquiv (isHGroupGroupAt G x₀) is-set-Y
+    
+    fun : ⟨ G.Components ⟩ → Y
+    fun x₀ = invEq (equiv x₀) λ { (g , p) → {! G.mere-retract !} }
+
+  elimSet : ∀ {ℓX} {X : ⟨ G ⟩ → Type ℓX}
+    → (∀ g → isSet (X g))
+    → (f* : (g₀ : ∥ ⟨ G ⟩ ∥₂) → X (G.pt g₀))
+    → (link* : (g₀ : ∥ ⟨ G ⟩ ∥₂) → (p q : G.pt g₀ ≡ G.pt g₀) → {! !})
+      -- PathP (λ i → X (G.pt ?)) (cong (f* ∘ ∣_∣₂) p) {! cong (f* ∘ ∣_∣₂) q !})
+    → (∀ g → X g)
+  elimSet {X} is-set-X f* link* g = x** where
+    foo : G.pt-at g ≡ g → X g
+    foo p = subst X p (f* ∣ g ∣₂)
+
+    foo-filler : (p : G.pt ∣ g ∣₂ ≡ g) → PathP (λ i → X (p i)) (f* ∣ g ∣₂) (foo p)
+    foo-filler p = subst-filler X p (f* ∣ g ∣₂)
+
+    2-const-foo : (p q : G.pt-at g ≡ g) → foo p ≡ foo q
+    2-const-foo p q = {! cong (λ p → subst X p (f* ∣ g ∣₂)) !}
+    -- 2-const-foo p q i = comp X* (λ { j (i = i0) → foo-filler p j ; j (i = i1) → foo-filler q j })
+    --   (f* {! !}) where
+    --   X* : (j : I) → Type _
+    --   X* j = {! !}
+
+      -- sys : (j : I) → PartialP (i ∨ ~ i) (X* i j)
+      -- sys = {! !}
+      -- doubleCompPathP (λ i j → X {!  !}) (foo-filler p) {! !} (foo-filler q)
+
+    x** : X g
+    x** = PT.rec→Set (is-set-X g) foo 2-const-foo (G.mere-retract g)
+  -}

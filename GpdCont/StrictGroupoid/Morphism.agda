@@ -8,35 +8,31 @@ open import Cubical.Foundations.HLevels
 open import Cubical.Data.Sigma
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
 
-private
-  variable
-    ℓ : Level
-    G H : StrictGroupoid ℓ
-
-module _ (G H : StrictGroupoid ℓ) where
+module _ {ℓG ℓH} (G : StrictGroupoid ℓG) (H : StrictGroupoid ℓH) where
   private
     module G = StrictGroupoidStr (str G)
     module H = StrictGroupoidStr (str H)
 
-  StrictFunStr : (φ : ⟨ G ⟩ → ⟨ H ⟩) → Type ℓ
+  StrictFunStr : (φ : ⟨ G ⟩ → ⟨ H ⟩) → Type (ℓ-max ℓG ℓH)
   StrictFunStr φ = ST.map φ ⋆ H.pt ≡ G.pt ⋆ φ
 
   isSetStrictFunStr : ∀ φ → isSet (StrictFunStr φ)
   isSetStrictFunStr φ = isOfHLevelPath' 2 (isOfHLevelΠ 3 λ _ → H.is-groupoid) _ _
 
-  StrictFun : Type ℓ
+  StrictFun : Type (ℓ-max ℓG ℓH)
   StrictFun = Σ[ φ ∈ (⟨ G ⟩ → ⟨ H ⟩) ] StrictFunStr φ
 
 
-module StrictFun (G H : StrictGroupoid ℓ) where
+module StrictFun {ℓG ℓH} (G : StrictGroupoid ℓG) (H : StrictGroupoid ℓH) where
   _#_ : StrictFun G H → ⟨ G ⟩ → ⟨ H ⟩
   _#_ = fst
 
   strict-fun-str : (φ : StrictFun G H) → StrictFunStr G H (φ #_)
   strict-fun-str = snd
 
-module _ (G H : StrictGroupoid ℓ) where
+module _ {ℓG ℓH} (G : StrictGroupoid ℓG) (H : StrictGroupoid ℓH) where
   private
+    ℓ = ℓ-max ℓG ℓH
     module G = StrictGroupoidStr (str G)
     module H = StrictGroupoidStr (str H)
 
@@ -133,6 +129,11 @@ module _ (G H : StrictGroupoid ℓ) where
   StrictFun≡' {φ} {ψ} p q = StrictFun≡ (p , q*) where
     q* : PathP (λ i → StrictFunStr G H (p i)) (strict-fun-str φ) (strict-fun-str ψ)
     q* = funExtSquare (ST.elim (λ x → isProp→isSet (isGroupoid→isPropSquare H.is-groupoid)) q)
+
+private
+  variable
+    ℓ ℓG ℓH : Level
+    G H : StrictGroupoid ℓ
 
 StrictFunPathP : (G : StrictGroupoid ℓ) (H : I → StrictGroupoid ℓ)
   → {φ₀ : StrictFun G (H i0)}

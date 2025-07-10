@@ -36,6 +36,7 @@ open import Cubical.Algebra.Group.Morphisms
 open import Cubical.Algebra.Group.MorphismProperties
 
 open import GpdCont.Categories.Family hiding (module Coproducts)
+open import GpdCont.Categories.Family.Elim using (module Elim)
 import GpdCont.Categories.Coproducts as Coproducts
 
 open StrictFun
@@ -153,7 +154,7 @@ private
   module Fam[hGroup] = Category Fam[hGroup]
 
 Σˢ : Functor Fam[hGroup] StrictGroupoid
-Σˢ = Elim.elimFunctor ℓ hGroup StrictGroupoid StrictGroupoidCoproducts ForgetGroup
+Σˢ = Elim.elimFunctor {ℓ = ℓ} {C = hGroup} {D = StrictGroupoid} StrictGroupoidCoproducts ForgetGroup
 
 private
   module Σˢ = Functor Σˢ renaming (F-ob to ₀ ; F-hom to ₁ ; F-id to id ; F-seq to seq)
@@ -189,57 +190,198 @@ private
   opaque
     D-id : (G : StrictGroupoid.ob) → D₁ G G (idStrict G) ≡ Fam[hGroup].id
     D-id G = FamHom≡ _ _ setTruncMapId $ ST.elim (λ x → isOfHLevelPathP 2 (isSetStrictFun (GroupAt G x) (GroupAt G x)) _ _)
-      λ g → StrictFun≡ (GroupAt G _) (GroupAt G _)
-        ( funExt (λ _ → Component≡ G refl)
-        , funExtSquare {! !}
-        )
+      λ g → StrictFun≡' (GroupAt G _) (GroupAt G _)
+        (funExt λ _ → Component≡ G refl)
+        λ { (g′ , _) → ΣSquareProp (λ g′ → ST.isSetSetTrunc ∣ g′ ∣₂ ∣ g ∣₂) (reflSquare (StrictGroupoidStr.pt (str G) ∣ g ∣₂)) }
+
+    D-seq : (G H K : StrictGroupoid.ob) (φ : StrictGroupoid.Hom[ G , H ]) (ψ : StrictGroupoid.Hom[ H , K ])
+      → D₁ G K (compStrict G H K φ ψ) ≡ (D₁ G H φ) Fam[hGroup].⋆ (D₁ H K ψ)
+    D-seq G H K (φ , _) (ψ , _) = FamHom≡ _ _
+      (sym (ST.mapFunctorial _ _))
+      $ ST.elim (λ x → isOfHLevelPathP 2 (isSetStrictFun (GroupAt G x) (GroupAt K _)) _ _)
+        λ g → StrictFun≡' (GroupAt G _) (GroupAt K _)
+          (funExt λ _ → Component≡ K refl)
+          λ { (g′ , p) → ΣSquareProp (λ g′ → ST.isSetSetTrunc ∣ g′ ∣₂ ∣ ψ (φ g) ∣₂) {! !} }
 
 
 D : Functor StrictGroupoid Fam[hGroup]
 D .Functor.F-ob = D₀
 D .Functor.F-hom {x = G} {y = H} = D₁ G H
 D .Functor.F-id {x = G} = D-id G
-D .Functor.F-seq = {! !}
+D .Functor.F-seq {x = G} {y = H} {z = K} = D-seq G H K
 
 {-
+-- TODO: Trying to prove that Σˢ is an iso on objects directly is very hard,
+-- it essentially becomes the usual proof of defining an equivalence of categories.
 private
-  η₀ : (x : Fam[hGroup].ob) → x ≡ D₀ (Σˢ ⟅ x ⟆)
-  η₀ x@(J , G*) = sym $ ΣPathP (hSet≡ (ua components-equiv) , component-at-path) where
+  η₀ : (x : Fam[hGroup].ob) → D₀ (Σˢ ⟅ x ⟆) ≡ x
+  -- η₀ x@(J*@(J , is-set-J) , G*) = sym ((curry ΣPathP) components-path component-at-path) where
+  η₀ x@(J*@(J , is-set-J) , G*) = uaFam ℓ hGroup components-equiv {! !} where
     G = fst ∘ G*
+    module G j = StrictGroupoidStr (str (G j))
+
     is-connected-G = snd ∘ G*
 
-    components-equiv : ∥ Σ[ j ∈ ⟨ J ⟩ ] ⟨ G j ⟩ ∥₂ ≃ ⟨ J ⟩
+    DΣG : Fam[hGroup].ob
+    DΣG = D₀ (Σˢ.₀ x)
+
+    ΣJG : hSet _
+    ΣJG = DΣG .fst
+
+    DΣGᴰ : ⟨ ΣJG ⟩ → hGroup.ob
+    DΣGᴰ = DΣG .snd
+
+    module DΣGᴰ x = StrictGroupoidStr (str (DΣGᴰ x .fst))
+
+    components-equiv : ∥ Σ[ j ∈ J ] ⟨ G j ⟩ ∥₂ ≃ J
     components-equiv =
-      ∥ Σ[ j ∈ ⟨ J ⟩ ] ⟨ G j ⟩ ∥₂ ≃⟨ setTruncateFstΣ≃ (str J) ⟩
-      Σ[ j ∈ ⟨ J ⟩ ] ∥ ⟨ G j ⟩ ∥₂ ≃⟨ Σ-contractSnd is-connected-G ⟩
-      ⟨ J ⟩ ≃∎
-    module _ (j : ⟨ J ⟩) (g : ⟨ G j ⟩) where
-      equivᴰ : (j′ : ⟨ J ⟩) (g′ : ⟨ G j′ ⟩) → _ ≃ _
+      ∥ Σ[ j ∈ J ] ⟨ G j ⟩ ∥₂ ≃⟨ setTruncateFstΣ≃ is-set-J ⟩
+      Σ[ j ∈ J ] ∥ ⟨ G j ⟩ ∥₂ ≃⟨ Σ-contractSnd is-connected-G ⟩
+      J ≃∎
+
+    components-path : ΣJG ≡ J*
+    components-path = hSet≡ (ua components-equiv)
+
+    module _ (j : J) (g : ⟨ G j ⟩) where
+      equivᴰ : (j′ : J) (g′ : ⟨ G j′ ⟩) → _ ≃ _
       equivᴰ j′ g′ =
-        Path (∥ Σ[ j ∈ ⟨ J ⟩ ] ⟨ G j ⟩ ∥₂) ∣ j′ , g′ ∣₂ ∣ j , g ∣₂ ≃⟨ PathSetTrunc≃PropTruncPath ⟩
+        Path (∥ Σ[ j ∈ J ] ⟨ G j ⟩ ∥₂) ∣ j′ , g′ ∣₂ ∣ j , g ∣₂ ≃⟨ PathSetTrunc≃PropTruncPath ⟩
         ∥ (j′ , g′) ≡ (j , g) ∥₁ ≃⟨ PT.propTrunc≃ $ invEquiv ΣPathP≃PathPΣ ⟩
-        ∥ Σ[ p ∈ j′ ≡ j ] PathP (λ i → ⟨ G (p i) ⟩) g′ g ∥₁ ≃⟨ {! !} ⟩
+        ∥ Σ[ p ∈ j′ ≡ j ] PathP (λ i → ⟨ G (p i) ⟩) g′ g ∥₁ ≃⟨ propTruncFstΣ≃ (is-set-J j′ j) ⟩
         Σ[ p ∈ j′ ≡ j ] ∥ PathP (λ i → ⟨ G (p i) ⟩) g′ g ∥₁ ≃∎
+
+      shuffle :
+        (Σ[ j′ ∈ J ] Σ[ g′ ∈ ⟨ G j′ ⟩ ] Σ[ p ∈ j′ ≡ j ] ∥ PathP (λ i → ⟨ G (p i) ⟩) g′ g ∥₁)
+          ≃
+        (Σ[ (j′ , p) ∈ singl j ] Σ[ g′ ∈ ⟨ G j′ ⟩ ] ∥ PathP (λ i → ⟨ G (p (~ i)) ⟩) g′ g ∥₁)
+      shuffle = strictEquiv
+        (λ { (j′ , g′ , p , pᴰ) → (j′ , sym p) , g′ , pᴰ })
+        (λ { ((j′ , p) , g′ , pᴰ) → j′ , g′ , sym p , pᴰ })
 
       equiv : fiber ∣_∣₂ ∣ j , g ∣₂ ≃ ⟨ G j ⟩
       equiv =
-        (Σ[ x ∈ Σ[ j ∈ ⟨ J ⟩ ] ⟨ G j ⟩ ] ∣ x ∣₂ ≡ ∣ j , g ∣₂) ≃⟨ Σ-assoc-≃ ⟩
-        (Σ[ j′ ∈ ⟨ J ⟩ ] Σ[ g′ ∈ ⟨ G j′ ⟩ ] ∣ j′ , g′ ∣₂ ≡ ∣ j , g ∣₂) ≃⟨ Σ-cong-equiv-snd (λ j′ → Σ-cong-equiv-snd (equivᴰ j′)) ⟩
-        (Σ[ j′ ∈ ⟨ J ⟩ ] Σ[ g′ ∈ ⟨ G j′ ⟩ ] Σ[ p ∈ j′ ≡ j ] ∥ PathP (λ i → ⟨ G (p i) ⟩) g′ g ∥₁) ≃⟨ {! !} ⟩
+        (Σ[ x ∈ Σ[ j ∈ J ] ⟨ G j ⟩ ] ∣ x ∣₂ ≡ ∣ j , g ∣₂) ≃⟨ Σ-assoc-≃ ⟩
+        (Σ[ j′ ∈ J ] Σ[ g′ ∈ ⟨ G j′ ⟩ ] ∣ j′ , g′ ∣₂ ≡ ∣ j , g ∣₂) ≃⟨ Σ-cong-equiv-snd (λ j′ → Σ-cong-equiv-snd (equivᴰ j′)) ⟩
+        (Σ[ j′ ∈ J ] Σ[ g′ ∈ ⟨ G j′ ⟩ ] Σ[ p ∈ j′ ≡ j ] ∥ PathP (λ i → ⟨ G (p i) ⟩) g′ g ∥₁) ≃⟨ shuffle ⟩
         (Σ[ (j′ , p) ∈ singl j ] Σ[ g′ ∈ ⟨ G j′ ⟩ ] ∥ PathP (λ i → ⟨ G (p (~ i)) ⟩) g′ g ∥₁) ≃⟨ Σ-contractFst (isContrSingl j) ⟩
         (Σ[ g′ ∈ ⟨ G j ⟩ ] ∥ g′ ≡ g ∥₁) ≃⟨ Σ-cong-equiv-snd (λ g′ → invEquiv PathSetTrunc≃PropTruncPath) ⟩
         (Σ[ g′ ∈ ⟨ G j ⟩ ] ∣ g′ ∣₂ ≡ ∣ g ∣₂) ≃⟨ Σ-contractSnd (λ g′ → isContr→isContrPath (is-connected-G j) _ _) ⟩
         ⟨ G j ⟩ ≃∎
 
-    component-at-path : PathP (λ i → ua components-equiv i → hGroup.ob) (D₀ᴰ (Σˢ ⟅ J , G* ⟆)) G*
-    component-at-path = ua→ $ ST.elim (λ x → isGroupoidHGroup _ _) {! !}
+      fiber-path : fiber ∣_∣₂ ∣ j , g ∣₂ ≡ ⟨ G j ⟩
+      fiber-path = ua equiv
+
+      pt-path : PathP (λ i → (x : ∥ fiber-path i ∥₂) → fiber ∣_∣₂ x) (DΣGᴰ.pt-fiber ∣ j , g ∣₂) (G.pt-fiber j)
+      pt-path i x .fst = ua-glue equiv i foo {! !} where
+        foo : Partial (~ i) (fiber ∣_∣₂ ∣ j , g ∣₂)
+        foo (i = i0) = (j , G.pt-at j g) , {!ST. !}
+
+        bar : ⟨ G j ⟩ [ ~ i ↦ (λ { (i = i0) → equivFun equiv (foo 1=1) } ) ]
+        bar = inS {! !}
+
+      -- pt-path i x .snd = {! !}
+      -- pt-path i ∣ x ∣₂ .fst = ua-glue equiv i (λ { (i = i0) → {! !} , {! !} }) {! !}
+      -- pt-path i ∣ x ∣₂ .snd = {! !}
+      -- pt-path i (ST.squash₂ x x₁ p q i₁ i₂) = {! !}
+
+      str-path : PathP (λ i → StrictGroupoidStr (fiber-path i)) (GroupAtStr (Σˢ.₀ x) ∣ j , g ∣₂) (str (G j))
+      str-path i .StrictGroupoidStr.is-groupoid = {! !}
+      str-path i .StrictGroupoidStr.pt = {! !}
+      str-path i .StrictGroupoidStr.pt-section = {! !}
+
+      group-path : DΣGᴰ ∣ j , g ∣₂ ≡ G* j
+      group-path = hGroup≡ (StrictGroupoid≡ fiber-path {! str-path !})
+
+    component-at-path : ∀ x → DΣGᴰ x ≡ (G* (equivFun components-equiv x))
+    component-at-path = ST.elim (λ x → isGroupoidHGroup _ _) (uncurry group-path)
+-}
+
+module η (J : Type ℓ) (is-set-J : isSet J)
+  (G : J → StrictGroupoid.ob)
+  (is-group-G : ∀ j → isHGroup (G j))
+  where
+  private module G j = StrictGroupoidStr (str (G j))
+
+  components-equiv : ∥ Σ[ j ∈ J ] ⟨ G j ⟩ ∥₂ ≃ J
+  components-equiv =
+    ∥ Σ[ j ∈ J ] ⟨ G j ⟩ ∥₂ ≃⟨ setTruncateFstΣ≃ is-set-J ⟩
+    Σ[ j ∈ J ] ∥ ⟨ G j ⟩ ∥₂ ≃⟨ Σ-contractSnd is-group-G ⟩
+    J ≃∎
+
+  module _ (j : J) (g : ⟨ G j ⟩) where
+    equivᴰ : (j′ : J) (g′ : ⟨ G j′ ⟩) → _ ≃ _
+    equivᴰ j′ g′ =
+      Path (∥ Σ[ j ∈ J ] ⟨ G j ⟩ ∥₂) ∣ j′ , g′ ∣₂ ∣ j , g ∣₂ ≃⟨ PathSetTrunc≃PropTruncPath ⟩
+      ∥ (j′ , g′) ≡ (j , g) ∥₁ ≃⟨ PT.propTrunc≃ $ invEquiv ΣPathP≃PathPΣ ⟩
+      ∥ Σ[ p ∈ j′ ≡ j ] PathP (λ i → ⟨ G (p i) ⟩) g′ g ∥₁ ≃⟨ propTruncFstΣ≃ (is-set-J j′ j) ⟩
+      Σ[ p ∈ j′ ≡ j ] ∥ PathP (λ i → ⟨ G (p i) ⟩) g′ g ∥₁ ≃∎
+
+    shuffle :
+      (Σ[ j′ ∈ J ] Σ[ g′ ∈ ⟨ G j′ ⟩ ] Σ[ p ∈ j′ ≡ j ] ∥ PathP (λ i → ⟨ G (p i) ⟩) g′ g ∥₁)
+        ≃
+      (Σ[ (j′ , p) ∈ singl j ] Σ[ g′ ∈ ⟨ G j′ ⟩ ] ∥ PathP (λ i → ⟨ G (p (~ i)) ⟩) g′ g ∥₁)
+    shuffle = strictEquiv
+      (λ { (j′ , g′ , p , pᴰ) → (j′ , sym p) , g′ , pᴰ })
+      (λ { ((j′ , p) , g′ , pᴰ) → j′ , g′ , sym p , pᴰ })
+
+    fiber-equiv : fiber ∣_∣₂ ∣ j , g ∣₂ ≃ ⟨ G j ⟩
+    fiber-equiv =
+      (Σ[ x ∈ Σ[ j ∈ J ] ⟨ G j ⟩ ] ∣ x ∣₂ ≡ ∣ j , g ∣₂) ≃⟨ Σ-assoc-≃ ⟩
+      (Σ[ j′ ∈ J ] Σ[ g′ ∈ ⟨ G j′ ⟩ ] ∣ j′ , g′ ∣₂ ≡ ∣ j , g ∣₂) ≃⟨ Σ-cong-equiv-snd (λ j′ → Σ-cong-equiv-snd (equivᴰ j′)) ⟩
+      (Σ[ j′ ∈ J ] Σ[ g′ ∈ ⟨ G j′ ⟩ ] Σ[ p ∈ j′ ≡ j ] ∥ PathP (λ i → ⟨ G (p i) ⟩) g′ g ∥₁) ≃⟨ shuffle ⟩
+      (Σ[ (j′ , p) ∈ singl j ] Σ[ g′ ∈ ⟨ G j′ ⟩ ] ∥ PathP (λ i → ⟨ G (p (~ i)) ⟩) g′ g ∥₁) ≃⟨ Σ-contractFst (isContrSingl j) ⟩
+      (Σ[ g′ ∈ ⟨ G j ⟩ ] ∥ g′ ≡ g ∥₁) ≃⟨ Σ-cong-equiv-snd (λ g′ → invEquiv PathSetTrunc≃PropTruncPath) ⟩
+      (Σ[ g′ ∈ ⟨ G j ⟩ ] ∣ g′ ∣₂ ≡ ∣ g ∣₂) ≃⟨ Σ-contractSnd (λ g′ → isContr→isContrPath (is-group-G j) _ _) ⟩
+      ⟨ G j ⟩ ≃∎
+
+  on-idx : J → ∥ Σ[ j ∈ J ] ⟨ G j ⟩ ∥₂
+  on-idx = invEq components-equiv
+
+  -- on-group : ∀ j → hGroup.Hom[ (G j , is-group-G j) , D₀ᴰ (Σ
+  on-group : ∀ j → ⟨ G j ⟩ → fiber {A = Σ[ j ∈ J ] ⟨ G j ⟩} ∣_∣₂ (on-idx j)
+  on-group j g = {! invEq (fiber-equiv j g) !}
+
+η₀ : (x : Fam[hGroup].ob) → Fam[hGroup].Hom[ x , D₀ (Σˢ.₀ x) ]
+η₀ x@((J , is-set-J) , G*) = η₀x where
+  G = fst ∘ G*
+  module G j = StrictGroupoidStr (str (G j))
+  is-connected-G = snd ∘ G*
+
+  components-equiv : ∥ Σ[ j ∈ J ] ⟨ G j ⟩ ∥₂ ≃ J
+  components-equiv =
+    ∥ Σ[ j ∈ J ] ⟨ G j ⟩ ∥₂ ≃⟨ setTruncateFstΣ≃ is-set-J ⟩
+    Σ[ j ∈ J ] ∥ ⟨ G j ⟩ ∥₂ ≃⟨ Σ-contractSnd is-connected-G ⟩
+    J ≃∎
+
+  η₀-idx = invEq components-equiv
+
+  foo : (j : J) → hGroup.Hom[ G* j , D₀ᴰ (Σˢ.₀ x) (η₀-idx j) ]
+  foo j = {! ⟨ D₀ᴰ (Σˢ.₀ x) (η₀-idx j) .fst ⟩!}
+  -- foo j .fst g .fst = j , g -- G.pt-at j g
+  -- foo j .fst g .snd = goal where
+  --   goal : ∣ (j , g) ∣₂ ≡ ST.map (j ,_) (is-connected-G j .fst)
+  --   goal = PT.rec {! !} (λ p → {! !}) (G.mere-retract j g)
+
+  -- foo j .snd = {! !}
+
+  η₀x : Fam[hGroup].Hom[ x , D₀ (Σˢ.₀ x) ]
+  η₀x .fst = η₀-idx
+  η₀x .snd = {! !}
+
+η : NT.NatTrans 𝟙⟨ Fam[hGroup] ⟩ (D ∘F Σˢ)
+η .NT.NatTrans.N-ob x = {! η₀ x !}
+η .NT.NatTrans.N-hom = {! !}
+
+η-iso : 𝟙⟨ Fam[hGroup] ⟩ ≅ᶜ D ∘F Σˢ
+η-iso .NT.NatIso.trans = η
+η-iso .NT.NatIso.nIso = {! !}
 
 inv-Σˢ : WeakInverse Σˢ
 inv-Σˢ .WeakInverse.invFunc = D
-inv-Σˢ .WeakInverse.η = NT.pathToNatIso (Functor≡ η₀ {! !})
+inv-Σˢ .WeakInverse.η = {! !}
 inv-Σˢ .WeakInverse.ε = {! !}
--}
 
+{-
 isGroupoid-fiber-Σˢ₀ : (H : StrictGroupoid.ob) → isGroupoid (fiber Σˢ.₀ H)
 isGroupoid-fiber-Σˢ₀ H = isGroupoidΣ is-groupoid-Fam[hGroup]₀ is-groupoid-StrictGroupoid where
   is-groupoid-Fam[hGroup]₀ : isGroupoid Fam[hGroup].ob
@@ -252,6 +394,7 @@ isConnected-fiber-Σˢ₀ : (H : StrictGroupoid.ob) → isConnected 3 (fiber Σ�
 isConnected-fiber-Σˢ₀ H = {! isConnectedΣ !} where
   lemma₁ : isConnected 3 Fam[hGroup].ob
   lemma₁ = {! !}
+-}
 
 {-
 Σˢ₀-equiv : Fam[hGroup].ob ≃ StrictGroupoid.ob
@@ -259,23 +402,27 @@ isConnected-fiber-Σˢ₀ H = {! isConnectedΣ !} where
   (Σ[ J ∈ hSet ℓ ] (⟨ J ⟩ → hGroup.ob)) ≃⟨ {! !} ⟩
   (Σ[ G ∈ Type ℓ ] StrictGroupoidStr G) ≃⟨⟩
   StrictGroupoid.ob ≃∎
+-}
 
+{-
 isEquiv-Σˢ₀ : isEquiv Σˢ.₀
 isEquiv-Σˢ₀ .equiv-proof H = goal where
   fiber-equiv : (fiber Σˢ.₀ H) ≃ Unit
   fiber-equiv =
     (fiber Σˢ.₀ H) ≃⟨⟩
     (Σ[ x ∈ Fam[hGroup].ob ] Σˢ.₀ x ≡ H) ≃⟨ Σ-assoc-≃ ⟩
-    (Σ[ J ∈ hSet ℓ ] Σ[ G ∈ (⟨ J ⟩ → hGroup.ob) ] Σˢ.₀ (J , G) ≡ H) ≃⟨⟩
-    (Σ[ J ∈ hSet ℓ ] Σ[ G ∈ (⟨ J ⟩ → hGroup.ob) ] StrictGroupoidΣSet J (fst ∘ G) ≡ H) ≃⟨ {! !} ⟩
-    (Σ[ J ∈ hSet ℓ ] Σ[ G ∈ (⟨ J ⟩ → hGroup.ob) ] StrictGroupoidEquiv (StrictGroupoidΣSet J (fst ∘ G)) H) ≃⟨⟩
-    (Σ[ J ∈ hSet ℓ ] Σ[ G ∈ (⟨ J ⟩ → hGroup.ob) ] Σ[ σ ∈ StrictFun (StrictGroupoidΣSet J (fst ∘ G)) H ] isEquiv (σ .fst)) ≃⟨ {! !} ⟩
+    (Σ[ J ∈ hSet ℓ ] Σ[ G ∈ (⟨ J ⟩ → hGroup.ob) ] Σˢ.₀ (J , G) ≡ H) ≃⟨ {! !} ⟩
+    (Σ[ J ∈ hSet ℓ ] Σ[ G ∈ (⟨ J ⟩ → hGroup.ob) ] StrictGroupoidEquiv (Σˢ.₀ (J , G)) H) ≃⟨⟩
+    (Σ[ J ∈ hSet ℓ ] Σ[ G ∈ (⟨ J ⟩ → hGroup.ob) ] Σ[ σ ∈ StrictFun (Σˢ.₀ (J , G)) H ] isEquiv (σ .fst)) ≃⟨ {! !} ⟩
+    (Σ[ J ∈ hSet ℓ ] Σ[ G ∈ (⟨ J ⟩ → hGroup.ob) ] Σ[ σ ∈ ⟨ Σˢ.₀ (J , G) ⟩ ≃ ⟨ H ⟩ ] StrictFunStr (Σˢ.₀ (J , G)) H (equivFun σ)) ≃⟨⟩
+    (Σ[ J ∈ hSet ℓ ] Σ[ G ∈ (⟨ J ⟩ → hGroup.ob) ] Σ[ σ ∈ (Σ[ j ∈ ⟨ J ⟩ ] ⟨ G j .fst ⟩) ≃ ⟨ H ⟩ ] StrictFunStr (Σˢ.₀ (J , G)) H (equivFun σ)) ≃⟨ {! !} ⟩
     Unit ≃∎
 
   goal : isContr (fiber Σˢ.₀ H)
   goal = {! !}
 -}
 
+{-
 ε₀ : (G : StrictGroupoid.ob) → Σˢ.₀ (D₀ G) ≡ G
 ε₀ G = uaStrict (Σˢ.₀ (D₀ G)) G $ mkStrictGroupoidEquiv (Σˢ.₀ (D₀ G)) G ε≃ is-strict-ε where
   module G = StrictGroupoidStr (str G)
@@ -432,4 +579,5 @@ inv-Σˢ : WeakInverse Σˢ
 inv-Σˢ .WeakInverse.invFunc = D
 inv-Σˢ .WeakInverse.η = NT.pathToNatIso (Functor≡ η₀ {! !})
 inv-Σˢ .WeakInverse.ε = {! !}
+-}
 -}

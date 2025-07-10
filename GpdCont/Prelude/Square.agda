@@ -2,6 +2,7 @@ module GpdCont.Prelude.Square where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Path
+open import Cubical.Foundations.HLevels using (isSet→SquareP)
 
 private
   variable
@@ -52,6 +53,17 @@ module _
 
     sqB : SquareP (λ i j → B i j (sqA i j)) (sndP x₀₋) (sndP x₁₋) (sndP x₋₀) (sndP x₋₁)
     sqB = isProp→SquareP (λ i j → propB i j) _ _ _ _
+
+  ΣSquarePSet : ((a : A i1 i1) → isSet (B i1 i1 a))
+    → SquareP A (fstP x₀₋) (fstP x₁₋) (fstP x₋₀) (fstP x₋₁)
+    → SquareP (λ i j → Σ (A i j) (B i j)) x₀₋ x₁₋ x₋₀ x₋₁
+  ΣSquarePSet is-set-B₁₁ sqA i j .fst = sqA i j
+  ΣSquarePSet is-set-B₁₁ sqA i j .snd = sqB i j where
+    is-set-B : (i j : I) → isSet (B i j (sqA i j))
+    is-set-B i j = transport (λ k → isSet (B (~ k ∨ i) (~ k ∨ j) (sqA (~ k ∨ i) (~ k ∨ j)))) (is-set-B₁₁ (sqA i1 i1))
+
+    sqB : SquareP (λ i j → B i j (sqA i j)) (sndP x₀₋) (sndP x₁₋) (sndP x₋₀) (sndP x₋₁)
+    sqB = isSet→SquareP (λ i j → is-set-B i j) _ _ _ _
 
 ΣSquare : {A : Type ℓ} {B : A → Type ℓ'}
   {x₀₀ x₀₁ : Σ A B}

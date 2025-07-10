@@ -6,6 +6,7 @@ open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.HLevels using (hSet) public
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Axiom.UniquenessOfIdentity
 open import Cubical.Data.Sigma as Sigma using (_×_)
 open import Cubical.Data.Sum as Sum using (_⊎_)
 open import Cubical.Data.Empty as Empty using (⊥*)
@@ -59,3 +60,8 @@ EmptySet ℓ .snd = isProp→isSet Empty.isProp⊥*
 UnitSet : (ℓ : Level) → hSet ℓ
 UnitSet ℓ .fst = Unit*
 UnitSet ℓ .snd = Unit.isSetUnit*
+
+isContrLoops→isSet : {A : Type ℓ} → ((x : A) → isContr (x ≡ x)) → isSet A
+isContrLoops→isSet {A} contr-loops = UIP→isSet uip where
+  uip : UIP A
+  uip x p = isContr→isProp (contr-loops x) refl p

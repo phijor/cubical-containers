@@ -2,6 +2,7 @@ module GpdCont.HomotopyGroup.Wreath where
 
 open import GpdCont.Prelude
 open import GpdCont.Embedding
+open import GpdCont.Equiv
 open import GpdCont.Connectivity
 open import GpdCont.HomotopySet
 open import GpdCont.HomotopyGroup.Base
@@ -28,100 +29,94 @@ private
   variable
     ℓ ℓ′ ℓX ℓY : Level
 
-_⋉_ : (G : hGroup ℓ) (H : ⟨ G ⟩ᵗ → hGroup ℓ′) → hGroup (ℓ-max ℓ ℓ′)
-G ⋉ H = pointedConnectedGroupoid→hGroup ΣGH pt is-conn-ΣGH is-groupoid-ΣGH where
-  module G = hGroup G
-  module H g = hGroup (H g)
+module _ (G : hGroup ℓ) (H : ⟨ G ⟩ᵗ → hGroup ℓ′) where
+  private
+    module G = hGroup G
+    module H g = hGroup (H g)
 
-  ΣGH : Type _
-  ΣGH = Σ[ g ∈ ⟨ G ⟩ᵗ ] ⟨ H g ⟩ᵗ
+  _⋉_ : hGroup (ℓ-max ℓ ℓ′)
+  _⋉_ = pointedConnectedGroupoid→hGroup ΣGH pt is-conn-ΣGH is-groupoid-ΣGH where
+    ΣGH : Type _
+    ΣGH = Σ[ g ∈ ⟨ G ⟩ᵗ ] ⟨ H g ⟩ᵗ
 
-  pt : ΣGH
-  pt .fst = G.pt₀
-  pt .snd = H.pt₀ _
+    pt : ΣGH
+    pt .fst = G.pt₀
+    pt .snd = H.pt₀ _
 
-  is-conn-ΣGH : isPathConnected ΣGH
-  is-conn-ΣGH = isPathConnectedΣ G.is-connected H.is-connected
+    is-conn-ΣGH : isPathConnected ΣGH
+    is-conn-ΣGH = isPathConnectedΣ G.is-connected H.is-connected
 
-  is-groupoid-ΣGH : isGroupoid ΣGH
-  is-groupoid-ΣGH = isGroupoidΣ G.is-groupoid H.is-groupoid
+    is-groupoid-ΣGH : isGroupoid ΣGH
+    is-groupoid-ΣGH = isGroupoidΣ G.is-groupoid H.is-groupoid
 
-⋉Mono : ∀ {ℓ₀} (G : hGroup ℓ) (H : ⟨ G ⟩ᵗ → hGroup ℓ′)
+  private
+    G⋉H = _⋉_
+    {-# INLINE G⋉H #-}
+
+  ⋉-projl : hGroupHom G⋉H G
+  ⋉-projl = mkHGroupHom G⋉H G fst refl
+
+  ⋉-inlr : hGroupHom (H G.pt₀) G⋉H
+  ⋉-inlr = mkHGroupHom (H _) G⋉H (λ h → _ , h) refl
+
+⋉-syntax : (G : hGroup ℓ) (H : ⟨ G ⟩ᵗ → hGroup ℓ′) → hGroup (ℓ-max ℓ ℓ′)
+⋉-syntax = _⋉_
+
+infix 5 ⋉-syntax
+syntax ⋉-syntax G (λ g → H) = ⋉[ g ∈ G ] H
+
+module _ {ℓG₀ ℓG₁ ℓH}
+  (G₀ : hGroup ℓG₀)
+  (G₁ : hGroup ℓG₁)
+  (H : ⟨ G₁ ⟩ᵗ → hGroup ℓH)
+  where
+  ⋉-map-fst : ((φ , _) : hGroupHom G₀ G₁) → hGroupHom (G₀ ⋉ (H ∘ φ)) (G₁ ⋉ H)
+  ⋉-map-fst (φ , φ-hom) = mkHGroupHom (G₀ ⋉ (H ∘ φ)) (G₁ ⋉ H) (Σ-map-fst φ) $ ΣPathP λ where
+    .fst → hGroupHom.pres-pt₀ G₀ G₁ (φ , φ-hom)
+    .snd i → hGroup.pt₀ (H _)
+
+  ⋉-map-fst-mono : (ι : hGroupMono G₀ G₁) → hGroupMono (G₀ ⋉ (H ∘ (ι .fst .fst))) (G₁ ⋉ H)
+  ⋉-map-fst-mono (ι , ι-mono) .fst = ⋉-map-fst ι
+  ⋉-map-fst-mono (ι , ι-mono) .snd = isOfHLevelFunMapFst 2 _ ι-mono
+
+⋉FstMono : ∀ {ℓ₀} (G : hGroup ℓ) (H : ⟨ G ⟩ᵗ → hGroup ℓ′)
   → (G₀ : Mono ℓ₀ G)
   → Mono (ℓ-max ℓ′ ℓ₀) (G ⋉ H)
-⋉Mono G H (G₀ , ((ι , ι-hom) , ι-mono)) = goal where
-  module G₀ = hGroup G₀
-  module G = hGroup G
-  module H g = hGroup (H g)
+⋉FstMono G H (G₀ , ι) .fst = G₀ ⋉ (H ∘ ι .fst .fst)
+⋉FstMono G H (G₀ , ι) .snd = ⋉-map-fst-mono G₀ G H ι
 
-  G₀⋉H : hGroup _
-  G₀⋉H = G₀ ⋉ (H ∘ ι)
-
-  ι* : ⟨ G₀⋉H ⟩ᵗ → ⟨ G ⋉ H ⟩ᵗ
-  ι* = Σ-map-fst ι
-
-  ι*-hom : hGroupHom G₀⋉H (G ⋉ H)
-  ι*-hom = mkHGroupHom G₀⋉H (G ⋉ H) ι* pres-pt₀ where
-    ι-pres-pt : ι G₀.pt₀ ≡ G.pt₀
-    ι-pres-pt = hGroupHom.pres-pt₀ G₀ G (ι , ι-hom)
-
-    pres-pt₀ : ι* (G₀.pt₀ , H.pt₀ _) ≡ (G.pt₀ , H.pt₀ _)
-    pres-pt₀ = ΣPathP λ where
-      .fst → ι-pres-pt
-      .snd i → H.pt (ι-pres-pt i) $
-        isProp→PathP {B = λ i → H.Tr (ι-pres-pt i)} (λ i → isContr→isProp (H.is-connected _)) (H.center (ι G₀.pt₀)) (hGroup.center (H G.pt₀)) i
-
-  ι*-mono : isMono G₀⋉H (G ⋉ H) ι*-hom
-  ι*-mono = isOfHLevelFunMapFst 2 ι ι-mono
-
-  goal : Mono _ (G ⋉ H)
-  goal .fst = G₀⋉H
-  goal .snd .fst = ι*-hom
-  goal .snd .snd = ι*-mono
-
-⋉-map : ∀ {ℓG₀ ℓG₁ ℓH₀ ℓH₁}
-  → (G₀ : hGroup ℓG₀)
-  → (H₀ : ⟨ G₀ ⟩ᵗ → hGroup ℓH₀)
-  → (G₁ : hGroup ℓG₁)
-  → (H₁ : ⟨ G₁ ⟩ᵗ → hGroup ℓH₁)
-  → (φ : hGroupHom G₀ G₁)
-  → (η : ∀ g₀ → hGroupHom (H₀ g₀) (H₁ (φ .fst g₀)))
-  → hGroupHom (G₀ ⋉ H₀) (G₁ ⋉ H₁)
-⋉-map G₀ H₀ G₁ H₁ φ η = goal
-  {-
+module _ {ℓG ℓH₀ ℓH₁}
+  (G : hGroup ℓG)
+  (H₀ : ⟨ G ⟩ᵗ → hGroup ℓH₀)
+  (H₁ : ⟨ G ⟩ᵗ → hGroup ℓH₁)
   where
-    module φ = hGroupHom G₀ G₁ φ
-    module H₀ {g₀} = hGroup (H₀ g₀)
-    module H₁ {g₁} = hGroup (H₁ g₁)
-    module η {g₀} = hGroupHom (H₀ g₀) (H₁ (φ.fun g₀)) (η g₀)
+  private
+    module G = hGroup G
 
-    goal : hGroupHom (G₀ ⋉ H₀) (G₁ ⋉ H₁)
-    goal .fst (g₀ , h₀) = φ.fun g₀ , η.fun h₀
-    goal .snd = funExt $ ST.elim {! !} $
-      uncurry λ g₀ h₀ → ΣPathP (sym φ.pres-pt₀ , {! !})
-  -}
+  ⋉-map-snd : (φ : ∀ g → hGroupHom (H₀ g) (H₁ g)) → hGroupHom (G ⋉ H₀) (G ⋉ H₁)
+  ⋉-map-snd φ = mkHGroupHom (G ⋉ H₀) (G ⋉ H₁) (Σ-map-snd (fst ∘ φ)) $ ΣPathP λ where
+    .fst → refl′ G.pt₀
+    .snd → hGroupHom.pres-pt₀ (H₀ _) (H₁ _) (φ G.pt₀)
+
+  ⋉-map-snd-mono : (ι : ∀ g → hGroupMono (H₀ g) (H₁ g)) → hGroupMono (G ⋉ H₀) (G ⋉ H₁)
+  ⋉-map-snd-mono ι .fst = ⋉-map-snd (fst ∘ ι)
+  ⋉-map-snd-mono ι .snd = isOfHLevelFunMapSnd 2 _ (snd ∘ ι)
+
+module _ {ℓG₀ ℓG₁ ℓH₀ ℓH₁}
+  (G₀ : hGroup ℓG₀)
+  (G₁ : hGroup ℓG₁)
+  (H₀ : ⟨ G₀ ⟩ᵗ → hGroup ℓH₀)
+  (H₁ : ⟨ G₁ ⟩ᵗ → hGroup ℓH₁)
   where
-    module G₀ = hGroup G₀
-    module G₁ = hGroup G₁
-    module φ = hGroupHom G₀ G₁ φ
-    module H₀ {g₀} = hGroup (H₀ g₀)
-    module H₁ {g₁} = hGroup (H₁ g₁)
-    module η {g₀} = hGroupHom (H₀ g₀) (H₁ (φ.fun g₀)) (η g₀)
+  ⋉-map : (φ : hGroupHom G₀ G₁) (ψ : ∀ g → hGroupHom (H₀ g) (H₁ (φ .fst g))) → hGroupHom (G₀ ⋉ H₀) (G₁ ⋉ H₁)
+  ⋉-map φ ψ = compGroupHom (G₀ ⋉ H₀) (G₀ ⋉ (H₁ ∘ φ .fst)) (G₁ ⋉ H₁)
+    (⋉-map-snd G₀ H₀ (H₁ ∘ φ .fst) ψ)
+    (⋉-map-fst G₀ G₁ H₁ φ)
 
-    pres-pt₀' : transport (λ i → ⟨ H₁ (φ.pres-pt₀ i) ⟩ᵗ) (η.fun H₀.pt₀) ≡ H₁.pt₀
-    pres-pt₀' = {! !}
-
-    pres-pt₀ᴰ-gen : ∀ {g₁} → (p : g₁ ≡ G₁.pt₀) → PathP (λ i → ⟨ H₁ (p i) ⟩ᵗ) {! η.fun !} H₁.pt₀
-    pres-pt₀ᴰ-gen = {! φ.pres-pt₀ !}
-
-    pres-pt₀ᴰ : PathP (λ i → ⟨ H₁ (φ.pres-pt₀ i) ⟩ᵗ) (η.fun (H₀.pt₀)) H₁.pt₀
-    pres-pt₀ᴰ = toPathP pres-pt₀'
-
-    goal : hGroupHom (G₀ ⋉ H₀) (G₁ ⋉ H₁)
-    goal = mkHGroupHom (G₀ ⋉ H₀) (G₁ ⋉ H₁)
-      (λ { (g₀ , h₀) → φ.fun g₀ , η.fun h₀ })
-      (ΣPathP (φ.pres-pt₀ , pres-pt₀ᴰ))
-      -- (λ { (g₀ , h₀) → ? })
+  ⋉-map-mono : (ι : hGroupMono G₀ G₁) (κ : ∀ g → hGroupMono (H₀ g) (H₁ (ι .fst .fst g))) → hGroupMono (G₀ ⋉ H₀) (G₁ ⋉ H₁)
+  ⋉-map-mono ι κ = compHGroupMono (G₀ ⋉ H₀) (G₀ ⋉ (H₁ ∘ ι .fst .fst)) (G₁ ⋉ H₁)
+    (⋉-map-snd-mono G₀ H₀ (H₁ ∘ ι .fst .fst) κ)
+    (⋉-map-fst-mono G₀ G₁ H₁ ι)
 
 ⋉-contractSnd : (G : hGroup ℓ) (H : ⟨ G ⟩ᵗ → hGroup ℓ′)
   → (∀ g → isTrivial (H g))
@@ -133,15 +128,19 @@ G ⋉ H = pointedConnectedGroupoid→hGroup ΣGH pt is-conn-ΣGH is-groupoid-ΣG
 module _ (G : hGroup ℓ) (H : ⟨ G ⟩ᵗ → hGroup ℓ′) where
   private
     module G = hGroup G
+    module H g = hGroup (H g)
 
-  isPropFst→⋉-contractFst : (is-prop-G : isProp ⟨ G ⟩ᵗ) → hGroupEquiv (H G.pt₀) (G ⋉ H)
-  isPropFst→⋉-contractFst is-prop-G = mkHGroupEquiv (H G.pt₀) (G ⋉ H) contr-equiv refl
+  isContrFst→⋉-contractFst : ((g₀ , _) : isContr ⟨ G ⟩ᵗ) → hGroupEquiv (H g₀) (G ⋉ H)
+  isContrFst→⋉-contractFst is-contr-G@(g₀ , _) = mkHGroupEquiv (H _) (G ⋉ H) contr-equiv pres-pt₀
     where
-      contr-equiv : ⟨ H G.pt₀ ⟩ᵗ ≃ ⟨ G ⋉ H ⟩ᵗ
-      contr-equiv = invEquiv (Σ-contractFst (inhProp→isContr G.pt₀ is-prop-G))
+      contr-equiv : ⟨ H _ ⟩ᵗ ≃ ⟨ G ⋉ H ⟩ᵗ
+      contr-equiv = invEquiv (Σ-contractFst is-contr-G)
+
+      pres-pt₀ : (g₀ , H.pt₀ g₀) ≡ (G.pt₀ , H.pt₀ _)
+      pres-pt₀ = ΣPathP (is-contr-G .snd G.pt₀ , λ i → H.pt₀ (is-contr-G .snd G.pt₀ i))
 
   ⋉-contractFst : isTrivial G → hGroupEquiv (H G.pt₀) (G ⋉ H)
-  ⋉-contractFst is-contr-G = isPropFst→⋉-contractFst (isContr→isProp is-contr-G)
+  ⋉-contractFst is-contr-G = isContrFst→⋉-contractFst (inhProp→isContr G.pt₀ (isContr→isProp is-contr-G))
 
 module _
   (G : hGroup ℓ)
@@ -176,6 +175,7 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (H : hGroup ℓ′) where
 
     [X,H] : ⟨ G ⟩ᵗ → hGroup _
     [X,H] g = FunGroup ⟨ X g ⟩ H
+    {-# INLINE [X,H] #-}
 
     [X,H]-embedding : ∀ g → ⟨ [X,H] g ⟩ᵗ ↪ (⟨ X g ⟩ → ⟨ H ⟩ᵗ)
     [X,H]-embedding g = FunGroupEmbedding ⟨ X g ⟩ H
@@ -186,10 +186,19 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (H : hGroup ℓ′) where
   _≀[_]_ : hGroup (ℓ-max (ℓ-max ℓ ℓX) ℓ′)
   _≀[_]_ = Wr
 
+  Wr-projl : hGroupHom Wr G
+  Wr-projl = ⋉-projl G [X,H]
+
+  Wr-projr : (x : ∀ g → ⟨ X g ⟩) → hGroupHom Wr H
+  Wr-projr x = mkHGroupHom Wr H projr refl where
+    projr : ⟨ Wr ⟩ᵗ → ⟨ H ⟩ᵗ
+    projr (g , (η , _)) = η (x g)
+
   module _ {ℓY} (Y : hAction ℓY H) where
     private
       Y* : {g : ⟨ G ⟩ᵗ} → ⟨ X g ⟩ → hAction _ ([X,H] g)
       Y* {g} x = uncurry λ (f : ⟨ X g ⟩ → ⟨ H ⟩ᵗ) _ → Y (f x)
+      {-# INLINE Y* #-}
 
       is-transitive-Y* : isTransitive H Y → ∀ g x → isTransitive ([X,H] g) (Y* x)
       is-transitive-Y* trans-Y g x = {! isPathConnectedRespectEquiv' {! !} $
@@ -303,8 +312,8 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (H : hGroup ℓ′) where
         WrSubgroup .snd .snd = isTransitiveWrAction
       -}
 
-  WrMonoSingle : ∀ {ℓG₀} → Mono ℓG₀ G → Mono _ Wr
-  WrMonoSingle = ⋉Mono G [X,H]
+  WrMono : ∀ {ℓG₀} → Mono ℓG₀ G → Mono _ Wr
+  WrMono = ⋉FstMono G [X,H]
 
   WrContractSnd : isTrivial H → hGroupEquiv Wr G
   WrContractSnd is-contr-H = ⋉-contractSnd G [X,H] is-contr-[X,H] where
@@ -323,61 +332,115 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (H : hGroup ℓ′) where
       contr-fun : hGroupEquiv Wr ([X,H] G.pt₀)
       contr-fun = WrContractFst is-contr-G
 
-WrMono : ∀ {ℓG₀ ℓX₀} (G : hGroup ℓ) (X : hAction ℓX G) (H : hGroup ℓ′)
-  → (G₀ : hGroup ℓG₀)
-  → (ι : hGroupHom G₀ G)
-  → isMono G₀ G ι
-  → (X₀ : hAction ℓX₀ G₀)
-  → (e : ∀ g₀ → ⟨ X (ι .fst g₀) ⟩ ↪ ⟨ X₀ g₀ ⟩)
-  → Mono (ℓ-max (ℓ-max ℓ′ ℓG₀) ℓX₀) (G ≀[ X ] H)
-WrMono G X H G₀ (ι , ι-hom) ι-mono X₀ e = goal where
-  module H = hGroup H
-  module ι = hGroupHom G₀ G (ι , ι-hom)
+module _ {ℓG₀ ℓG₁ ℓX ℓH}
+  (G₀ : hGroup ℓG₀)
+  (G₁ : hGroup ℓG₁)
+  (X : hAction ℓX G₁)
+  (H : hGroup ℓH)
+  where
+  private
+    module H = hGroup H
 
-  G₀≀H : hGroup _
-  G₀≀H = G₀ ≀[ X₀ ] H
+  ≀-map-fst : ∀ (φ : hGroupHom G₀ G₁) → hGroupHom (G₀ ≀[ X ∘ φ .fst ] H) (G₁ ≀[ X ] H)
+  ≀-map-fst = ⋉-map-fst G₀ G₁ (λ g₁ → FunGroup ⟨ X g₁ ⟩ H)
 
-  ι* : ⟨ G₀≀H ⟩ᵗ → ⟨ G ≀[ X ] H ⟩ᵗ
-  ι* (g₀ , (h , h-conn)) = ι g₀ , h′ where
-    h′ : Σ[ h ∈ (⟨ X (ι g₀) ⟩ → ⟨ H ⟩ᵗ) ] ST.∣ h ∣₂ ≡ ST.∣ const H.pt₀ ∣₂
-    h′ .fst = h ∘ e g₀ .fst
-    h′ .snd = ST.merePath→pathSetTrunc $
-      PT.map
-        (λ h≡pt₀ → funExt λ x → h≡pt₀ ≡$ e g₀ .fst x)
-        (ST.pathSetTrunc→merePath h-conn)
+  ≀-map-fst-mono : ∀ (φ : hGroupMono G₀ G₁) → hGroupMono (G₀ ≀[ X ∘ φ .fst .fst ] H) (G₁ ≀[ X ] H)
+  ≀-map-fst-mono = ⋉-map-fst-mono G₀ G₁ (λ g₁ → FunGroup ⟨ X g₁ ⟩ H)
 
-  ι*-hom : hGroupHom G₀≀H (G ≀[ X ] H)
-  ι*-hom = mkHGroupHom G₀≀H (G ≀[ X ] H) ι* (ΣPathP (ι.pres-pt₀ , ΣPathP ({! !} , {! !})))
+module _ {ℓG ℓX₀ ℓX₁ ℓH₀ ℓH₁}
+  (G : hGroup ℓG)
+  (X₀ : hAction ℓX₀ G)
+  (X₁ : hAction ℓX₁ G)
+  (H₀ : hGroup ℓH₀)
+  (H₁ : hGroup ℓH₁)
+  where
+  private
+    module G = hGroup G
+    module H₀ = hGroup H₀
+    module H₁ = hGroup H₁
 
-  ι*-mono : isMono G₀≀H (G ≀[ X ] H) ι*-hom
-  ι*-mono = {! !}
+    [X₀,H₀] : ⟨ G ⟩ᵗ → hGroupoid _
+    [X₀,H₀] g .fst = ⟨ X₀ g ⟩ → ⟨ H₀ ⟩ᵗ
+    [X₀,H₀] g .snd = isGroupoidΠ λ _ → H₀.is-groupoid
 
-  goal : Mono _ (G ≀[ X ] H)
-  goal .fst = G₀≀H
-  goal .snd .fst = ι*-hom
-  goal .snd .snd = ι*-mono
+    [X₁,H₁] : ⟨ G ⟩ᵗ → hGroupoid _
+    [X₁,H₁] g .fst = ⟨ X₁ g ⟩ → ⟨ H₁ ⟩ᵗ
+    [X₁,H₁] g .snd = isGroupoidΠ λ _ → H₁.is-groupoid
 
-WrMono' : ∀ {ℓG₀ ℓX₀} (G : hGroup ℓ) (X₀ : hAction ℓX₀ G) (H : hGroup ℓ′)
-  → Subaction ℓG₀ ℓX G X₀
-  → Mono (ℓ-max (ℓ-max ℓ′ ℓX) ℓG₀) (G ≀[ X₀ ] H)
-WrMono' G X₀ H ((G₀ , ((ι , ι-hom) , ι-mono)) , (X , e)) = goal where
-  module H = hGroup H
+  ≀-map-snd :
+    ∀ (f : ∀ g → ⟨ X₁ g ⟩ → ⟨ X₀ g ⟩)
+    → (ψ : hGroupHom H₀ H₁)
+    → hGroupHom (G ≀[ X₀ ] H₀) (G ≀[ X₁ ] H₁)
+  ≀-map-snd f ψ = ⋉-map-snd G (λ g → FunGroup ⟨ X₀ g ⟩ H₀) (λ g → FunGroup ⟨ X₁ g ⟩ H₁) ψ* module ≀-map-snd where
+    ψ* : ∀ g → hGroupHom (FunGroup ⟨ X₀ g ⟩ H₀) (FunGroup ⟨ X₁ g ⟩ H₁)
+    ψ* g = aut-map ([X₀,H₀] g) ([X₁,H₁] g) (λ η₀ → ψ .fst ∘ η₀ ∘ f g) $ funExt λ _ → hGroupHom.pres-pt₀ H₀ H₁ ψ
 
-  G₀≀H : hGroup _
-  G₀≀H = G₀ ≀[ X ] H
+  ≀-map-snd-mono :
+    ∀ (f : ∀ g → ⟨ X₁ g ⟩ → ⟨ X₀ g ⟩)
+    → (∀ g → isEquiv (f g))
+    → (ψ : hGroupMono H₀ H₁)
+    → hGroupMono (G ≀[ X₀ ] H₀) (G ≀[ X₁ ] H₁)
+  ≀-map-snd-mono f is-equiv-f ψ = ⋉-map-snd-mono G (λ g → FunGroup ⟨ X₀ g ⟩ H₀) (λ g → FunGroup ⟨ X₁ g ⟩ H₁) ψ* where
+    fiber-equiv : ∀ g → ((x₀ : ⟨ X₀ g ⟩) → fiber (ψ .fst .fst) H₁.pt₀) ≃ fiber (λ η₀ → ψ .fst .fst ∘ η₀ ∘ f g) (const H₁.pt₀)
+    fiber-equiv g =
+      ((x₀ : ⟨ X₀ g ⟩) → Σ[ h₀ ∈ ⟨ H₀ ⟩ᵗ ] (ψ .fst .fst h₀ ≡ H₁.pt₀))
+        ≃⟨ Σ-Π-≃ ⟩
+      Σ[ η₀ ∈ (⟨ X₀ g ⟩ → ⟨ H₀ ⟩ᵗ) ] (∀ x₀ → ψ .fst .fst (η₀ x₀) ≡ H₁.pt₀)
+        ≃⟨ Σ-cong-equiv-snd (λ η₀ → equivΠDomain (f g , is-equiv-f g)) ⟩
+      Σ[ η₀ ∈ (⟨ X₀ g ⟩ → ⟨ H₀ ⟩ᵗ) ] (∀ x₁ → ψ .fst .fst (η₀ (f g x₁)) ≡ H₁.pt₀)
+        ≃⟨ Σ-cong-equiv-snd (λ η₀ → funExtEquiv) ⟩
+      Σ[ η₀ ∈ (⟨ X₀ g ⟩ → ⟨ H₀ ⟩ᵗ) ] (ψ .fst .fst ∘ η₀ ∘ f g ≡ const H₁.pt₀)
+        ≃∎
 
-  ι* : ⟨ G₀≀H ⟩ᵗ → ⟨ G ≀[ X₀ ] H ⟩ᵗ
-  ι* (g₀ , (h , h-conn)) = ι g₀ , h′ where
-    h′ : Σ[ h ∈ (⟨ X₀ (ι g₀) ⟩ → ⟨ H ⟩ᵗ) ] ST.∣ h ∣₂ ≡ ST.∣ const H.pt₀ ∣₂
-    h′ .fst = h ∘ {! e g₀ .fst !}
-    h′ .snd = {! !}
+    is-set-fiber-f* : ∀ g → isSet (fiber (λ η₀ → ψ .fst .fst ∘ η₀ ∘ f g) (const H₁.pt₀))
+    is-set-fiber-f* g = isOfHLevelRespectEquiv 2 (fiber-equiv g) $ isSetΠ λ x₀ → ψ .snd _
 
-  ι*-hom : hGroupHom G₀≀H (G ≀[ X₀ ] H)
-  ι*-hom = {! !}
+    ψ* : ∀ g → hGroupMono (FunGroup ⟨ X₀ g ⟩ H₀) (FunGroup ⟨ X₁ g ⟩ H₁)
+    ψ* g = aut-map-mono ([X₀,H₀] g) ([X₁,H₁] g) (λ η₀ → ψ .fst .fst ∘ η₀ ∘ f g)
+      (funExt λ _ → hGroupHom.pres-pt₀ H₀ H₁ (ψ .fst))
+      (is-set-fiber-f* g)
 
-  ι*-mono : isMono G₀≀H (G ≀[ X₀ ] H) ι*-hom
-  ι*-mono = {! !}
+module _ {ℓG₀ ℓG₁ ℓX₀ ℓX₁ ℓH₀ ℓH₁}
+  (G₀ : hGroup ℓG₀)
+  (G₁ : hGroup ℓG₁)
+  (X₀ : hAction ℓX₀ G₀)
+  (X₁ : hAction ℓX₁ G₁)
+  (H₀ : hGroup ℓH₀)
+  (H₁ : hGroup ℓH₁)
+  where
+  private
+    module H₀ = hGroup H₀
+    module H₁ = hGroup H₁
 
-  goal : Mono _ (G ≀[ X₀ ] H)
-  goal .fst = G₀≀H
-  goal .snd = {! !}
+  ≀-map :
+    ∀ (φ : hGroupHom G₀ G₁)
+    → (f : ∀ g → ⟨ X₁ (φ .fst g) ⟩ → ⟨ X₀ g ⟩)
+    → (ψ : hGroupHom H₀ H₁)
+    → hGroupHom (G₀ ≀[ X₀ ] H₀) (G₁ ≀[ X₁ ] H₁)
+  ≀-map φ f ψ = ⋉-map G₀ G₁ (λ g₀ → FunGroup ⟨ X₀ g₀ ⟩ H₀) (λ g₁ → FunGroup ⟨ X₁ g₁ ⟩ H₁) φ ψ* module ≀-map where
+    module _ (g : ⟨ G₀ ⟩ᵗ) where
+      f* : (⟨ X₀ g ⟩ → ⟨ H₀ ⟩ᵗ) → (⟨ X₁ (φ .fst g) ⟩ → ⟨ H₁ ⟩ᵗ)
+      f* η₀ = ψ .fst ∘ η₀ ∘ (f g)
+
+      f*-pres-pt₀ : f* (λ _ → hGroup.pt₀ H₀) ≡ (λ _ → H₁.pt₀)
+      f*-pres-pt₀ = funExt λ _ → hGroupHom.pres-pt₀ H₀ H₁ ψ
+
+      [X₀,H₀] : hGroupoid _
+      [X₀,H₀] = (⟨ X₀ g ⟩ → ⟨ H₀ ⟩ᵗ) , isGroupoidΠ λ _ → H₀.is-groupoid
+
+      [X₁,H₁] : hGroupoid _
+      [X₁,H₁] = (⟨ X₁ _ ⟩ → ⟨ H₁ ⟩ᵗ) , isGroupoidΠ λ _ → H₁.is-groupoid
+
+      ψ* : hGroupHom (FunGroup ⟨ X₀ g ⟩ H₀) (FunGroup ⟨ X₁ (φ .fst g) ⟩ H₁)
+      ψ* = aut-map [X₀,H₀] [X₁,H₁]
+        f*
+        f*-pres-pt₀
+
+  ≀-map-mono :
+    ∀ (φ : hGroupMono G₀ G₁)
+    → (f : ∀ g → ⟨ X₁ (φ .fst .fst g) ⟩ ≃ ⟨ X₀ g ⟩)
+    → (ψ : hGroupMono H₀ H₁)
+    → hGroupMono (G₀ ≀[ X₀ ] H₀) (G₁ ≀[ X₁ ] H₁)
+  ≀-map-mono φ f ψ = compHGroupMono (G₀ ≀[ X₀ ] H₀) (G₀ ≀[ X₁ ∘ _ ] H₁) (G₁ ≀[ X₁ ] H₁)
+    (≀-map-snd-mono G₀ X₀ (X₁ ∘ _) H₀ H₁ (fst ∘ f) (snd ∘ f) ψ)
+    (≀-map-fst-mono G₀ G₁ X₁ H₁ φ)

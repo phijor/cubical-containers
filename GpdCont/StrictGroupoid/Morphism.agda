@@ -2,6 +2,7 @@ module GpdCont.StrictGroupoid.Morphism where
 
 open import GpdCont.Prelude
 open import GpdCont.StrictGroupoid.Base
+open import GpdCont.SetTruncation as ST using ()
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
@@ -148,7 +149,7 @@ idStrict : (G : StrictGroupoid ℓ) → StrictFun G G
 idStrict G .fst = id _
 idStrict G .snd = funExt (ST.elim (λ x → isOfHLevelPath' 1 (G .snd .StrictGroupoidStr.is-groupoid _ _)) λ _ → refl)
 
-module _ (G H K : StrictGroupoid ℓ) where
+module _ {ℓG ℓH ℓK} (G : StrictGroupoid ℓG) (H : StrictGroupoid ℓH) (K : StrictGroupoid ℓK) where
   private
     module G = StrictGroupoidStr (str G)
     module H = StrictGroupoidStr (str H)
@@ -158,7 +159,7 @@ module _ (G H K : StrictGroupoid ℓ) where
   compStrict' (φ , is-strict-φ) (ψ , is-strict-ψ) .fst = φ ⋆ ψ
   compStrict' (φ , is-strict-φ) (ψ , is-strict-ψ) .snd = goal where
     goal : ST.map (φ ⋆ ψ) ⋆ K.pt ≡ G.pt ⋆ (φ ⋆ ψ)
-    goal = cong (_⋆ K.pt) (sym (ST.mapFunctorial φ ψ)) ∙∙ cong (ST.map φ ⋆_) is-strict-ψ ∙∙ cong (_⋆ ψ) is-strict-φ
+    goal = cong (_⋆ K.pt) (sym (ST.setTruncMapComp φ ψ)) ∙∙ cong (ST.map φ ⋆_) is-strict-ψ ∙∙ cong (_⋆ ψ) is-strict-φ
 
   compStrict : StrictFun G H → StrictFun H K → StrictFun G K
   compStrict (φ , is-strict-φ) (ψ , is-strict-ψ) .fst = φ ⋆ ψ

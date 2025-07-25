@@ -1,6 +1,7 @@
 module GpdCont.HomotopyGroup.Aut where
 
 open import GpdCont.HomotopyGroup.Base
+open import GpdCont.HomotopyGroup.Morphism
 open import GpdCont.HomotopyGroup.Equiv
 
 open import GpdCont.Prelude
@@ -58,6 +59,56 @@ isContrAut : (A : hGroupoid ℓ) (a₀ : ⟨ A ⟩)
 isContrAut (A , _) a₀ is-contr-A = isContrΣ
   is-contr-A
   λ a → isContr→isContrPath (ST.isContr→isContrSetTrunc is-contr-A) ∣ a ∣₂ ∣ a₀ ∣₂
+
+aut-map : (A : hGroupoid ℓ) {a₀ : ⟨ A ⟩} (B : hGroupoid ℓ′) {b₀ : ⟨ B ⟩}
+  → (f : ⟨ A ⟩ → ⟨ B ⟩)
+  → (pres-pt : f a₀ ≡ b₀)
+  → hGroupHom (Aut A a₀) (Aut B b₀)
+aut-map A {a₀} B {b₀} f pres-pt = mkHGroupHom (Aut A _) (Aut B _) f* pres-pt-f* module aut-map where
+  pres-conn : ∀ a → ∣ a ∣₂ ≡ ∣ a₀ ∣₂ → ∣ f a ∣₂ ≡ ∣ b₀ ∣₂
+  pres-conn a p = ST.merePath→pathSetTrunc $ PT.map (λ a≡a₀ → cong f a≡a₀ ∙ pres-pt) (ST.pathSetTrunc→merePath p)
+
+  f* : ⟨ Aut A _ ⟩ᵗ → ⟨ Aut B _ ⟩ᵗ
+  f* = Σ-map f pres-conn
+
+  -- TODO: The path in the second component can be given explicitly.
+  -- We can derive (pres-conn a₀ refl ≡ pres-pt).
+  pres-pt-f* : f* (a₀ , refl) ≡ (b₀ , refl)
+  pres-pt-f* = Σ≡Prop (λ _ → ST.isSetSetTrunc _ _) pres-pt
+
+isOfHLevelSucAutMap : (n : HLevel)
+  → (A : hGroupoid ℓ) {a₀ : ⟨ A ⟩} (B : hGroupoid ℓ′) {b₀ : ⟨ B ⟩}
+  → (f : ⟨ A ⟩ → ⟨ B ⟩)
+  → (pres-pt : f a₀ ≡ b₀)
+  → isOfHLevelFun (suc n) f
+  → isOfHLevelFun (suc n) (aut-map A B f pres-pt .fst)
+isOfHLevelSucAutMap n A {a₀} B {b₀} f pres-pt is-trunc-f = isOfHLevelFunΣMap (suc n) is-trunc-f goal where
+  goal : ∀ a → isOfHLevelFun (suc n) (aut-map.pres-conn A B f pres-pt a)
+  goal a ∣fa≡b₀∣ = isOfHLevelΣ (suc n)
+    (isProp→isOfHLevelSuc n (ST.isSetSetTrunc _ _))
+    λ p → (isContr→isOfHLevel (suc n) (isProp→isContrPath (ST.isSetSetTrunc _ _) _ _))
+
+isTruncFiberPt→isTruncAutMap : (n : HLevel)
+  → (A : hGroupoid ℓ) {a₀ : ⟨ A ⟩} (B : hGroupoid ℓ′) {b₀ : ⟨ B ⟩}
+  → (f : ⟨ A ⟩ → ⟨ B ⟩)
+  → (pres-pt : f a₀ ≡ b₀)
+  → isOfHLevel (suc n) (fiber f b₀)
+  → isOfHLevelFun (suc n) (aut-map A B f pres-pt .fst)
+isTruncFiberPt→isTruncAutMap n A {a₀} B {b₀} f pres-pt is-trunc-fib-pt = hGroup.elimProp (Aut B _)
+  (λ _ → isPropIsOfHLevel (suc n))
+  (isOfHLevelRespectEquiv (suc n) fiber-equiv is-trunc-fiber-sub)
+  where
+    fiber-equiv : (Σ[ (a , _) ∈ fiber f b₀ ] ST.∣ a ∣₂ ≡ ST.∣ a₀ ∣₂) ≃ fiber (aut-map A B f pres-pt .fst) (b₀ , refl)
+    fiber-equiv =
+      Σ[ (a , _) ∈ fiber f b₀ ] ST.∣ a ∣₂ ≡ ST.∣ a₀ ∣₂
+        ≃⟨ strictEquiv (λ ((a , p) , a-conn) → ((a , a-conn) , p)) (λ ((a , a-conn) , p) → ((a , p) , a-conn)) ⟩
+      Σ[ (a , a-conn) ∈ ⟨ Aut A _ ⟩ᵗ ] f a ≡ b₀
+        ≃⟨ Σ-cong-equiv-snd (λ a' → invEquiv $ (cong fst) , isEmbeddingFstΣProp (λ _ → ST.isSetSetTrunc _ _)) ⟩
+      Σ[ (a , a-conn) ∈ ⟨ Aut A _ ⟩ᵗ ] (f a , _) ≡ (b₀ , refl)
+        ≃∎
+
+    is-trunc-fiber-sub : isOfHLevel (suc n) (Σ[ (a , _) ∈ fiber f b₀ ] ST.∣ a ∣₂ ≡ ST.∣ a₀ ∣₂)
+    is-trunc-fiber-sub = isOfHLevelΣ (suc n) is-trunc-fib-pt λ _ → isProp→isOfHLevelSuc n $ ST.isSetSetTrunc _ _
 
 AutEquiv : (A : hGroupoid ℓ) {a₀ : ⟨ A ⟩} (B : hGroupoid ℓ′) {b₀ : ⟨ B ⟩}
   → (e : ⟨ A ⟩ ≃ ⟨ B ⟩)

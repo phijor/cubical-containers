@@ -12,7 +12,7 @@ open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Path as Path using (PathP≡compPath ; pathFiber)
 open import Cubical.Foundations.Transport using (substEquiv)
 open import Cubical.Foundations.Univalence using (pathToEquiv)
-open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
+open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂) public
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Sum as Sum
@@ -25,6 +25,11 @@ private
     ℓA ℓB : Level
     A : Type ℓA
     B : A → Type ℓB
+
+setTruncMapComp : ∀ {ℓA ℓB ℓC} {A : Type ℓA} {B : Type ℓB} {C : Type ℓC}
+  → (f :  A → B) (g : B → C)
+  → ST.map g ∘ ST.map f ≡ ST.map (g ∘ f)
+setTruncMapComp f g = funExt (ST.elim (λ _ → ST.isSetPathImplicit) λ _ → refl)
 
 setTruncMapId : ST.map (id A) ≡ id ∥ A ∥₂
 setTruncMapId = funExt $ ST.elim (λ x → ST.isSetPathImplicit) λ a → refl

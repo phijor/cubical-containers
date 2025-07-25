@@ -36,9 +36,11 @@ private module impl {ℓK} (K : Type ℓK) (G : K → hGroup ℓ) where
   ⟨Π⟩ : hGroupoid _
   ⟨Π⟩ .fst = ∀ k → ⟨ G k ⟩ᵗ
   ⟨Π⟩ .snd = isGroupoidΠ G.is-groupoid
+  {-# INLINE ⟨Π⟩ #-}
 
   Πpt : ∀ k → ⟨ G k ⟩ᵗ
   Πpt = G.pt₀
+  {-# INLINE Πpt #-}
 
 module _ {ℓK} (K : Type ℓK) (G : K → hGroup ℓ) where
   open impl K G
@@ -121,13 +123,16 @@ module _ {ℓK} (K : Type ℓK) (G : hGroup ℓ) where
   FunGroupEmbedding : ⟨ FunGroup ⟩ᵗ ↪ (K → ⟨ G ⟩ᵗ)
   FunGroupEmbedding = ΠGroupEmbedding K $ const G
 
+  FunGroupPath : {γ₀ γ₁ : ⟨ FunGroup ⟩ᵗ} → (γ₀ .fst ≡ γ₁ .fst) → γ₀ ≡ γ₁
+  FunGroupPath p = ΠPath K (const G) λ k i → p i k
+
   isContrFunGroup : isContr ⟨ G ⟩ᵗ → isContr ⟨ FunGroup ⟩ᵗ
   isContrFunGroup is-contr-G = isContrΠGroup K (const G) (const is-contr-G)
 
   FunGroupContractDomain : isContr K → hGroupEquiv FunGroup G
   FunGroupContractDomain is-contr-K = ΠGroupContractDomain K (const G) is-contr-K
 
-proj : ∀ {K : Type ℓ} (G : K → hGroup ℓ) → ∀ k → hGroupHom (ΠGroup K G) (G k)
+proj : ∀ {K : Type ℓK} (G : K → hGroup ℓ) → ∀ k → hGroupHom (ΠGroup K G) (G k)
 proj _ k .fst (f , f-strict) = f k
 proj {K} G k .snd = funExt (ST.elim (λ _ → G.is-groupoid k _ _) $ uncurry is-strict-π) where
   module G k = hGroup (G k)
@@ -200,11 +205,15 @@ module _ {ℓ′} (K : Type ℓK) (H : K → hGroup ℓ) (sub : ∀ k → Mono �
     ι k = sub k .snd
 
     module G k = hGroup (G k)
+    module ι k = hGroupHom (G k) (H k) (ι k .fst)
 
     ι* : hGroupHom (ΠGroup K G) (ΠGroup K H)
     ι* = mkHGroupHom (ΠGroup K G) (ΠGroup K H)
-      (λ { (γ , γ-conn) → (λ k → ι k .fst .fst (γ k)) , ST.merePath→pathSetTrunc (PT.rec {! !} {! !} (ST.pathSetTrunc→merePath γ-conn)) })
-      (Σ≡Prop {! !} $ funExt λ k → {!  sub k .snd .fst .snd !})
+      (λ { (γ , γ-conn) → (λ k → ι k .fst .fst (γ k)) , ST.merePath→pathSetTrunc (PT.rec PT.isPropPropTrunc (λ p → do
+          return $ funExt λ k → cong (ι.fun _) (p ≡$ k) ∙ ι.pres-pt₀ k
+        )
+        (ST.pathSetTrunc→merePath γ-conn)) })
+      (Σ≡Prop (λ _ → ST.isSetSetTrunc _ _) $ funExt ι.pres-pt₀)
 
   ΠMono : Mono (ℓ-max ℓK ℓ′) (ΠGroup K H)
   ΠMono .fst = ΠGroup K G
@@ -240,7 +249,7 @@ module _ {ℓ′} (K : Type ℓK) (H : K → hGroup ℓ) (sub : ∀ k → Mono �
     X k = X↪Y k .fst
     
     sub-action : Subactionᴰ (ΠGroup K G) (ΠGroup K H) ι* _ (ΠActionΣ (K , is-set-K) H Y)
-    sub-action .fst = ΠActionΣ (K , is-set-K) G X
+    sub-action .fst (γ , _) = {! !}
     sub-action .snd = {! !}
 
   ΠSubaction : ∀ {ℓX ℓY} (is-set-K : isSet K)

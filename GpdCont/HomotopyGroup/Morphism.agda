@@ -77,3 +77,11 @@ module _ {ℓ} {ℓ′} (G : hGroup ℓ) (H : hGroup ℓ′) where
     pᴰ : PathP (λ i → StrictFunStr (fst G) (fst H) (p i)) (snd φ) (snd ψ)
     pᴰ = funExtSquare $ G.centerElim pᴰ-ext
 
+idHGroupHom : (G : hGroup ℓ) → hGroupHom G G
+idHGroupHom G = idStrict (G .fst)
+
+compGroupHom : ∀ {ℓ ℓ′ ℓ″} (G : hGroup ℓ) (H : hGroup ℓ′) (K : hGroup ℓ″)
+  → hGroupHom G H
+  → hGroupHom H K
+  → hGroupHom G K
+compGroupHom G H K = compStrict (G .fst) (H .fst) (K .fst)

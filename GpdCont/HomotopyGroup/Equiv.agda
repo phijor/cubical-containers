@@ -16,6 +16,11 @@ private
 hGroupEquiv : ∀ {ℓG ℓH} (G : hGroup ℓG) (H : hGroup ℓH) → Type (ℓ-max ℓG ℓH)
 hGroupEquiv G H = Σ[ α ∈ hGroupHom G H ] isEquiv (hGroupHom.fun {G = G} {H = H} α)
 
+_≃ᴳ_ : ∀ {ℓG ℓH} (G : hGroup ℓG) (H : hGroup ℓH) → Type (ℓ-max ℓG ℓH)
+_≃ᴳ_ = hGroupEquiv
+
+infix 4 _≃ᴳ_
+
 mkHGroupEquiv : ∀ {ℓG ℓH} (G : hGroup ℓG) (H : hGroup ℓH)
   → (e : ⟨ G ⟩ᵗ ≃ ⟨ H ⟩ᵗ)
   → (pres-pt₀ : equivFun e (hGroup.pt₀ G) ≡ hGroup.pt₀ H)

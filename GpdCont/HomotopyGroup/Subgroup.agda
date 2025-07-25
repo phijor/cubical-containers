@@ -8,6 +8,7 @@ open import GpdCont.Univalence
 import      GpdCont.SetTruncation as ST
 
 open import GpdCont.HomotopyGroup.Base
+open import GpdCont.HomotopyGroup.Aut
 open import GpdCont.HomotopyGroup.Morphism
 open import GpdCont.HomotopyGroup.Action
 
@@ -77,8 +78,28 @@ Subgroup→hGroup {G} (X , x₀ , is-transitive-X) = pointedConnectedGroupoid→
 isMono : (G : hGroup ℓ) (H : hGroup ℓ′) (φ : hGroupHom G H) → Type _
 isMono G H (φ , _) = isOfHLevelFun 2 φ
 
+isSetFiberPt→isMono : (G : hGroup ℓ) (H : hGroup ℓ′)
+  → (φ : hGroupHom G H)
+  → isSet (fiber (φ .fst) (hGroup.pt₀ H))
+  → isMono G H φ
+isSetFiberPt→isMono G H (φ , φ-hom) = hGroup.elimProp H λ g → isPropIsOfHLevel {A = fiber φ g} 2
+
+hGroupMono : (G : hGroup ℓ) (H : hGroup ℓ′) → Type _
+hGroupMono G H = Σ[ ι ∈ hGroupHom G H ] isMono G H ι
+
+idHGroupMono : (G : hGroup ℓ) → hGroupMono G G
+idHGroupMono G .fst = idHGroupHom G
+idHGroupMono G .snd = isOfHLevelFunId 2
+
+compHGroupMono : ∀ {ℓ″} (G : hGroup ℓ) (H : hGroup ℓ′) (K : hGroup ℓ″)
+  → hGroupMono G H
+  → hGroupMono H K
+  → hGroupMono G K
+compHGroupMono G H K (φ , φ-mono) (ψ , ψ-mono) .fst = compGroupHom G H K φ ψ
+compHGroupMono G H K (φ , φ-mono) (ψ , ψ-mono) .snd = isOfHLevelFunComp 2 (ψ .fst) (φ .fst) ψ-mono φ-mono
+
 Mono : (ℓ : Level) (H : hGroup ℓ′) → Type _
-Mono ℓ H = Σ[ G ∈ hGroup ℓ ] Σ[ ι ∈ hGroupHom G H ] isMono G H ι
+Mono ℓ H = Σ[ G ∈ hGroup ℓ ] hGroupMono G H
 
 Emb : (ℓ : Level) (H : hGroup ℓ′) → Type _
 Emb ℓ H = Σ[ E ∈ Type ℓ ] Σ[ p ∈ (E → ⟨ H ⟩ᵗ) ] isOfHLevelFun 1 p
@@ -117,19 +138,32 @@ isSetMono {H} sub₀@(G₀ , ι₀ , is-mono-ι₀) sub₁@(G₁ , ι₁ , is-mo
     Σ[ G ∈ G₀ ≡ G₁ ] PathP (λ i → Σ[ ι ∈ hGroupHom (G i) H ] isMono (G i) H ι) (ι₀ , is-mono-ι₀) (ι₁ , is-mono-ι₁) ≃⟨ {! !} ⟩
     (sub₀ ≡ sub₁) ≃∎
 
+monoIntoTrivial→isTrivial : (G : hGroup ℓ) (H : hGroup ℓ′)
+  → (f : ⟨ G ⟩ᵗ → ⟨ H ⟩ᵗ)
+  → isOfHLevelFun 2 f
+  → isTrivial H
+  → isTrivial G
+monoIntoTrivial→isTrivial G H f f-mono is-triv-H = isSet→isTrivial G is-set-G where
+  -- The fibers of f are, at the same time:
+  --  1) equivalent to all of G
+  --  2) sets
+  -- Therefore G must me a set, which in turn means that it is trivial.
+  fiber-equiv : ∀ h → fiber f h ≃ ⟨ G ⟩ᵗ
+  fiber-equiv h = Σ-contractSnd (λ g → isOfHLevelPath 0 is-triv-H (f g) h)
+
+  is-set-G : isSet ⟨ G ⟩ᵗ
+  is-set-G = isOfHLevelRespectEquiv 2 (fiber-equiv $ hGroup.pt₀ H) (f-mono _)
+
 isTrivial→isTrivialMono : (H : hGroup ℓ′)
   → isTrivial H
   → ((G , _) : Mono ℓ H)
   → isTrivial G
-isTrivial→isTrivialMono H is-contr-H (G , (ι , ι-hom) , ι-mono) = isSet→isTrivial G is-set-G where
-  -- The fibers of ι are, at the same time:
-  --  1) equivalent to all of G
-  --  2) sets
-  -- Therefore G must me a set, which in turn means that it is trivial.
-  fiber-equiv : ∀ h → fiber ι h ≃ ⟨ G ⟩ᵗ
-  fiber-equiv h =
-    Σ[ g ∈ ⟨ G ⟩ᵗ ] ι g ≡ h ≃⟨ Σ-contractSnd (λ g → isOfHLevelPath 0 is-contr-H (ι g) h) ⟩
-    ⟨ G ⟩ᵗ ≃∎
+isTrivial→isTrivialMono H is-triv-H (G , (ι , _) , ι-mono) = monoIntoTrivial→isTrivial G H ι ι-mono is-triv-H
 
-  is-set-G : isSet ⟨ G ⟩ᵗ
-  is-set-G = isOfHLevelRespectEquiv 2 (fiber-equiv $ hGroup.pt₀ H) (ι-mono _)
+aut-map-mono : (A : hGroupoid ℓ) {a₀ : ⟨ A ⟩} (B : hGroupoid ℓ′) {b₀ : ⟨ B ⟩}
+  → (f : ⟨ A ⟩ → ⟨ B ⟩)
+  → (pres-pt : f a₀ ≡ b₀)
+  → isSet (fiber f b₀)
+  → hGroupMono (Aut A a₀) (Aut B b₀)
+aut-map-mono A {a₀} B {b₀} f pres-pt is-set-fib .fst = aut-map A B f pres-pt
+aut-map-mono A {a₀} B {b₀} f pres-pt is-set-fib .snd = isTruncFiberPt→isTruncAutMap 1 A B f pres-pt is-set-fib

@@ -6,6 +6,7 @@ open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Sigma.Properties
 open import Cubical.Reflection.StrictEquiv
+open import Cubical.Functions.FunExtEquiv
 open import Cubical.Functions.Embedding public
 
 private
@@ -53,6 +54,13 @@ isOfHLevelFunMapFst {A′} {A} {B′} n f is-of-hlevel-f (a′ , b′) = isOfHLe
   → (f : ∀ a → B a → B′ a) → (Σ A B) → (Σ A B′)
 Σ-map-snd f (a , b) = (a , f a b)
 
+Σ-map : ∀ {ℓB ℓB′} {B : A → Type ℓB} {B′ : A′ → Type ℓB′}
+  → (e : A → A′)
+  → (f : ∀ a → B a → B′ (e a))
+  → Σ A B → Σ A′ B′
+Σ-map e f (a , b) .fst = e a
+Σ-map e f (a , b) .snd = f a b
+
 isOfHLevelFunMapSnd : ∀ {ℓB ℓB′} {B : A → Type ℓB} {B′ : A → Type ℓB′}
   → (n : HLevel)
   → (f : ∀ a → B a → B′ a)
@@ -81,3 +89,11 @@ isOfHLevelFunMapSnd {A} {B} {B′} n f is-of-hlevel-f (a₀ , b₀) = isOfHLevel
   → (f : ∀ a → B a ↪ B′ (e .fst a))
   → Σ A B ↪ Σ A′ B′
 Σ-embed e f = compEmbedding (Σ-embed-fst e) (Σ-embed-snd f)
+
+isOfHLevelFunΣMap : ∀ {ℓB ℓB′} {B : A → Type ℓB} {B′ : A′ → Type ℓB′} (n : HLevel)
+  → {e : A → A′}
+  → {f : ∀ a → B a → B′ (e a)}
+  → isOfHLevelFun n e
+  → (∀ a → isOfHLevelFun n (f a))
+  → isOfHLevelFun n (Σ-map {B′ = B′} e f)
+isOfHLevelFunΣMap n {e} {f} is-of-hlevel-e is-of-hlevel-f = isOfHLevelFunComp n (Σ-map-fst e) (Σ-map-snd f) (isOfHLevelFunMapFst n e is-of-hlevel-e) (isOfHLevelFunMapSnd n f is-of-hlevel-f)

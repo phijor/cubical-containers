@@ -53,6 +53,10 @@ _⊎Set_ : (X : hSet ℓ) (Y : hSet ℓ') → hSet _
 ΣSet X Y .fst = Σ ⟨ X ⟩ $ ⟨_⟩ ∘ Y
 ΣSet X Y .snd = isSetΣ (str X) (str ∘ Y)
 
+ΣSubSet : (X : hSet ℓ) (P : ⟨ X ⟩ → hProp ℓ') → hSet _
+ΣSubSet X Y .fst = Σ ⟨ X ⟩ $ ⟨_⟩ ∘ Y
+ΣSubSet X Y .snd = isSetΣSndProp (str X) (str ∘ Y)
+
 EmptySet : (ℓ : Level) → hSet ℓ
 EmptySet ℓ .fst = ⊥*
 EmptySet ℓ .snd = isProp→isSet Empty.isProp⊥*

@@ -10,7 +10,7 @@ open import Cubical.Foundations.Function
   public
 open import Cubical.Foundations.Structure public using (⟨_⟩ ; str)
 open import Cubical.Foundations.Equiv using (_≃_ ; _≃⟨_⟩_) renaming (_■ to _≃∎) public
-open import Cubical.Foundations.Equiv using (fiber ; equivFun ; invEq ; isEquiv ; _∙ₑ_)
+open import Cubical.Foundations.Equiv using (fiber ; equivFun ; invEq ; isEquiv ; _∙ₑ_ ; idIsEquiv)
 open import Cubical.Foundations.Equiv.Properties using (equivAdjointEquiv ; preCompEquiv ; congEquiv)
 open import Cubical.Foundations.HLevels as HLevels using ()
 open import Cubical.Foundations.Isomorphism as Isomorphism using (Iso ; _Iso⟨_⟩_) renaming (_∎Iso to _Iso∎) public
@@ -414,6 +414,9 @@ module _ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'} where
   isOfHLevelFunSuc : (n : HLevel) {f : A → B} → isOfHLevelFun n f → isOfHLevelFun (suc n) f
   isOfHLevelFunSuc n {f} f-lvl b = isOfHLevelSuc n $ f-lvl b
 
+  isEquiv→isOfHLevelFun : (n : HLevel) → {f : A → B} → isEquiv f → isOfHLevelFun n f
+  isEquiv→isOfHLevelFun n {f} is-equiv-f b = isContr→isOfHLevel n (is-equiv-f .isEquiv.equiv-proof b)
+
   isOfHLevelFunComp : ∀ {ℓ''} {C : Type ℓ''} (n : HLevel)
     → (g : B → C)
     → (f : A → B)
@@ -428,6 +431,10 @@ module _ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'} where
       Σ[ a ∈ A ] Σ[ (b , _) ∈ singl (f a) ] g b ≡ c ≃⟨ Σ-cong-equiv-snd (λ a → Σ-contractFst (isContrSingl (f a))) ⟩
       Σ[ a ∈ A ] g (f a) ≡ c ≃⟨⟩
       fiber (g ∘ f) c ≃∎
+
+isOfHLevelFunId : ∀ {ℓ} (n : HLevels.HLevel) {A : Type ℓ} → HLevels.isOfHLevelFun n (id A)
+isOfHLevelFunId n = isEquiv→isOfHLevelFun n (idIsEquiv _)
+
 
 module _ where
   private

@@ -97,3 +97,15 @@ isOfHLevelFunΣMap : ∀ {ℓB ℓB′} {B : A → Type ℓB} {B′ : A′ → T
   → (∀ a → isOfHLevelFun n (f a))
   → isOfHLevelFun n (Σ-map {B′ = B′} e f)
 isOfHLevelFunΣMap n {e} {f} is-of-hlevel-e is-of-hlevel-f = isOfHLevelFunComp n (Σ-map-fst e) (Σ-map-snd f) (isOfHLevelFunMapFst n e is-of-hlevel-e) (isOfHLevelFunMapSnd n f is-of-hlevel-f)
+
+Π-codomain-embed : ∀ {B B′ : A → Type ℓ} (f : ∀ a → B a ↪ B′ a) → (∀ a → B a) ↪ (∀ a → B′ a)
+Π-codomain-embed f .fst β a = f a .fst (β a)
+Π-codomain-embed {B} {B′} f .snd = hasPropFibers→isEmbedding (λ β′ → isOfHLevelRespectEquiv 1 (fiber-equiv β′) (isPropΠ λ a → isEmbedding→hasPropFibers (f a .snd) (β′ a))) where
+  fiber-equiv : (β′ : ∀ a → B′ a) → (∀ a → fiber (f a .fst) (β′ a)) ≃ fiber {A = (∀ a → B a)} (λ β a → f a .fst (β a)) β′
+  fiber-equiv β′ =
+    (∀ a → Σ[ b ∈ B a ] f a .fst b ≡ β′ a)
+      ≃⟨ Σ-Π-≃ ⟩
+    Σ[ β ∈ (∀ a → B a) ] (∀ a → f a .fst (β a) ≡ β′ a)
+      ≃⟨ Σ-cong-equiv-snd (λ β → funExtEquiv) ⟩
+    Σ[ β ∈ (∀ a → B a) ] (λ a → f a .fst (β a)) ≡ β′
+      ≃∎

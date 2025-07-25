@@ -41,6 +41,15 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (g₀ : ⟨ G ⟩ᵗ) (x₀ : ⟨
   Stab' : hGroup (ℓ-max ℓ ℓX)
   Stab' = Aut (∫ G X) (g₀ , x₀)
 
+  Stab'-fst : ⟨ Stab' ⟩ᵗ → ⟨ G ⟩ᵗ
+  Stab'-fst ((g , _) , _) = g
+
+  Stab'-fst-hom : g₀ ≡ hGroup.pt₀ G → hGroupHom Stab' G
+  Stab'-fst-hom p = mkHGroupHom Stab' G Stab'-fst p
+
+  Stab'-snd : (s : ⟨ Stab' ⟩ᵗ) → ⟨ X (Stab'-fst s) ⟩
+  Stab'-snd ((g , x) , _) = x
+
   StabEmbedding' : ⟨ Stab' ⟩ᵗ ↪ ⟨ ∫ G X ⟩
   StabEmbedding' = AutEmbedding (∫ G X) (g₀ , x₀)
 
@@ -57,10 +66,10 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (g₀ : ⟨ G ⟩ᵗ) (x₀ : ⟨
   StabAction'-alt ((g , x) , _) .fst = Path ⟨ ∫ G X ⟩ (g₀ , x₀) (g , x)
   StabAction'-alt ((g , x) , _) .snd = isOfHLevelPath' 1 (str (∫ G X) _ _)
 
-  -- StabMono' : Mono _ G
-  -- StabMono' .fst = Stab'
-  -- StabMono' .snd .fst = mkHGroupHom Stab' G (fst ∘ fst) {! !}
-  -- StabMono' .snd .snd = {! !}
+  StabMono' : Mono _ (Aut (hGroup.asGroupoid G) g₀)
+  StabMono' .fst = Stab'
+  StabMono' .snd .fst = mkHGroupHom Stab' (Aut (hGroup.asGroupoid G) g₀) (λ (gx , gx-conn) → gx .fst , ST.pathSetTrunc→recProp {! !} (cong (ST.∣_∣₂ ∘ fst)) gx-conn) (AutPath (hGroup.asGroupoid G) g₀ refl)
+  StabMono' .snd .snd = {! !}
 
   isFreeAt' : Type _
   isFreeAt' = isContr ⟨ Stab' ⟩ᵗ
@@ -84,8 +93,20 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (x₀ : ⟨ X (hGroup.pt₀ G) �
   Stab : hGroup (ℓ-max ℓ ℓX)
   Stab = Stab' G X _ x₀
 
+  Stab-fst : ⟨ Stab ⟩ᵗ → ⟨ G ⟩ᵗ
+  Stab-fst = Stab'-fst G X _ x₀
+
+  Stab-fst-hom : hGroupHom Stab G
+  Stab-fst-hom = mkHGroupHom Stab G (λ { ((g , _) , _) → g }) refl
+
+  Stab-snd : (s : ⟨ Stab ⟩ᵗ) → ⟨ X (Stab-fst s) ⟩
+  Stab-snd = Stab'-snd G X _ x₀
+
   StabAction : hAction ℓX Stab
   StabAction = StabAction' G X _ x₀
+
+  inhStabAction : ∀ g → ⟨ StabAction g ⟩
+  inhStabAction = Stab-snd
 
   StabAction-alt : hAction (ℓ-max ℓ ℓX) Stab
   StabAction-alt = StabAction'-alt G X _ x₀
@@ -112,18 +133,21 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (x₀ : ⟨ X (hGroup.pt₀ G) �
       goal : isSet (fiber π-∫ g)
       goal = isOfHLevelRespectEquiv 2 (invEquiv fiber-equiv) (str (X g))
 
+  stabFstMono : Σ[ ι ∈ hGroupHom Stab G ] isMono Stab G ι
+  stabFstMono .fst = Stab-fst-hom
+  stabFstMono .snd = isOfHLevelFunComp 2 π-∫ π-aut is-trunc-π-∫ is-trunc-π-aut
+
   StabMono : Mono _ G
   StabMono .fst = Stab
-  StabMono .snd .fst = mkHGroupHom Stab G (π-∫ ∘ π-aut) refl
-  StabMono .snd .snd = isOfHLevelFunComp 2 π-∫ π-aut is-trunc-π-∫ is-trunc-π-aut
+  StabMono .snd = stabFstMono
 
-  StabActionEmbedding : (gx : ⟨ Stab ⟩ᵗ) → ⟨ StabAction gx ⟩ ↪ ⟨ X (π-∫ (π-aut gx)) ⟩
+  StabActionEmbedding : (gx : ⟨ Stab ⟩ᵗ) → ⟨ StabAction gx ⟩ ↪ ⟨ X (Stab-fst gx) ⟩
   StabActionEmbedding _ = id↪ _
 
-  StabActionEmbedding-fun : (gx : ⟨ Stab ⟩ᵗ) → ⟨ StabAction-alt gx ⟩ → ⟨ X (π-∫ (π-aut gx)) ⟩
+  StabActionEmbedding-fun : (gx : ⟨ Stab ⟩ᵗ) → ⟨ StabAction-alt gx ⟩ → ⟨ X (Stab-fst gx) ⟩
   StabActionEmbedding-fun ((g , x) , _) p = subst (λ - → ⟨ X - ⟩) (cong fst p) x₀
 
-  StabActionEmbedding-alt : (gx : ⟨ Stab ⟩ᵗ) → ⟨ StabAction-alt gx ⟩ ↪ ⟨ X (π-∫ (π-aut gx)) ⟩
+  StabActionEmbedding-alt : (gx : ⟨ Stab ⟩ᵗ) → ⟨ StabAction-alt gx ⟩ ↪ ⟨ X (Stab-fst gx) ⟩
   StabActionEmbedding-alt gx .fst = StabActionEmbedding-fun gx
   StabActionEmbedding-alt gx@((g , x) , gx-conn) .snd = hasPropFibers→isEmbedding {! !} where
     fiber-equiv : ∀ (y : ⟨ X g ⟩) → fiber (StabActionEmbedding-fun gx) y ≃ {! !}
@@ -185,13 +209,40 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) {g₀ : ⟨ G ⟩ᵗ} (P₀ : ℙ
   StabℙAction' : hAction _ Stabℙ'
   StabℙAction' = StabAction' G (ℙ* G X) g₀ P₀
 
+  StabℙAction-alt' : hAction _ Stabℙ'
+  StabℙAction-alt' ((g , P) , _) .fst = Σ[ x ∈ ⟨ X g ⟩ ] ⟨ P x ⟩
+  StabℙAction-alt' ((g , P) , _) .snd = isSetΣSndProp (str (X g)) (str ∘ P)
+
+  module _ (p : g₀ ≡ hGroup.pt₀ G) where
+    StabℙMono' : Mono (ℓ-max ℓ (ℓ-suc ℓX)) G
+    StabℙMono' .fst = Stabℙ'
+    StabℙMono' .snd .fst = Stab'-fst-hom G (ℙ* G X) g₀ P₀ p
+    StabℙMono' .snd .snd = {! !}
+
+    StabℙSubaction-canon' : Subaction (ℓ-max ℓ (ℓ-suc ℓX)) ℓX G X
+    StabℙSubaction-canon' .fst = StabℙMono'
+    StabℙSubaction-canon' .snd .fst = StabℙAction-alt'
+    StabℙSubaction-canon' .snd .snd ((g , p?), _)= EmbeddingΣProp λ x → str (p? x)
+
 module _ (G : hGroup ℓ) (X : hAction ℓX G) (P₀ : ℙ ⟨ X (hGroup.pt₀ G) ⟩) where
   Stabℙ : hGroup (ℓ-max ℓ (ℓ-suc ℓX))
   Stabℙ = Stabℙ' G X P₀
 
+  Stabℙ-fst : ⟨ Stabℙ ⟩ᵗ → ⟨ G ⟩ᵗ
+  Stabℙ-fst = Stab-fst G (ℙ* G X) P₀
+
+  Stabℙ-snd : (p : ⟨ Stabℙ ⟩ᵗ) → ℙ ⟨ X (Stabℙ-fst p) ⟩
+  Stabℙ-snd = Stab-snd G (ℙ* G X) P₀
+
   -- TODO: Is this the right way to define the canical action on the subsets of X?
   StabℙAction : hAction _ Stabℙ
   StabℙAction = StabℙAction' G X P₀
+
+  _ : ⟨ StabℙAction (hGroup.pt₀ Stabℙ) ⟩ ≡ ℙ ⟨ X (hGroup.pt₀ G) ⟩
+  _ = refl
+
+  inhStabℙAction : ∀ g → ⟨ StabℙAction g ⟩
+  inhStabℙAction = Stabℙ-snd
 
   StabℙAction-alt : hAction _ Stabℙ
   StabℙAction-alt ((g , P) , _) .fst = Σ[ x ∈ ⟨ X g ⟩ ] ⟨ P x ⟩
@@ -218,6 +269,11 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (P₀ : ℙ ⟨ X (hGroup.pt₀ G
     embedding gx .fst = ι gx
     embedding gx@((g , P) , gP-conn) .snd = injEmbedding isSetℙ λ where
       {(x₀ , p₀)} {(x₁ , p₁)} htpy → Σ≡Prop (str ∘ P) $ the (x₀ ≡ x₁) $ transport (sym $ cong fst (htpy ≡$ x₁)) $ refl′ x₁
+
+  StabℙSubaction-canon : Subaction (ℓ-max ℓ (ℓ-suc ℓX)) ℓX G X
+  StabℙSubaction-canon .fst = StabℙMono
+  StabℙSubaction-canon .snd .fst = StabℙAction-alt
+  StabℙSubaction-canon .snd .snd ((g , P) , _) = EmbeddingΣProp {A = ⟨ X g ⟩} λ x → str (P x)
 
   {-
   StabℙAllEquiv' : (∀ x → ⟨ P₀ x ⟩) → hGroupEquiv Stabℙ G

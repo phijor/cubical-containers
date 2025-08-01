@@ -290,7 +290,7 @@ A ⋉* B = A ⋉ˢ B' where module _ (a : ⟨ A ⟩) where
   B∙ .snd = pt {! !}
 
   B' : hGroup _
-  B' = Aut∙ B∙ is-groupoid
+  B' = {! Aut∙ B∙ is-groupoid !}
 
 Autˢ : (A : hGroupoid ℓA) (pt : ∥ ⟨ A ⟩ ∥₂ → ⟨ A ⟩) → StrictGroupoid ℓA
 Autˢ A pt .fst = Σ[ a ∈ ⟨ A ⟩ ] ∥ pt ∣ a ∣₂ ≡ a ∥₁
@@ -339,7 +339,7 @@ module _ {ℓG ℓH ℓX}
       f₀ g x = H.pt g x (is-conn-H g x .fst)
 
       ΠH : ⟨ G ⟩ → hGroup _
-      ΠH g = Aut X[ g ]→H (f₀ g)
+      ΠH g = {! Aut X[ g ]→H (f₀ g) !}
 
     Wrˢ : StrictGroupoid _
     Wrˢ = G ⋉ˢ ΠH
@@ -402,31 +402,6 @@ module Test {ℓG ℓH ℓX}
 
       is-contr-pres-strict : isContr (∣ f ∣₂ ≡ ∣ H.pt-at g ∣₂)
       is-contr-pres-strict = inhProp→isContr lemma (ST.isSetSetTrunc _ _)
-
-module Wrᴰ {ℓ}
-  (G : StrictGroupoid ℓ)
-  (H : ⟨ G ⟩ → StrictGroupoid ℓ)
-  where
-  private module G = StrictGroupoidStr (str G)
-
-  private
-    module H g = StrictGroupoidStr (str (H g))
-
-    Huh : (g : ⟨ G ⟩) → ⟨ H g ⟩ → Type ℓ
-    Huh g h = {! !}
-
-    is-prop-Huh : ∀ g (h : ⟨ H g ⟩) → isProp (Huh g h)
-    is-prop-Huh = {! !}
-
-    K : ⟨ G ⟩ → hGroup ℓ
-    K g = {! !} ⋉ {! !}
-
-  Wrᴰ : StrictGroupoid _
-  Wrᴰ = G ⋉ˢ K
-  -- Wrᴰ .fst = Σ[ g ∈ ⟨ G ⟩ ] Σ[ h ∈ ⟨ H g ⟩ ] Huh g h
-  -- Wrᴰ .snd .StrictGroupoidStr.is-groupoid = isGroupoidΣ G.is-groupoid $ λ g → isGroupoidΣ (H.is-groupoid g) (λ h → isProp→isOfHLevelSuc 2 $ is-prop-Huh g h)
-  -- Wrᴰ .snd .StrictGroupoidStr.pt = {! !}
-  -- Wrᴰ .snd .StrictGroupoidStr.pt-section = {! !}
 
 {-
 StrictGroupoidStrΠ : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}

@@ -82,7 +82,7 @@ module _ {ℓ} (G H : StrictGroupoid ℓ) where
       is-groupoid≡ i = isProp→PathP (λ i → isPropIsGroupoid {A = p i}) G.is-groupoid H.is-groupoid i
 
       str-path : PathP (λ i → StrictGroupoidStr (p i)) (str G) (str H)
-      str-path i = inhFibTrunc→StrictStr (is-groupoid≡ i) inh-fib where
+      str-path i = {! inhFibTrunc→StrictStr (is-groupoid≡ i) inh-fib !} where
         inh-fib : (x : ∥ p i ∥₂) → fiber ST.∣_∣₂ x
         -- inh-fib = ST.elim {! !} λ (x : p i) → ? -- ua-gluePath σ* {x = {! ua-ungluePath σ* !}} {! !} i , {! !}
         inh-fib x .fst = ua-glue σ* i g h where

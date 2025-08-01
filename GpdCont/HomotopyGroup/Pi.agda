@@ -1,7 +1,9 @@
 {-# OPTIONS --lossy-unification #-}
+
 module GpdCont.HomotopyGroup.Pi where
 
 open import GpdCont.Prelude
+open import GpdCont.Connectivity
 open import GpdCont.HomotopySet
 open import GpdCont.HomotopyGroup.Base
 open import GpdCont.HomotopyGroup.Aut
@@ -21,7 +23,7 @@ open import Cubical.Functions.Embedding
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
-import      Cubical.HITs.PropositionalTruncation as PT
+open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
 
 private
   variable
@@ -56,8 +58,10 @@ module _ {ℓK ℓ} (K : Type ℓK) (G : K → hGroup ℓ) where
 
     Π-equiv : ⟨ ΠGroup ⟩ᵗ ≃ ⟨ G k₀ ⟩ᵗ
     Π-equiv =
-      Σ[ γ ∈ (∀ k → ⟨ G k ⟩ᵗ) ] _ ≃⟨ invEquiv $ Σ-cong-equiv-fst $ invEquiv (Π-contractDom is-contr-K) ⟩
-      Σ[ g ∈ ⟨ G k₀ ⟩ᵗ ] ∣ (λ k → transport (λ i → ⟨ G (contr k i) ⟩ᵗ) g) ∣₂ ≡ ∣ G.pt₀ ∣₂ ≃⟨ Σ-contractSnd (λ g → isOfHLevelPath 0 is-conn-[K,G] _ _) ⟩
+      Σ[ γ ∈ (∀ k → ⟨ G k ⟩ᵗ) ] _
+        ≃⟨ invEquiv $ Σ-cong-equiv-fst $ invEquiv (Π-contractDom is-contr-K) ⟩
+      Σ[ g ∈ ⟨ G k₀ ⟩ᵗ ] ∥ (λ k → transport (λ i → ⟨ G (contr k i) ⟩ᵗ) g) ≡ G.pt₀ ∥₁
+        ≃⟨ Σ-contractSnd (λ g → inhProp→isContr (isPathConnected→merePath is-conn-[K,G] _ _) PT.isPropPropTrunc) ⟩
       ⟨ G k₀ ⟩ᵗ ≃∎
 
   ΠPath : {γ₀ γ₁ : ⟨ ΠGroup ⟩ᵗ} → ((k : K) → γ₀ .fst k ≡ γ₁ .fst k) → γ₀ ≡ γ₁
@@ -82,17 +86,17 @@ module Curry {ℓK ℓL} {K : Type ℓK} {L : K → Type ℓL} (G : (k : K) → 
     where
       curryᴳ : ⟨ ΠGroup (Σ K L) (uncurry G) ⟩ᵗ → ⟨ ΠGroup K (λ k → ΠGroup (L k) (G k)) ⟩ᵗ
       curryᴳ (γ , γ-conn) .fst k .fst = curry γ k
-      curryᴳ (γ , γ-conn) .fst k .snd = ST.merePath→pathSetTrunc do
-        γ≡pt₀ ← ST.pathSetTrunc→merePath γ-conn
+      curryᴳ (γ , γ-conn) .fst k .snd = do
+        γ≡pt₀ ← γ-conn
         return $ funExt λ l → γ≡pt₀ ≡$ (k , l)
-      curryᴳ (γ , γ-conn) .snd = ST.merePath→pathSetTrunc do
-        γ≡pt₀ ← ST.pathSetTrunc→merePath γ-conn
+      curryᴳ (γ , γ-conn) .snd = do
+        γ≡pt₀ ← γ-conn
         return $ funExt λ k → ΠPath (L k) (G k) λ l → γ≡pt₀ ≡$ (k , l)
 
       uncurryᴳ : ⟨ ΠGroup K (λ k → ΠGroup (L k) (G k)) ⟩ᵗ → ⟨ ΠGroup (Σ K L) (uncurry G) ⟩ᵗ
       uncurryᴳ (γ , γ-conn) .fst = uncurry λ k → γ k .fst
-      uncurryᴳ (γ , γ-conn) .snd = ST.merePath→pathSetTrunc do
-        γ≡pt₀ ← ST.pathSetTrunc→merePath γ-conn
+      uncurryᴳ (γ , γ-conn) .snd = do
+        γ≡pt₀ ← γ-conn
         return λ where
           i (k , l) → γ≡pt₀ i k .fst l
 
@@ -143,13 +147,13 @@ module _ {ℓ} (K : Type ℓ) (G : K → hGroup ℓ) (H : hGroup ℓ) where
     fun : (h : ⟨ H ⟩ᵗ) (k : K) → ⟨ G k ⟩ᵗ
     fun h k = ψ.fun k h
 
-    fun-conn : ∀ h → ∣ (λ k → ψ.fun k h) ∣₂ ≡ ∣ G.pt₀ ∣₂
-    fun-conn = H.elimProp (λ h → ST.isSetSetTrunc _ _) $ cong ∣_∣₂ $ funExt ψ.pres-pt₀
+    fun-conn : ∀ h → ∥ (λ k → ψ.fun k h) ≡ G.pt₀ ∥₁
+    fun-conn = H.elimProp (λ h → PT.isPropPropTrunc) PT.∣ funExt ψ.pres-pt₀ ∣₁
 
     goal : hGroupHom H (ΠGroup K G)
-    goal = mkHGroupHom
-      (λ h → fun h , fun-conn h)
-      (Σ≡Prop (λ _ → ST.isSetSetTrunc _ _) $ funExt ψ.pres-pt₀)
+    goal .hGroupHom.fun h .fst = fun h
+    goal .hGroupHom.fun h .snd = fun-conn h
+    goal .hGroupHom.pres-pt₀ = ΠPath _ _ ψ.pres-pt₀
 
   Π-universal-fiber : (ψ : ∀ k → hGroupHom H (G k)) → fiber Π-universal ψ ≃ {! !}
   Π-universal-fiber ψ =
@@ -161,7 +165,7 @@ module _ {ℓ} (K : Type ℓ) (G : K → hGroup ℓ) (H : hGroup ℓ) where
   isProductΠGroup = isoToIsEquiv λ where
     .Iso.fun → Π-universal
     .Iso.inv → Π-universal⁻
-    .Iso.leftInv φ → hGroupHom≡ H (ΠGroup K G) (funExt λ h → Σ≡Prop {! !} refl) {! !}
+    .Iso.leftInv φ → hGroupHom≡ H (ΠGroup K G) (funExt λ h → Σ≡Prop (λ _ → PT.isPropPropTrunc) refl) {! !}
     .Iso.rightInv → {! !}
 
 -- private
@@ -187,12 +191,7 @@ module _ {ℓ′} (K : Type ℓK) (H : K → hGroup ℓ) (sub : ∀ k → Mono �
     module ι k = hGroupMono (ι k)
 
     ι* : hGroupHom (ΠGroup K G) (ΠGroup K H)
-    ι* = mkHGroupHom
-      (λ { (γ , γ-conn) → (λ k → ι.fun k (γ k)) , ST.merePath→pathSetTrunc (PT.rec PT.isPropPropTrunc (λ p → do
-          return $ funExt λ k → cong (ι.fun _) (p ≡$ k) ∙ ι.pres-pt₀ k
-        )
-        (ST.pathSetTrunc→merePath γ-conn)) })
-      (Σ≡Prop (λ _ → ST.isSetSetTrunc _ _) $ funExt ι.pres-pt₀)
+    ι* = aut-map _ _ (λ γ k → ι.fun k (γ k)) $ funExt ι.pres-pt₀
 
   ΠMono : Mono _ (ΠGroup K H)
   ΠMono .fst = ΠGroup K G
@@ -201,21 +200,21 @@ module _ {ℓ′} (K : Type ℓK) (H : K → hGroup ℓ) (sub : ∀ k → Mono �
     -- The fibers of ι* can be expressed as a subtype of the (product of) fibers of ι:
     fiber-equiv : _ ≃ (fiber (ι* .fun) η)
     fiber-equiv =
-      Σ[ γ* ∈ (∀ k → fiber (ι.fun k) (η .fst k)) ] ∣ (λ k → γ* k .fst) ∣₂ ≡ ∣ G.pt₀ ∣₂
+      Σ[ γ* ∈ (∀ k → fiber (ι.fun k) (η .fst k)) ] ∥ (λ k → γ* k .fst) ≡ G.pt₀ ∥₁
         ≃⟨⟩
-      Σ[ γ* ∈ (∀ k → Σ[ g ∈ ⟨ G k ⟩ᵗ ] ι.fun k g ≡ η .fst k) ] ∣ (λ k → γ* k .fst) ∣₂ ≡ ∣ G.pt₀ ∣₂
+      Σ[ γ* ∈ (∀ k → Σ[ g ∈ ⟨ G k ⟩ᵗ ] ι.fun k g ≡ η .fst k) ] ∥ (λ k → γ* k .fst) ≡ G.pt₀ ∥₁
         ≃⟨ Σ-cong-equiv-fst Σ-Π-≃ ⟩
-      Σ[ (γ , _) ∈ Σ[ γ ∈ ((k : K) → ⟨ G k ⟩ᵗ) ] (∀ k → ι.fun k (γ k) ≡ η .fst k) ] ∣ γ ∣₂ ≡ ∣ G.pt₀ ∣₂
+      Σ[ (γ , _) ∈ Σ[ γ ∈ ((k : K) → ⟨ G k ⟩ᵗ) ] (∀ k → ι.fun k (γ k) ≡ η .fst k) ] ∥ γ ≡ G.pt₀ ∥₁
         ≃⟨ Σ-cong-equiv-fst (Σ-cong-equiv-snd λ γ → funExtEquiv) ⟩
-      Σ[ (γ , _) ∈ Σ[ γ ∈ ((k : K) → ⟨ G k ⟩ᵗ) ] (λ k → ι.fun k (γ k)) ≡ η .fst ] ∣ γ ∣₂ ≡ ∣ G.pt₀ ∣₂
+      Σ[ (γ , _) ∈ Σ[ γ ∈ ((k : K) → ⟨ G k ⟩ᵗ) ] (λ k → ι.fun k (γ k)) ≡ η .fst ] ∥ γ ≡ G.pt₀ ∥₁
         ≃⟨ strictEquiv (λ { ((γ , p) , c) → ((γ , c) , p) }) (λ { ((γ , c) , p) → ((γ , p) , c) }) ⟩
       Σ[ (γ , _) ∈ ⟨ ΠGroup K G ⟩ᵗ ] (λ k → ι.fun k (γ k)) ≡ η .fst
-        ≃⟨ Σ-cong-equiv-snd (λ { (γ , _) → Σ≡PropEquiv (λ η → ST.isSetSetTrunc _ _) }) ⟩
+        ≃⟨ Σ-cong-equiv-snd (λ { (γ , _) → Σ≡PropEquiv (λ η → PT.isPropPropTrunc) }) ⟩
       Σ[ γ ∈ ⟨ ΠGroup K G ⟩ᵗ ] (ι* .fun γ) ≡ η ≃∎
 
     goal : isSet (fiber (ι* .fun) η)
     goal = isOfHLevelRespectEquiv 2 fiber-equiv $
-      isSetΣSndProp (isSetΠ (λ k → ι.is-mono k (η .fst k))) λ γ → ST.isSetSetTrunc _ _
+      isSetΣSndProp (isSetΠ (λ k → ι.is-mono k (η .fst k))) λ γ → PT.isPropPropTrunc
 
 
   ΠSubactionᴰ : ∀ {ℓX ℓY} (is-set-K : isSet K)

@@ -70,7 +70,7 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (g₀ : ⟨ G ⟩ᵗ) (x₀ : ⟨
   StabMono' : Mono _ (Aut (hGroup.asGroupoid G) g₀)
   StabMono' .fst = Stab'
   StabMono' .snd .hGroupMono.hom .hGroupHom.fun (gx , gx-conn) .fst = gx .fst
-  StabMono' .snd .hGroupMono.hom .hGroupHom.fun (gx , gx-conn) .snd = ST.pathSetTrunc→recProp (ST.isSetSetTrunc _ _) (cong (ST.∣_∣₂ ∘ fst)) gx-conn
+  StabMono' .snd .hGroupMono.hom .hGroupHom.fun (gx , gx-conn) .snd = PT.map (cong fst) gx-conn
   StabMono' .snd .hGroupMono.hom .hGroupHom.pres-pt₀ = AutPath (hGroup.asGroupoid G) g₀ refl
   StabMono' .snd .hGroupMono.is-mono = {! !}
 
@@ -82,8 +82,8 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (g₀ : ⟨ G ⟩ᵗ) (x₀ : ⟨
 
   isFreeAt'→isContrLoop-∫ : isFreeAt' → isContr (Path ⟨ ∫ G X ⟩ (_ , x₀) (_ , x₀))
   isFreeAt'→isContrLoop-∫ is-free-at = isOfHLevelRespectEquiv 0
-    (StabPathEquiv' (_ , refl) (_ , refl))
-    (isContr→isContrPath is-free-at _ _)
+    (StabPathEquiv' _ _)
+    (isContr→isContrPath is-free-at (hGroup.pt₀ Stab') (hGroup.pt₀ Stab'))
 
 StabCongEquiv' : (G : hGroup ℓ) (X : hAction ℓX G) (g₀ : ⟨ G ⟩ᵗ) {x₀ x₁ : ⟨ X g₀ ⟩}
   → x₀ ≡ x₁
@@ -323,24 +323,20 @@ StabℙAllEquiv G X = equiv where
   mk-stab : ⟨ G ⟩ᵗ → ⟨ Stabℙ G X (const ⊤) ⟩ᵗ
   mk-stab g .fst .fst = g
   mk-stab g .fst .snd = const ⊤
-  mk-stab g .snd = ST.merePath→pathSetTrunc merely-const where
-    merely-const : PT.∥ (g , const ⊤) ≡ (G.pt₀ , const ⊤) ∥₁
-    merely-const = do
+  mk-stab g .snd = do
       pt₀≡g ← G.mere-path g
       return $ ΣPathP $ sym pt₀≡g , λ i x → ⊤
 
   ty-iso : Iso ⟨ Stabℙ G X (const ⊤) ⟩ᵗ ⟨ G ⟩ᵗ
   ty-iso .Iso.fun ((g , _) , _) = g
-  ty-iso .Iso.inv g .fst .fst = g
-  ty-iso .Iso.inv g .fst .snd = const ⊤
-  ty-iso .Iso.inv g .snd = ST.merePath→pathSetTrunc (PT.map (λ p → ΣPathP (sym p , λ i x → ⊤)) $ G.mere-path g)
+  ty-iso .Iso.inv = mk-stab
   ty-iso .Iso.rightInv _ = refl
-  ty-iso .Iso.leftInv ((g , P) , ∣gP≡g₀⊤∣) = AutPath (∫ G (ℙ* G X)) (G.pt₀ , const ⊤) $ ΣPathP (λ where
-    .fst → refl
-    .snd → funExt λ x → ST.pathSetTrunc→recProp (isSetHProp ⊤ (P x)) (lemma x) ∣gP≡g₀⊤∣)
-    where
-      lemma : ∀ x → (p : Path ⟨ ∫ G (ℙ* G X) ⟩ (g , P) (G.pt₀ , const ⊤)) → ⊤ ≡ P x
-      lemma x p = funExtNonDep⁻ (cong snd (sym p)) $ symP (subst-filler (λ - → ⟨ X - ⟩) (cong fst p) x)
+  ty-iso .Iso.leftInv ((g , P) , ∣gP≡g₀⊤∣) = AutPath (∫ G (ℙ* G X)) (G.pt₀ , const ⊤) $ ΣPathP λ where
+    .fst → refl′ g
+    .snd → funExt λ x → PT.rec (isSetHProp ⊤ (P x)) (lemma x) ∣gP≡g₀⊤∣
+      where
+        lemma : ∀ x → (p : Path ⟨ ∫ G (ℙ* G X) ⟩ (g , P) (G.pt₀ , const ⊤)) → ⊤ ≡ P x
+        lemma x p = funExtNonDep⁻ (cong snd (sym p)) $ symP (subst-filler (λ - → ⟨ X - ⟩) (cong fst p) x)
 
   equiv : hGroupEquiv (Stabℙ G X (λ _ → ⊤)) G
   equiv = mkHGroupEquiv (Stabℙ' G X (λ _ → ⊤)) G (isoToEquiv ty-iso) refl

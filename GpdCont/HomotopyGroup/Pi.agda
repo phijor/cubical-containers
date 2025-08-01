@@ -1,7 +1,7 @@
+{-# OPTIONS --lossy-unification #-}
 module GpdCont.HomotopyGroup.Pi where
 
 open import GpdCont.Prelude
-open import GpdCont.HomotopySet
 open import GpdCont.HomotopySet
 open import GpdCont.HomotopyGroup.Base
 open import GpdCont.HomotopyGroup.Aut
@@ -11,13 +11,10 @@ open import GpdCont.HomotopyGroup.Equiv
 open import GpdCont.HomotopyGroup.Action
 open import GpdCont.HomotopyGroup.Subaction
 
-open import GpdCont.StrictGroupoid.Base
-open import GpdCont.StrictGroupoid.Morphism
 import      GpdCont.SetTruncation as ST
 open import GpdCont.PropositionalTruncation using (_>>=_ ; return)
 
 open import Cubical.Foundations.Equiv
-open import Cubical.Foundations.Equiv.Properties using (congEquiv)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Functions.Embedding
@@ -30,23 +27,21 @@ private
   variable
     ℓ ℓK ℓX : Level
 
-private module impl {ℓK} (K : Type ℓK) (G : K → hGroup ℓ) where
-  module G k = hGroup (G k)
-
-  ⟨Π⟩ : hGroupoid _
-  ⟨Π⟩ .fst = ∀ k → ⟨ G k ⟩ᵗ
-  ⟨Π⟩ .snd = isGroupoidΠ G.is-groupoid
-  {-# INLINE ⟨Π⟩ #-}
-
-  Πpt : ∀ k → ⟨ G k ⟩ᵗ
-  Πpt = G.pt₀
-  {-# INLINE Πpt #-}
-
-module _ {ℓK} (K : Type ℓK) (G : K → hGroup ℓ) where
-  open impl K G
+module _ {ℓK ℓ} (K : Type ℓK) (G : K → hGroup ℓ) where
+  private module G k = hGroup (G k)
 
   ΠGroup : hGroup (ℓ-max ℓ ℓK)
-  ΠGroup = Aut ⟨Π⟩ Πpt
+  ΠGroup = Aut ⟨Π⟩ Πpt module ΠGroup where
+    ⟨Π⟩ : hGroupoid _
+    ⟨Π⟩ .fst = ∀ k → ⟨ G k ⟩ᵗ
+    ⟨Π⟩ .snd = isGroupoidΠ G.is-groupoid
+    {-# INLINE ⟨Π⟩ #-}
+
+    Πpt : ∀ k → ⟨ G k ⟩ᵗ
+    Πpt = G.pt₀
+    {-# INLINE Πpt #-}
+
+  open ΠGroup
 
   ΠGroupEmbedding : ⟨ ΠGroup ⟩ᵗ ↪ ((k : K) → ⟨ G k ⟩ᵗ)
   ΠGroupEmbedding = AutEmbedding ⟨Π⟩ Πpt
@@ -71,13 +66,10 @@ module _ {ℓK} (K : Type ℓK) (G : K → hGroup ℓ) where
 module _ {ℓG ℓH ℓK} {K : Type ℓK} (G : K → hGroup ℓG) (H : K → hGroup ℓH) (α : ∀ k → hGroupEquiv (G k) (H k)) where
   private
     module G k = hGroup (G k)
-    module α k = hGroupEquiv (G k) (H k) (α k)
-
-    open impl K G using () renaming (⟨Π⟩ to ΠG)
-    open impl K H using () renaming (⟨Π⟩ to ΠK)
+    module α k = hGroupEquiv (α k)
 
   ΠGroupEquivCodomain : hGroupEquiv (ΠGroup K G) (ΠGroup K H)
-  ΠGroupEquivCodomain = AutEquiv ΠG ΠK (equivΠCod α.equiv) (funExt α.pres-pt₀)
+  ΠGroupEquivCodomain = AutEquiv (ΠGroup.⟨Π⟩ K G) {ΠGroup.Πpt K G} (ΠGroup.⟨Π⟩ K H) {ΠGroup.Πpt K H} (equivΠCod α.equiv) (funExt α.pres-pt₀)
 
 module Curry {ℓK ℓL} {K : Type ℓK} {L : K → Type ℓL} (G : (k : K) → L k → hGroup ℓ) where
   private
@@ -133,20 +125,8 @@ module _ {ℓK} (K : Type ℓK) (G : hGroup ℓ) where
   FunGroupContractDomain is-contr-K = ΠGroupContractDomain K (const G) is-contr-K
 
 proj : ∀ {K : Type ℓK} (G : K → hGroup ℓ) → ∀ k → hGroupHom (ΠGroup K G) (G k)
-proj _ k .fst (f , f-strict) = f k
-proj {K} G k .snd = funExt (ST.elim (λ _ → G.is-groupoid k _ _) $ uncurry is-strict-π) where
-  module G k = hGroup (G k)
-  open import Cubical.HITs.PropositionalTruncation.Monad
-
-  abstract
-    is-strict-π' : (f : (k : K) → ⟨ G k .fst ⟩) → f ≡ G.pt₀ → ∣ f k ∣₂ ≡ G.center k
-    is-strict-π' f f≡pt =
-      ∣ f k ∣₂ ≡[ i ]⟨ ∣ f≡pt i k ∣₂ ⟩
-      ∣ G.pt k (G.center k) ∣₂ ≡⟨ G.pt-section k (G.center k) ⟩
-      G.center k ∎
-
-  is-strict-π : (f : (k : K) → ⟨ G k .fst ⟩) → (f-strict : ∣ f ∣₂ ≡ ∣ G.pt₀ ∣₂) → G.pt k ∣ f k ∣₂ ≡ G.pt₀ k
-  is-strict-π f f-strict = cong (G.pt k) $ ST.pathSetTrunc→recProp (ST.isSetSetTrunc _ _) (is-strict-π' f) f-strict
+proj _ k .hGroupHom.fun (γ , _) = γ k
+proj _ k .hGroupHom.pres-pt₀ = refl
 
 module _ {ℓ} (K : Type ℓ) (G : K → hGroup ℓ) (H : hGroup ℓ) where
   private
@@ -154,13 +134,11 @@ module _ {ℓ} (K : Type ℓ) (G : K → hGroup ℓ) (H : hGroup ℓ) where
     module G k = hGroup (G k)
 
   Π-universal : hGroupHom H (ΠGroup K G) → (k : K) → hGroupHom H (G k)
-  Π-universal φ k = compStrict (H .fst) (ΠGroup K G .fst) (G k .fst)
-    φ
-    (proj G k)
+  Π-universal φ k = φ ∙ᴳ proj G k
 
   Π-universal⁻ : ((k : K) → hGroupHom H (G k)) → hGroupHom H (ΠGroup K G)
   Π-universal⁻ ψ = goal where
-    module ψ k = hGroupHom H (G k) (ψ k)
+    module ψ k = hGroupHom (ψ k)
 
     fun : (h : ⟨ H ⟩ᵗ) (k : K) → ⟨ G k ⟩ᵗ
     fun h k = ψ.fun k h
@@ -169,7 +147,7 @@ module _ {ℓ} (K : Type ℓ) (G : K → hGroup ℓ) (H : hGroup ℓ) where
     fun-conn = H.elimProp (λ h → ST.isSetSetTrunc _ _) $ cong ∣_∣₂ $ funExt ψ.pres-pt₀
 
     goal : hGroupHom H (ΠGroup K G)
-    goal = mkHGroupHom H (ΠGroup K G)
+    goal = mkHGroupHom
       (λ h → fun h , fun-conn h)
       (Σ≡Prop (λ _ → ST.isSetSetTrunc _ _) $ funExt ψ.pres-pt₀)
 
@@ -186,9 +164,9 @@ module _ {ℓ} (K : Type ℓ) (G : K → hGroup ℓ) (H : hGroup ℓ) where
     .Iso.leftInv φ → hGroupHom≡ H (ΠGroup K G) (funExt λ h → Σ≡Prop {! !} refl) {! !}
     .Iso.rightInv → {! !}
 
-private
-  test : (K : Type ℓ) (G : K → hGroup ℓ) → ⟨ ΠGroup K G .fst ⟩ ≡ Σ ((k : K) → fst (G k .fst)) (λ x → ∣ x ∣₂ ≡ ∣ (λ k → StrictGroupoidStr.pt (snd (G k .fst)) (G k .snd .fst)) ∣₂)
-  test K G = refl
+-- private
+--   test : (K : Type ℓ) (G : K → hGroup ℓ) → ⟨ ΠGroup K G .fst ⟩ ≡ Σ ((k : K) → fst (G k .fst)) (λ x → ∣ x ∣₂ ≡ ∣ (λ k → StrictGroupoidStr.pt (snd (G k .fst)) (G k .snd .fst)) ∣₂)
+--   test K G = refl
 
 ΠActionΣ : (K : hSet ℓK) (G : ⟨ K ⟩ → hGroup ℓ) (X : (k : ⟨ K ⟩) → hAction ℓX (G k)) → hAction (ℓ-max ℓK ℓX) (ΠGroup ⟨ K ⟩ G)
 ΠActionΣ K G X (f , _) = ΣSet K λ k → X k (f k)
@@ -197,51 +175,52 @@ private
 ΠActionΠ {K} G X (f , _) = ΠSet (λ (k : K) → X k (f k))
 
 module _ {ℓ′} (K : Type ℓK) (H : K → hGroup ℓ) (sub : ∀ k → Mono ℓ′ (H k)) where
+  open hGroupHom
   private
     G : K → hGroup _
     G = λ k → sub k .fst
 
-    ι : ∀ k → Σ[ ι ∈ hGroupHom (G k) (H k) ] isMono (G k) (H k) ι
+    ι : ∀ k → hGroupMono (G k) (H k)
     ι k = sub k .snd
 
     module G k = hGroup (G k)
-    module ι k = hGroupHom (G k) (H k) (ι k .fst)
+    module ι k = hGroupMono (ι k)
 
     ι* : hGroupHom (ΠGroup K G) (ΠGroup K H)
-    ι* = mkHGroupHom (ΠGroup K G) (ΠGroup K H)
-      (λ { (γ , γ-conn) → (λ k → ι k .fst .fst (γ k)) , ST.merePath→pathSetTrunc (PT.rec PT.isPropPropTrunc (λ p → do
+    ι* = mkHGroupHom
+      (λ { (γ , γ-conn) → (λ k → ι.fun k (γ k)) , ST.merePath→pathSetTrunc (PT.rec PT.isPropPropTrunc (λ p → do
           return $ funExt λ k → cong (ι.fun _) (p ≡$ k) ∙ ι.pres-pt₀ k
         )
         (ST.pathSetTrunc→merePath γ-conn)) })
       (Σ≡Prop (λ _ → ST.isSetSetTrunc _ _) $ funExt ι.pres-pt₀)
 
-  ΠMono : Mono (ℓ-max ℓK ℓ′) (ΠGroup K H)
+  ΠMono : Mono _ (ΠGroup K H)
   ΠMono .fst = ΠGroup K G
-  ΠMono .snd .fst = ι*
-  ΠMono .snd .snd η = goal where
+  ΠMono .snd .hGroupMono.hom = ι*
+  ΠMono .snd .hGroupMono.is-mono η = goal where
     -- The fibers of ι* can be expressed as a subtype of the (product of) fibers of ι:
-    fiber-equiv : _ ≃ (fiber (ι* .fst) η)
+    fiber-equiv : _ ≃ (fiber (ι* .fun) η)
     fiber-equiv =
-      Σ[ γ* ∈ (∀ k → fiber (ι k .fst .fst) (η .fst k)) ] ∣ (λ k → γ* k .fst) ∣₂ ≡ ∣ G.pt₀ ∣₂
+      Σ[ γ* ∈ (∀ k → fiber (ι.fun k) (η .fst k)) ] ∣ (λ k → γ* k .fst) ∣₂ ≡ ∣ G.pt₀ ∣₂
         ≃⟨⟩
-      Σ[ γ* ∈ (∀ k → Σ[ g ∈ ⟨ G k ⟩ᵗ ] ι k .fst .fst g ≡ η .fst k) ] ∣ (λ k → γ* k .fst) ∣₂ ≡ ∣ G.pt₀ ∣₂
+      Σ[ γ* ∈ (∀ k → Σ[ g ∈ ⟨ G k ⟩ᵗ ] ι.fun k g ≡ η .fst k) ] ∣ (λ k → γ* k .fst) ∣₂ ≡ ∣ G.pt₀ ∣₂
         ≃⟨ Σ-cong-equiv-fst Σ-Π-≃ ⟩
-      Σ[ (γ , _) ∈ Σ[ γ ∈ ((k : K) → ⟨ G k ⟩ᵗ) ] (∀ k → ι k .fst .fst (γ k) ≡ η .fst k) ] ∣ γ ∣₂ ≡ ∣ G.pt₀ ∣₂
+      Σ[ (γ , _) ∈ Σ[ γ ∈ ((k : K) → ⟨ G k ⟩ᵗ) ] (∀ k → ι.fun k (γ k) ≡ η .fst k) ] ∣ γ ∣₂ ≡ ∣ G.pt₀ ∣₂
         ≃⟨ Σ-cong-equiv-fst (Σ-cong-equiv-snd λ γ → funExtEquiv) ⟩
-      Σ[ (γ , _) ∈ Σ[ γ ∈ ((k : K) → ⟨ G k ⟩ᵗ) ] (λ k → ι k .fst .fst (γ k)) ≡ η .fst ] ∣ γ ∣₂ ≡ ∣ G.pt₀ ∣₂
+      Σ[ (γ , _) ∈ Σ[ γ ∈ ((k : K) → ⟨ G k ⟩ᵗ) ] (λ k → ι.fun k (γ k)) ≡ η .fst ] ∣ γ ∣₂ ≡ ∣ G.pt₀ ∣₂
         ≃⟨ strictEquiv (λ { ((γ , p) , c) → ((γ , c) , p) }) (λ { ((γ , c) , p) → ((γ , p) , c) }) ⟩
-      Σ[ (γ , _) ∈ ⟨ ΠGroup K G ⟩ᵗ ] (λ k → ι k .fst .fst (γ k)) ≡ η .fst
+      Σ[ (γ , _) ∈ ⟨ ΠGroup K G ⟩ᵗ ] (λ k → ι.fun k (γ k)) ≡ η .fst
         ≃⟨ Σ-cong-equiv-snd (λ { (γ , _) → Σ≡PropEquiv (λ η → ST.isSetSetTrunc _ _) }) ⟩
-      Σ[ γ ∈ ⟨ ΠGroup K G ⟩ᵗ ] (ι* .fst γ) ≡ η ≃∎
+      Σ[ γ ∈ ⟨ ΠGroup K G ⟩ᵗ ] (ι* .fun γ) ≡ η ≃∎
 
-    goal : isSet (fiber (ι* .fst) η)
+    goal : isSet (fiber (ι* .fun) η)
     goal = isOfHLevelRespectEquiv 2 fiber-equiv $
-      isSetΣSndProp (isSetΠ (λ k → ι k .snd (η .fst k))) λ γ → ST.isSetSetTrunc _ _
+      isSetΣSndProp (isSetΠ (λ k → ι.is-mono k (η .fst k))) λ γ → ST.isSetSetTrunc _ _
 
 
   ΠSubactionᴰ : ∀ {ℓX ℓY} (is-set-K : isSet K)
     → (Y : ∀ k → hAction ℓY (H k))
-    → (∀ k → Subactionᴰ (G k) (H k) (ι k .fst) ℓX (Y k))
+    → (∀ k → Subactionᴰ (G k) (H k) (ι.hom k) ℓX (Y k))
     → Subactionᴰ (ΠGroup K G) (ΠGroup K H) ι* (ℓ-max ℓK ℓX) (ΠActionΣ (K , is-set-K) H Y)
   ΠSubactionᴰ {ℓX} is-set-K Y X↪Y = sub-action where
 

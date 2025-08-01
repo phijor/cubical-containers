@@ -1,3 +1,4 @@
+{-# OPTIONS --lossy-unification #-}
 module GpdCont.HomotopyGroup.Stabilizer where
 
 open import GpdCont.Prelude
@@ -21,9 +22,9 @@ open import Cubical.Foundations.Path using (PathP≃Path)
 open import Cubical.Foundations.Powerset
 open import Cubical.Functions.FunExtEquiv using (funExtNonDep⁻)
 open import Cubical.Functions.Logic using (⊤)
-import      Cubical.Data.Unit as Unit
 open import Cubical.Data.Sigma
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
+import      Cubical.HITs.SetTruncation as ST
 
 private
   variable
@@ -45,7 +46,7 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (g₀ : ⟨ G ⟩ᵗ) (x₀ : ⟨
   Stab'-fst ((g , _) , _) = g
 
   Stab'-fst-hom : g₀ ≡ hGroup.pt₀ G → hGroupHom Stab' G
-  Stab'-fst-hom p = mkHGroupHom Stab' G Stab'-fst p
+  Stab'-fst-hom p = mkHGroupHom Stab'-fst p
 
   Stab'-snd : (s : ⟨ Stab' ⟩ᵗ) → ⟨ X (Stab'-fst s) ⟩
   Stab'-snd ((g , x) , _) = x
@@ -68,8 +69,10 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (g₀ : ⟨ G ⟩ᵗ) (x₀ : ⟨
 
   StabMono' : Mono _ (Aut (hGroup.asGroupoid G) g₀)
   StabMono' .fst = Stab'
-  StabMono' .snd .fst = mkHGroupHom Stab' (Aut (hGroup.asGroupoid G) g₀) (λ (gx , gx-conn) → gx .fst , ST.pathSetTrunc→recProp {! !} (cong (ST.∣_∣₂ ∘ fst)) gx-conn) (AutPath (hGroup.asGroupoid G) g₀ refl)
-  StabMono' .snd .snd = {! !}
+  StabMono' .snd .hGroupMono.hom .hGroupHom.fun (gx , gx-conn) .fst = gx .fst
+  StabMono' .snd .hGroupMono.hom .hGroupHom.fun (gx , gx-conn) .snd = ST.pathSetTrunc→recProp (ST.isSetSetTrunc _ _) (cong (ST.∣_∣₂ ∘ fst)) gx-conn
+  StabMono' .snd .hGroupMono.hom .hGroupHom.pres-pt₀ = AutPath (hGroup.asGroupoid G) g₀ refl
+  StabMono' .snd .hGroupMono.is-mono = {! !}
 
   isFreeAt' : Type _
   isFreeAt' = isContr ⟨ Stab' ⟩ᵗ
@@ -97,7 +100,7 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (x₀ : ⟨ X (hGroup.pt₀ G) �
   Stab-fst = Stab'-fst G X _ x₀
 
   Stab-fst-hom : hGroupHom Stab G
-  Stab-fst-hom = mkHGroupHom Stab G (λ { ((g , _) , _) → g }) refl
+  Stab-fst-hom = mkHGroupHom (λ { ((g , _) , _) → g }) refl
 
   Stab-snd : (s : ⟨ Stab ⟩ᵗ) → ⟨ X (Stab-fst s) ⟩
   Stab-snd = Stab'-snd G X _ x₀
@@ -133,9 +136,9 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (x₀ : ⟨ X (hGroup.pt₀ G) �
       goal : isSet (fiber π-∫ g)
       goal = isOfHLevelRespectEquiv 2 (invEquiv fiber-equiv) (str (X g))
 
-  stabFstMono : Σ[ ι ∈ hGroupHom Stab G ] isMono Stab G ι
-  stabFstMono .fst = Stab-fst-hom
-  stabFstMono .snd = isOfHLevelFunComp 2 π-∫ π-aut is-trunc-π-∫ is-trunc-π-aut
+  stabFstMono : hGroupMono Stab G
+  stabFstMono .hGroupMono.hom = Stab-fst-hom
+  stabFstMono .hGroupMono.is-mono = isOfHLevelFunComp 2 π-∫ π-aut is-trunc-π-∫ is-trunc-π-aut
 
   StabMono : Mono _ G
   StabMono .fst = Stab
@@ -216,8 +219,8 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) {g₀ : ⟨ G ⟩ᵗ} (P₀ : ℙ
   module _ (p : g₀ ≡ hGroup.pt₀ G) where
     StabℙMono' : Mono (ℓ-max ℓ (ℓ-suc ℓX)) G
     StabℙMono' .fst = Stabℙ'
-    StabℙMono' .snd .fst = Stab'-fst-hom G (ℙ* G X) g₀ P₀ p
-    StabℙMono' .snd .snd = {! !}
+    StabℙMono' .snd .hGroupMono.hom = Stab'-fst-hom G (ℙ* G X) g₀ P₀ p
+    StabℙMono' .snd .hGroupMono.is-mono = {! !}
 
     StabℙSubaction-canon' : Subaction (ℓ-max ℓ (ℓ-suc ℓX)) ℓX G X
     StabℙSubaction-canon' .fst = StabℙMono'

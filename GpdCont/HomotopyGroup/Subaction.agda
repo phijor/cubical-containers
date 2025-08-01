@@ -18,7 +18,7 @@ private
 
 module _ (G : hGroup ℓ) (H : hGroup ℓ′) (ι : hGroupHom G H) (ℓX : Level) (Y : hAction ℓY H) where
   private
-    module ι = hGroupHom G H ι
+    module ι = hGroupHom ι
 
   Subactionᴰ : Type _
   Subactionᴰ = Σ[ X ∈ hAction ℓX G ] ∀ g → ⟨ X g ⟩ ↪ ⟨ Y (ι.fun g) ⟩
@@ -35,7 +35,7 @@ module _ (G : hGroup ℓ) (H : hGroup ℓ′) (ι : hGroupHom G H) (ℓX : Level
     is-set-emb = isSetΠ λ g → isSetΣSndProp isSetEmbedding λ _ → isPropIsSet
 
 Subaction : (ℓ ℓX : Level) (H : hGroup ℓ′) (Y : hAction ℓY H) → Type _
-Subaction ℓ ℓX H Y = Σ[ (G , (ι , _)) ∈ Mono ℓ H ] Subactionᴰ G H ι ℓX Y
+Subaction ℓ ℓX H Y = Σ[ (G , ι) ∈ Mono ℓ H ] Subactionᴰ G H (ι .hGroupMono.hom) ℓX Y
 
 isSetSubaction : (H : hGroup ℓ′) (Y : hAction ℓY H) → isSet (Subaction ℓ ℓX H Y)
-isSetSubaction H Y = isSetΣ (isSetMono {H = H}) (λ { (G , (ι , _)) → isSetSubactionᴰ G H ι _ Y })
+isSetSubaction H Y = isSetΣ (isSetMono {H = H}) (λ { (G , ι) → isSetSubactionᴰ G H (ι .hGroupMono.hom) _ Y })

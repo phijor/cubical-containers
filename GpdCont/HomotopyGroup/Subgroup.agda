@@ -75,28 +75,36 @@ Subgroup→hGroup {G} (X , x₀ , is-transitive-X) = pointedConnectedGroupoid→
   is-conn : isPathConnected ⟨ ∫ G X ⟩
   is-conn = is-transitive-X
 
+open hGroupHom using (fun)
+
 isMono : (G : hGroup ℓ) (H : hGroup ℓ′) (φ : hGroupHom G H) → Type _
-isMono G H (φ , _) = isOfHLevelFun 2 φ
+isMono G H φ = isOfHLevelFun 2 (φ .fun)
 
 isSetFiberPt→isMono : (G : hGroup ℓ) (H : hGroup ℓ′)
   → (φ : hGroupHom G H)
-  → isSet (fiber (φ .fst) (hGroup.pt₀ H))
+  → isSet (fiber (φ .fun) (hGroup.pt₀ H))
   → isMono G H φ
-isSetFiberPt→isMono G H (φ , φ-hom) = hGroup.elimProp H λ g → isPropIsOfHLevel {A = fiber φ g} 2
+isSetFiberPt→isMono G H φ = hGroup.elimProp H λ g → isPropIsOfHLevel {A = fiber (φ .fun) g} 2
 
-hGroupMono : (G : hGroup ℓ) (H : hGroup ℓ′) → Type _
-hGroupMono G H = Σ[ ι ∈ hGroupHom G H ] isMono G H ι
+record hGroupMono (G : hGroup ℓ) (H : hGroup ℓ′) : Type (ℓ-max ℓ ℓ′) where
+  field
+    hom : hGroupHom G H
+    is-mono : isMono G H hom
+
+  open hGroupHom hom public
+
+open hGroupMono
 
 idHGroupMono : (G : hGroup ℓ) → hGroupMono G G
-idHGroupMono G .fst = idHGroupHom G
-idHGroupMono G .snd = isOfHLevelFunId 2
+idHGroupMono G .hom = idHGroupHom G
+idHGroupMono G .is-mono = isOfHLevelFunId 2
 
-compHGroupMono : ∀ {ℓ″} (G : hGroup ℓ) (H : hGroup ℓ′) (K : hGroup ℓ″)
+compHGroupMono : ∀ {ℓ″} {G : hGroup ℓ} {H : hGroup ℓ′} {K : hGroup ℓ″}
   → hGroupMono G H
   → hGroupMono H K
   → hGroupMono G K
-compHGroupMono G H K (φ , φ-mono) (ψ , ψ-mono) .fst = compGroupHom G H K φ ψ
-compHGroupMono G H K (φ , φ-mono) (ψ , ψ-mono) .snd = isOfHLevelFunComp 2 (ψ .fst) (φ .fst) ψ-mono φ-mono
+compHGroupMono φ ψ .hom = (φ .hom) ∙ᴳ (ψ .hom)
+compHGroupMono φ ψ .is-mono = isOfHLevelFunComp 2 (ψ .fun) (φ .fun) (ψ .is-mono) (φ .is-mono)
 
 Mono : (ℓ : Level) (H : hGroup ℓ′) → Type _
 Mono ℓ H = Σ[ G ∈ hGroup ℓ ] hGroupMono G H
@@ -130,13 +138,13 @@ MonoEquiv {ℓ} H =
   -- (hGroup ℓ → Σ[ P ∈ Type (ℓ-suc ℓ) ] isProp P) ≃∎
 
 isSetMono : ∀ {ℓ} {H : hGroup ℓ′} → isSet (Mono ℓ H)
-isSetMono {H} sub₀@(G₀ , ι₀ , is-mono-ι₀) sub₁@(G₁ , ι₁ , is-mono-ι₁) = {! !} where
-  path-equiv : {! !} ≃ (sub₀ ≡ sub₁)
-  path-equiv =
-    {! !} ≃⟨ {! !} ⟩
-    Σ[ G ∈ G₀ ≡ G₁ ] Σ[ ι ∈ PathP (λ i → hGroupHom (G i) H) ι₀ ι₁ ] PathP (λ i → isMono (G i) H (ι i)) is-mono-ι₀ is-mono-ι₁ ≃⟨ {! !} ⟩
-    Σ[ G ∈ G₀ ≡ G₁ ] PathP (λ i → Σ[ ι ∈ hGroupHom (G i) H ] isMono (G i) H ι) (ι₀ , is-mono-ι₀) (ι₁ , is-mono-ι₁) ≃⟨ {! !} ⟩
-    (sub₀ ≡ sub₁) ≃∎
+isSetMono {H} = ? -- sub₀@(G₀ , ι₀ , is-mono-ι₀) sub₁@(G₁ , ι₁ , is-mono-ι₁) = {! !} where
+  -- path-equiv : {! !} ≃ (sub₀ ≡ sub₁)
+  -- path-equiv =
+  --   {! !} ≃⟨ {! !} ⟩
+  --   Σ[ G ∈ G₀ ≡ G₁ ] Σ[ ι ∈ PathP (λ i → hGroupHom (G i) H) ι₀ ι₁ ] PathP (λ i → isMono (G i) H (ι i)) is-mono-ι₀ is-mono-ι₁ ≃⟨ {! !} ⟩
+  --   Σ[ G ∈ G₀ ≡ G₁ ] PathP (λ i → Σ[ ι ∈ hGroupHom (G i) H ] isMono (G i) H ι) (ι₀ , is-mono-ι₀) (ι₁ , is-mono-ι₁) ≃⟨ {! !} ⟩
+  --   (sub₀ ≡ sub₁) ≃∎
 
 monoIntoTrivial→isTrivial : (G : hGroup ℓ) (H : hGroup ℓ′)
   → (f : ⟨ G ⟩ᵗ → ⟨ H ⟩ᵗ)
@@ -158,12 +166,12 @@ isTrivial→isTrivialMono : (H : hGroup ℓ′)
   → isTrivial H
   → ((G , _) : Mono ℓ H)
   → isTrivial G
-isTrivial→isTrivialMono H is-triv-H (G , (ι , _) , ι-mono) = monoIntoTrivial→isTrivial G H ι ι-mono is-triv-H
+isTrivial→isTrivialMono H is-triv-H (G , ι) = monoIntoTrivial→isTrivial G H (ι .fun) (ι .is-mono) is-triv-H
 
 aut-map-mono : (A : hGroupoid ℓ) {a₀ : ⟨ A ⟩} (B : hGroupoid ℓ′) {b₀ : ⟨ B ⟩}
   → (f : ⟨ A ⟩ → ⟨ B ⟩)
   → (pres-pt : f a₀ ≡ b₀)
   → isSet (fiber f b₀)
   → hGroupMono (Aut A a₀) (Aut B b₀)
-aut-map-mono A {a₀} B {b₀} f pres-pt is-set-fib .fst = aut-map A B f pres-pt
-aut-map-mono A {a₀} B {b₀} f pres-pt is-set-fib .snd = isTruncFiberPt→isTruncAutMap 1 A B f pres-pt is-set-fib
+aut-map-mono A {a₀} B {b₀} f pres-pt is-set-fib .hom = aut-map A B f pres-pt
+aut-map-mono A {a₀} B {b₀} f pres-pt is-set-fib .is-mono = isTruncFiberPt→isTruncAutMap 1 A B f pres-pt is-set-fib

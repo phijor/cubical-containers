@@ -10,6 +10,7 @@ open import GpdCont.HomotopyGroup.Base
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Transport using (substEquiv)
 open import Cubical.Data.Sigma
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
 
@@ -20,6 +21,9 @@ private
 
 hAction : (ℓX : Level) → hGroup ℓ → Type _
 hAction ℓX G = ⟨ G ⟩ᵗ → hSet ℓX
+
+mereEquivAction : (G : hGroup ℓ) (X : hAction ℓX G) → (g : ⟨ G ⟩ᵗ) → ∥ ⟨ X (hGroup.pt₀ G) ⟩ ≃ ⟨ X g ⟩ ∥₁
+mereEquivAction G X g = PT.map (substEquiv (λ g → ⟨ X g ⟩)) $ hGroup.mere-path G g
 
 isFaithful : (G : hGroup ℓ) (X : hAction ℓX G) → Type _
 isFaithful G X = isOfHLevelFun 2 X

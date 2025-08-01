@@ -1,6 +1,7 @@
 module GpdCont.PropositionalTruncation where
 
 open import GpdCont.Prelude
+open import GpdCont.Prelude.Notation
 
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
@@ -36,3 +37,8 @@ propTruncFstΣ≃ {A} {B} is-prop-A = isoToEquiv trunc-iso where
 
 untrunc : isProp A → ∥ A ∥₁ → A
 untrunc is-prop-A = PT.rec is-prop-A (id _)
+
+instance
+  propTruncDo : Do ∥_∥₁
+  propTruncDo .Do._>>=_ x f = PT.rec PT.isPropPropTrunc f x
+  propTruncDo .Do.pure = PT.∣_∣₁

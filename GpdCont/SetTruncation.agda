@@ -2,6 +2,7 @@ module GpdCont.SetTruncation where
 
 open import GpdCont.Prelude
 open import GpdCont.Prelude.Square
+open import GpdCont.Prelude.Notation
 open import GpdCont.Equiv using (symEquiv)
 
 open import Cubical.Foundations.Equiv
@@ -25,6 +26,11 @@ private
     ℓA ℓB : Level
     A : Type ℓA
     B : A → Type ℓB
+
+instance
+  setTruncDo : Do ∥_∥₂
+  setTruncDo .Do._>>=_ x f = ST.rec ST.isSetSetTrunc f x
+  setTruncDo .Do.pure = ST.∣_∣₂
 
 setTruncMapComp : ∀ {ℓA ℓB ℓC} {A : Type ℓA} {B : Type ℓB} {C : Type ℓC}
   → (f :  A → B) (g : B → C)

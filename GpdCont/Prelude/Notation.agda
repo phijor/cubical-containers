@@ -34,3 +34,10 @@ instance
   FunLikeTypeWithStr .FunLike._#_ f = f
 
 open FunLike ⦃ ... ⦄ using (_#_) public
+
+record Do {ℓ→ : Level → Level}  (M : ∀ {ℓ} → Type ℓ → Type (ℓ→ ℓ)) : Typeω where
+  field
+    _>>=_ : ∀ {ℓ ℓ′} {A : Type ℓ} {B : Type ℓ′} → M A → (A → M B) → M B
+    pure : ∀ {ℓ} {A : Type ℓ} → A → M A
+
+open Do ⦃ ... ⦄ using (_>>=_ ; pure) public

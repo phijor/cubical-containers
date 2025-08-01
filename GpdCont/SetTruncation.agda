@@ -12,11 +12,14 @@ open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Path as Path using (PathP≡compPath ; pathFiber)
 open import Cubical.Foundations.Transport using (substEquiv)
-open import Cubical.Foundations.Univalence using (pathToEquiv)
+open import Cubical.Foundations.Univalence using (pathToEquiv ; EquivJ)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂) public
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
+open import Cubical.Data.Nat
 open import Cubical.Data.Sigma
 open import Cubical.Data.Sum as Sum
+open import Cubical.Data.SumFin.Base as SumFin using (Fin)
+open import Cubical.Data.FinSet as FinSet using (isFinSet)
 open import Cubical.Functions.Embedding
 open import Cubical.Functions.Surjection
 open import Cubical.Functions.Fibration
@@ -56,6 +59,18 @@ setTruncateFstΣ≃ = isoToEquiv ∘ IsoSetTruncateFstΣ
 setTruncateSndΣ≃ : ∥ Σ A B ∥₂ ≃ ∥ (Σ A (∥_∥₂ ∘ B)) ∥₂
 setTruncateSndΣ≃ = isoToEquiv ST.IsoSetTruncateSndΣ
 
+IsoSetTruncateUnwrapFstΣ : {B : ∥ A ∥₂ → Type ℓB}
+  → Iso
+    ∥ Σ[ x ∈ ∥ A ∥₂ ] B x ∥₂
+    ∥ Σ[ a ∈ A ] B ∣ a ∣₂ ∥₂
+IsoSetTruncateUnwrapFstΣ {A} {B} .Iso.fun = _>>= (uncurry $ ST.elim (λ x → isSet→ ST.isSetSetTrunc) λ a b → ST.∣ a , b ∣₂)
+IsoSetTruncateUnwrapFstΣ .Iso.inv = _>>= λ (a , b) → ∣ ∣ a ∣₂ , b ∣₂
+IsoSetTruncateUnwrapFstΣ .Iso.rightInv = ST.elim (λ x → ST.isSetPathImplicit) λ _ → refl
+IsoSetTruncateUnwrapFstΣ .Iso.leftInv = ST.elim (λ x → ST.isSetPathImplicit) $ uncurry $ ST.elim (λ x → isSetΠ λ b → ST.isSetPathImplicit) (λ _ _ → refl)
+
+setTruncateUnwrapFstΣ≃ : {B : ∥ A ∥₂ → Type ℓB} → ∥ Σ[ x ∈ ∥ A ∥₂ ] B x ∥₂ ≃ ∥ Σ[ a ∈ A ] B ∣ a ∣₂ ∥₂
+setTruncateUnwrapFstΣ≃ = isoToEquiv IsoSetTruncateUnwrapFstΣ
+
 setTruncate⊎≃ : ∀ {B : Type ℓB} → ∥ A ⊎ B ∥₂ ≃ ∥ A ∥₂ ⊎ ∥ B ∥₂
 setTruncate⊎≃ {A} {B} = isoToEquiv trunc-iso where
   is-set-sum : isSet (∥ A ∥₂ ⊎ ∥ B ∥₂)
@@ -69,6 +84,14 @@ setTruncate⊎≃ {A} {B} = isoToEquiv trunc-iso where
     (ST.elim (λ _ → isOfHLevelPath 2 is-set-sum _ _) λ _ → refl)
   trunc-iso .Iso.leftInv = ST.elim (λ _ → ST.isSetPathImplicit) $
     Sum.elim (λ _ → refl) (λ _ → refl)
+
+setTruncate×≃ : ∀ {B : Type ℓB} → ∥ A × B ∥₂ ≃ ∥ A ∥₂ × ∥ B ∥₂
+setTruncate×≃ {A} {B} = isoToEquiv trunc-iso where
+  trunc-iso : Iso _ _
+  trunc-iso .Iso.fun = ST.rec (isSet× ST.isSetSetTrunc ST.isSetSetTrunc) λ (a , b) → ∣ a ∣₂ , ∣ b ∣₂
+  trunc-iso .Iso.inv = uncurry $ ST.rec2 ST.isSetSetTrunc λ a b → ST.∣ a , b ∣₂
+  trunc-iso .Iso.rightInv = uncurry (ST.elim2 (λ _ _ → isOfHLevelPath 2 (isSet× ST.isSetSetTrunc ST.isSetSetTrunc) _ _) λ a b → refl)
+  trunc-iso .Iso.leftInv = ST.elim (λ _ → ST.isSetPathImplicit) λ _ → refl
 
 setTruncEquiv : ∀ {B : Type ℓB} → A ≃ B → ∥ A ∥₂ ≃ ∥ B ∥₂
 setTruncEquiv = isoToEquiv ∘ ST.setTruncIso ∘ equivToIso
@@ -177,3 +200,55 @@ isEmbeddingCong→hasSetFibers {A} {B} f emb = set-fibers where
   set-fibers b (x , p) (y , q) = isOfHLevelRespectEquiv 1
     (invEquiv $ fiber-equiv b x y p q)
     (isEmbedding→hasPropFibers (emb x y) (p ∙ sym q))
+
+choiceMap : ∥ ((a : A) → B a) ∥₂ → (a : A) → ∥ B a ∥₂
+choiceMap = ST.rec (isSetΠ λ a → ST.isSetSetTrunc) λ f a → ∣ f a ∣₂
+
+satChoice : (A : Type ℓA) (ℓB : Level) → Type _
+satChoice A ℓB = ∀ (B : A → Type ℓB) → isEquiv (choiceMap {B = B})
+
+isPropSatChoice : isProp (satChoice A ℓB)
+isPropSatChoice = isPropΠ λ B → isPropIsEquiv _
+
+module Choice (choice : satChoice A ℓB) where
+  pick : {B : A → Type ℓB} → ∥ (∀ a → B a) ∥₂ → (∀ a → ∥ B a ∥₂)
+  pick = choiceMap
+
+  equiv : {B : A → Type ℓB} → ∥ (∀ a → B a) ∥₂ ≃ (∀ a → ∥ B a ∥₂)
+  equiv .fst = choiceMap
+  equiv .snd = choice _
+
+  choose : {B : A → Type ℓB} → (∀ a → ∥ B a ∥₂) → ∥ (∀ a → B a) ∥₂
+  choose {B} = invIsEq (choice B)
+
+  elimΠ : ∀ {ℓ} {X : ∥ (∀ a → B a) ∥₂ → Type ℓ}
+    → (∀ f → isSet (X f))
+    → (∀ (f* : ∀ a → B a) → (X ∣ f* ∣₂))
+    → ∀ f → (X (choose f))
+  elimΠ {X} is-set-X f* = ST.elim {B = X} is-set-X f* ∘ choose
+
+  choose₁ : {B : A → Type ℓB} → (∀ a → ∥ B a ∥₁) → ∥ (∀ a → B a) ∥₁
+  choose₁ f = {! !}
+
+finChoiceEquiv : (n : ℕ) (B : Fin n → Type ℓB) → ∥ ((k : Fin n) → B k) ∥₂ ≃ ((k : Fin n) → ∥ B k ∥₂)
+finChoiceEquiv zero 0→B = isoToEquiv λ where
+  .Iso.fun → choiceMap
+  .Iso.inv f → ∣ (λ ()) ∣₂
+  .Iso.leftInv → ST.elim (λ _ → ST.isSetPathImplicit) λ ⊥→B → cong ST.∣_∣₂ λ { i () }
+  .Iso.rightInv _ i ()
+finChoiceEquiv (suc n) 1+n→B =
+  ∥ ((k : Unit ⊎ Fin n) → 1+n→B k) ∥₂ ≃⟨ setTruncEquiv Π⊎≃ ⟩
+  ∥ ((t : Unit) → 1+n→B (inl t)) × ((k : Fin n) → 1+n→B (inr k)) ∥₂ ≃⟨ setTruncate×≃ ⟩
+  ∥ ((t : Unit) → 1+n→B (inl t)) ∥₂ × ∥ ((k : Fin n) → 1+n→B (inr k)) ∥₂ ≃⟨ {!setTruncate×≃ !} ⟩
+  ((k : Unit ⊎ Fin n) → ∥ 1+n→B k ∥₂) ≃∎
+
+satFinChoice : (n : ℕ) → satChoice (Fin n) ℓB
+satFinChoice zero B = equivIsEquiv (finChoiceEquiv zero B)
+satFinChoice (suc n) B = isoToIsEquiv λ where
+  .Iso.fun → _
+  .Iso.inv f → {! !}
+  .Iso.leftInv → {! !}
+  .Iso.rightInv _ → {! !}
+
+satFinSetChoice : isFinSet A → satChoice A ℓB
+satFinSetChoice {A} = uncurry λ n → PT.rec isPropSatChoice {!EquivJ {A = A} {B = Fin n} (λ A (e : A ≃ Fin n) → satChoice A _) !}

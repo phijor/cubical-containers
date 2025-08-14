@@ -61,6 +61,20 @@ record hGroup (ℓ : Level) : Type (ℓ-suc ℓ) where
     recSet : (x₀ : X) → ⟨_⟩ᵗ → X
     recSet = equivFun recSetEquiv
 
+  elimSet : ∀ {ℓX} {X : ⟨_⟩ᵗ → Type ℓX}
+    → (∀ g → ∥ pt₀ ≡ g ∥₁ → isSet (X g))
+    → (x₀ : ∀ g → pt₀ ≡ g → X g)
+    → (coh₀ : ∀ g → (p q : pt₀ ≡ g) → x₀ g p ≡ x₀ g q)
+    → ∀ g → X g
+  elimSet {X} is-set-X x₀ coh₀ g = PT.elim→Set {A = pt₀ ≡ g} (is-set-X g) (x₀ g) (coh₀ g) (mere-path g)
+
+  elimSet' : ∀ {ℓX} {X : ⟨_⟩ᵗ → Type ℓX}
+    → (∀ g → ∥ pt₀ ≡ g ∥₁ → isSet (X g))
+    → (x₀ : X pt₀)
+    → (coh₀ : ∀ g → (γ δ : pt₀ ≡ g) → subst X γ x₀ ≡ subst X δ x₀)
+    → ∀ g → X g
+  elimSet' {X} is-set-X x₀ = elimSet is-set-X (λ g γ → subst X γ x₀)
+
 open hGroup using (⟨_⟩ᵗ) public
 
 pointedConnectedGroupoid→hGroup : ∀ (G : Type ℓ)

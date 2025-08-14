@@ -72,7 +72,17 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (g₀ : ⟨ G ⟩ᵗ) (x₀ : ⟨
   StabMono' .snd .hGroupMono.hom .hGroupHom.fun (gx , gx-conn) .fst = gx .fst
   StabMono' .snd .hGroupMono.hom .hGroupHom.fun (gx , gx-conn) .snd = PT.map (cong fst) gx-conn
   StabMono' .snd .hGroupMono.hom .hGroupHom.pres-pt₀ = AutPath (hGroup.asGroupoid G) g₀ refl
-  StabMono' .snd .hGroupMono.is-mono = {! !}
+  StabMono' .snd .hGroupMono.is-mono g∣ = isOfHLevelRespectEquiv 2 fiber-equiv (isSetΣ (isContr→isOfHLevel 2 (isContrSingl _)) λ _ → isSetΣSndProp (str (X _)) λ _ → PT.isPropPropTrunc) where
+    opaque
+      fiber-equiv : (Σ[ (g , _) ∈ singl (g∣ .fst) ] Σ[ x ∈ ⟨ X g ⟩ ] ∥ Path ⟨ ∫ G X ⟩ (g , x) (g₀ , x₀) ∥₁) ≃ fiber (StabMono' .snd .hGroupMono.fun) g∣
+      fiber-equiv =
+        Σ[ (g , _) ∈ singl (g∣ .fst) ] Σ[ x ∈ ⟨ X g ⟩ ] ∥ Path ⟨ ∫ G X ⟩ (g , x) (g₀ , x₀) ∥₁
+          ≃⟨ strictEquiv (λ ((g , p) , x , q) → (((g , x) , q) , sym p)) (λ (((g , x) , q) , p) → ((g , sym p) , x , q)) ⟩
+        Σ[ ((g , _) , _) ∈ ⟨ Stab' ⟩ᵗ ] g ≡ g∣ .fst
+          ≃⟨ Σ-cong-equiv-snd (λ _ → invEquiv (AutPathEquiv (hGroup.asGroupoid G) g₀ _ _)) ⟩
+        Σ[ (gx , gx-conn) ∈ ⟨ Stab' ⟩ᵗ ] (gx .fst , PT.map (cong fst) gx-conn) ≡ g∣
+          ≃∎
+
 
   isFreeAt' : Type _
   isFreeAt' = isContr ⟨ Stab' ⟩ᵗ

@@ -44,6 +44,10 @@ isPathConnected→is2Connected = isOfHLevelRespectEquiv 0 Tr.setTrunc≃Trunc2
 isPathConnectedFun→is2ConnectedFun : isPathConnectedFun f → isConnectedFun 2 f
 isPathConnectedFun→is2ConnectedFun conn-f = isPathConnected→is2Connected ∘ conn-f
 
+inh×merePath→isPathConnected : (a₀ : A) → (∀ a → ∥ a₀ ≡ a ∥₁) → isPathConnected A
+inh×merePath→isPathConnected a₀ mere-path .fst = ST.∣ a₀ ∣₂
+inh×merePath→isPathConnected a₀ mere-path .snd = ST.elim (λ _ → ST.isSetPathImplicit) λ a → merePath→pathSetTrunc (mere-path a)
+
 isPathConnected→merePath : isPathConnected A → ∀ (a b : A) → ∥ a ≡ b ∥₁
 isPathConnected→merePath conn a b = equivFun PathSetTrunc≃PropTruncPath $ isContr→isProp conn ST.∣ a ∣₂ ST.∣ b ∣₂
 

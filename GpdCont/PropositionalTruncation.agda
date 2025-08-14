@@ -3,6 +3,7 @@ module GpdCont.PropositionalTruncation where
 open import GpdCont.Prelude
 open import GpdCont.Prelude.Notation
 
+open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
@@ -11,7 +12,7 @@ open import Cubical.HITs.PropositionalTruncation.Monad public
 
 private
   variable
-    ℓ : Level
+    ℓ ℓA ℓB : Level
     A B : Type ℓ
 
 propTruncIso : Iso A B → Iso ∥ A ∥₁ ∥ B ∥₁
@@ -42,3 +43,23 @@ instance
   propTruncDo : Do ∥_∥₁
   propTruncDo .Do._>>=_ x f = PT.rec PT.isPropPropTrunc f x
   propTruncDo .Do.pure = PT.∣_∣₁
+
+choiceMap : ∀ {B : A → Type ℓB} → ∥ ((a : A) → B a) ∥₁ → (a : A) → ∥ B a ∥₁
+choiceMap = PT.rec (isPropΠ λ a → isPropPropTrunc) λ f a → ∣ f a ∣₁
+
+satChoice : (A : Type ℓA) (ℓB : Level) → Type _
+satChoice A ℓB = ∀ (B : A → Type ℓB) → isEquiv (choiceMap {B = B})
+
+isPropSatChoice : isProp (satChoice A ℓB)
+isPropSatChoice = isPropΠ λ B → isPropIsEquiv _
+
+module Choice (choice : satChoice A ℓB) where
+  pick : {B : A → Type ℓB} → ∥ (∀ a → B a) ∥₁ → (∀ a → ∥ B a ∥₁)
+  pick = choiceMap
+
+  equiv : {B : A → Type ℓB} → ∥ (∀ a → B a) ∥₁ ≃ (∀ a → ∥ B a ∥₁)
+  equiv .fst = choiceMap
+  equiv .snd = choice _
+
+  choose : {B : A → Type ℓB} → (∀ a → ∥ B a ∥₁) → ∥ (∀ a → B a) ∥₁
+  choose {B} = invIsEq (choice B)

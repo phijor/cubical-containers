@@ -5,8 +5,10 @@ open import GpdCont.StrictGroupoid.HomotopyGroup
 
 open import GpdCont.Prelude
 open import GpdCont.Prelude.Square
+open import GpdCont.Prelude.Notation hiding (⟨_⟩)
 open import GpdCont.HomotopySet
 open import GpdCont.SetTruncation
+import      GpdCont.PropositionalTruncation as PT
 open import GpdCont.Connectivity
 open import GpdCont.Univalence
 import      GpdCont.SetTruncation as ST
@@ -25,7 +27,6 @@ open import Cubical.Data.Sigma
 open import Cubical.Data.Sum as Sum using (_⊎_ ; inl ; inr)
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂ ; ∣_∣₂)
 open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
-open import Cubical.HITs.PropositionalTruncation.Monad using (_>>=_ ; return)
 
 private
   variable
@@ -57,7 +58,7 @@ CFCS₃₂≃mereStrictStr {ℓ} =
 ACω→mereStricStr : AllSurjectionsSplitω ℓ → (A : hGroupoid ℓ) → ∥ StrictGroupoidStr ⟨ A ⟩ ∥₁
 ACω→mereStricStr split A*@(A , is-groupoid-A) = do
   (pt , pt-section) ← split A ∥A∥₂ ∣_∣₂ (isSurjection-∣-∣₂ A)
-  return λ where
+  pure λ where
     .StrictGroupoidStr.is-groupoid → is-groupoid-A
     .StrictGroupoidStr.pt → pt
     .StrictGroupoidStr.pt-section → pt-section
@@ -178,7 +179,7 @@ StrictGroupoidStrΣSet {A} {B} is-set-A strict-B = strict-Σ where
     mere-retract : (a : A) (b : B a) → ∥ Path (Σ A B) (a , B.pt a ∣ b ∣₂) (a , b) ∥₁
     mere-retract a b = do
       pt∣b∣≡b ← B.mere-retract a b
-      return $ ΣPathP (refl′ a , pt∣b∣≡b)
+      pure $ ΣPathP (refl′ a , pt∣b∣≡b)
 
   strict-Σ : StrictGroupoidStr _
   strict-Σ .StrictGroupoidStr.is-groupoid = is-groupoid-Σ
@@ -305,7 +306,7 @@ Autˢ A pt .snd = inhFibTrunc→StrictStr
     f (a , h) .snd = refl
 
     wd : (x y : Aᶜ) (p q : x ≡ y) → SquareP (λ i j → fiber ∣_∣₂ (squash-cong p q i j)) (cong f p) (cong f q) refl refl
-    wd (a₀ , h₀) (a₁ , h₁) p q = ΣSquarePSet ? (ΣSquarePProp (λ _ → PT.isPropPropTrunc) {! !})
+    wd (a₀ , h₀) (a₁ , h₁) p q = ΣSquarePSet {! !} (ΣSquarePProp (λ _ → PT.isPropPropTrunc) {! !})
 -- Autˢ A pt .snd .StrictGroupoidStr.is-groupoid = 
 -- Autˢ A pt .snd .StrictGroupoidStr.pt = λ { x → {! !} }
 -- Autˢ A pt .snd .StrictGroupoidStr.pt-section = {! !}
@@ -398,23 +399,26 @@ module Test {ℓG ℓH ℓX}
       lemma : ∣ f ∣₂ ≡ ∣ H.pt-at g ∣₂
       lemma = merePath→pathSetTrunc do
         htpy ← FinSet.choice (Xᶠ g) (λ x → f x ≡ H.pt-at g x) mere-htpy
-        return $ funExt htpy
+        pure $ funExt htpy
 
       is-contr-pres-strict : isContr (∣ f ∣₂ ≡ ∣ H.pt-at g ∣₂)
       is-contr-pres-strict = inhProp→isContr lemma (ST.isSetSetTrunc _ _)
 
-{-
 StrictGroupoidStrΠ : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}
   → (∀ a → StrictGroupoidStr (B a))
+  → PT.satChoice A ℓB
   → StrictGroupoidStr (∀ a → B a)
-StrictGroupoidStrΠ {A} {B} strict-B = strict-Π where
+StrictGroupoidStrΠ {A} {B} strict-B sat-ac = strict-Π where
+  module A = PT.Choice sat-ac
   module B a = StrictGroupoidStr (strict-B a)
 
   pt : ∥ (∀ a → B a) ∥₂ → (∀ a → B a)
   pt x a = B.pt a $ ST.map (_$ a) x
 
   pt-section : section ∣_∣₂ pt
-  pt-section = ST.elim (λ _ → ST.isSetPathImplicit) λ f → cong ∣_∣₂ (funExt λ a → equivFun (PT.propTruncIdempotent≃ {! !}) (B.mere-retract a (f a))) where
+  pt-section = mkTruncSection pt λ f → do
+    ptwise ← A.choose (λ a → B.mere-retract a (f a))
+    pure $ funExt ptwise
 
   strict-Π : StrictGroupoidStr _
   strict-Π .StrictGroupoidStr.is-groupoid = isGroupoidΠ B.is-groupoid
@@ -422,27 +426,10 @@ StrictGroupoidStrΠ {A} {B} strict-B = strict-Π where
   strict-Π .StrictGroupoidStr.pt-section = pt-section
 
 StrictGroupoidStrFun : ∀ {ℓA ℓB} {A : Type ℓA} {B : Type ℓB}
-  → StrictGroupoidStr A
   → StrictGroupoidStr B
+  → PT.satChoice A ℓB
   → StrictGroupoidStr (A → B)
-StrictGroupoidStrFun {A} {B} strict-A strict-B = strict-fun where
-  module A = StrictGroupoidStr strict-A
-  module B = StrictGroupoidStr strict-B
-
-  pt : ∥ (A → B) ∥₂ → A → B
-  pt f a = B.pt $ ST.map (_$ a) f
-
-  pt-section : section ∣_∣₂ pt
-  pt-section = ST.elim (λ _ → ST.isSetPathImplicit) {! !} where
-    lemma : (f : A → B) → ∥ (λ a → B.pt ∣ f a ∣₂) ≡ f ∥₁
-    lemma f = do
-      return $ funExt λ a → {! !}
-
-  strict-fun : StrictGroupoidStr _
-  strict-fun .StrictGroupoidStr.is-groupoid = isGroupoidΠ λ _ → B.is-groupoid
-  strict-fun .StrictGroupoidStr.pt = {! !}
-  strict-fun .StrictGroupoidStr.pt-section = {! !}
--}
+StrictGroupoidStrFun {A} {B} strict-B = StrictGroupoidStrΠ (const strict-B)
 
 isStrictΣ : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}
   → ∥ StrictGroupoidStr A ∥₁
@@ -450,14 +437,14 @@ isStrictΣ : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}
   → ∥ StrictGroupoidStr (Σ A B) ∥₁
 isStrictΣ {A} {B} is-strict-A is-strict-B = do
   inh-fib ← isSurjection-∣-∣₂ (Σ A B) {! !}
-  return $ inhFibTrunc→StrictStr is-groupoid-Σ {! !}
+  pure $ inhFibTrunc→StrictStr is-groupoid-Σ {! !}
   where
 
   is-groupoid-Σ : isGroupoid (Σ A B)
   is-groupoid-Σ = equivFun (PT.propTruncIdempotent≃ isPropIsGroupoid) $ do
     strict-A ← is-strict-A
     let is-groupoid-A = strict-A .StrictGroupoidStr.is-groupoid
-    return $ isGroupoidΣ is-groupoid-A λ a → equivFun (PT.propTruncIdempotent≃ isPropIsGroupoid) $
+    pure $ isGroupoidΣ is-groupoid-A λ a → equivFun (PT.propTruncIdempotent≃ isPropIsGroupoid) $
       PT.map StrictGroupoidStr.is-groupoid (is-strict-B a)
 
   fib : ∥ ((x : ∥ Σ A B ∥₂) → fiber ∣_∣₂ x) ∥₁

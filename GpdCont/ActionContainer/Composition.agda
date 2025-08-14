@@ -58,15 +58,6 @@ module ComposeFix
   Sh : Type ℓ
   Sh = Σ S Shᴰ
 
-  -- Fib* : {s : S} (t : T) → (Σ[ g ∈ ⟨ G s ⟩ᵗ ] (⟨ P s g ⟩ → T)) → hSet ℓ
-  -- Fib* {s} t (g , f) = ΣSubSet (P s g) λ p → (f p ≡ t) , is-set-T _ _
-
-  -- Fib : (t : T) → Sh → hSet ℓ
-  -- Fib t = uncurry λ s → ST.elim→Gpd (λ _ → isGroupoidHSet)
-  --   (Fib* t)
-  --   λ where
-  --     (g₀ , f₀) (g₁ , f₁) p q → the (_ ≡ _) $ ΣSquarePProp (λ _ → isPropIsSet) λ i j → Σ ⟨ P s {! p i .fst !} ⟩ {! !}
-
   Im : Sh → ℙ T
   Im = uncurry λ s → ST.rec isSetℙ λ where
     (g , f) t → (∃[ p ∈ ⟨ P s g ⟩ ] f p ≡ t) , isProp∃ _ _
@@ -81,6 +72,40 @@ module ComposeFix
 
   W : Sh → hGroup _
   W sh = ΠGroup T λ t → G∣ t sh
+
+  module Fib (ord : ∀ {s} → Σ[ P₀ ∈ Type ℓ ] ∀ {g : ⟨ G s ⟩ᵗ} → ⟨ P s g ⟩ ≃ P₀) where
+    lerp : ∀ {s} {g₀ g₁ : ⟨ G s ⟩ᵗ} → ⟨ P s g₀ ⟩ → ⟨ P s g₁ ⟩
+    lerp {g₀} {g₁} = invEq (ord .snd) ∘ equivFun (ord .snd)
+
+    Fib* : {s : S} (t : T) → (Σ[ g ∈ ⟨ G s ⟩ᵗ ] (⟨ P s g ⟩ → T)) → ℙ ⟨ P s G.pt₀ ⟩
+    Fib* {(s)} t (g , f) p₀ .fst = f (lerp p₀) ≡ t
+    Fib* {(s)} t (g , f) p₀ .snd = is-set-T _ _
+
+    Fib : (t : T) (sh : Sh) → ℙ ⟨ P (sh .fst) G.pt₀ ⟩
+    Fib t = uncurry λ s → ST.rec (isSet→ isSetHProp) $ Fib* t
+
+    module UnitRight
+      (is-contr-T : isContr T)
+      where
+      fib! : ∀ t sh p → ⟨ Fib t sh p ⟩
+      fib! t = uncurry λ s → ST.elim (λ ∣f∣ → isSetΠ λ p → isProp→isSet (str (Fib t (s , ∣f∣) p))) λ where
+        (g , f) p → isContr→isProp is-contr-T _ _
+
+    module UnitLeft
+      (is-contr-P : ∀ s g → isContr ⟨ P s g ⟩)
+      where
+      private
+        p₀ : {s : S} {g : ⟨ G s ⟩ᵗ} → ⟨ P s g ⟩
+        p₀ {s} {g} = is-contr-P s g .fst
+
+      module _ (t : T) (s : S) (g : ⟨ G s ⟩ᵗ) (f : ⟨ P s g ⟩ → T) (p : ⟨ P s G.pt₀ ⟩) where
+        Fib-equiv* : (f p₀ ≡ t) ≃ (f (lerp p) ≡ t)
+        Fib-equiv* = compPathlEquiv $ cong f $ sym (is-contr-P s g .snd (lerp p))
+
+      -- Fib-equiv : ∀ t sh p → (f p₀ ≡ t) ≃ ⟨ Fib t sh p ⟩
+      -- Fib-equiv t = uncurry λ s → ST.elim (λ ∣f∣ → isSetΠ λ p → isOfHLevel⁺≃ₗ 1 $ isProp→isSet $ is-set-T _ _) λ where
+      --   (g , f) → {! Fib-equiv* t s g f !}
+
 
   -- The subset of positions (p₀ : P s pt₀) such that f p₀ ≡ t for any (f : ⟨ P s g ⟩ → T) , modulo transport.
   Fix* : {s : S} (t : T) → (Σ[ g ∈ ⟨ G s ⟩ᵗ ] (⟨ P s g ⟩ → T)) → ℙ ⟨ P s G.pt₀ ⟩
@@ -537,7 +562,7 @@ module ComposeFix
             hmm = hGroup.elimProp (G∣f (f p)) {P = λ g∣ → ∥ ⟨ P∣f (f p) g∣ ⟩ ∥₁} (λ _ → PT.isPropPropTrunc) hmm* g∣
 
             p∣ : ⟨ P∣f (f p) g∣ ⟩
-            p∣ .fst = the ⟨ P s g' ⟩ $ transport ? p
+            p∣ .fst = the ⟨ P s g' ⟩ $ transport {! !} p
             p∣ .snd = the ⟨ p? (p∣ .fst) ⟩ {! !}
             
             h : ⟨ H (f p) ⟩ᵗ

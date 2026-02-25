@@ -2,10 +2,12 @@
 module GpdCont.GroupAction.Pi where
 
 open import GpdCont.Prelude
+open import GpdCont.Prelude.Path using (rectify ; _≡[_]_)
 open import GpdCont.GroupAction.Base
 open import GpdCont.Equiv using (equivΠCodComp)
 open import GpdCont.HomotopySet using (ΠSet ; ΣSet ; _→Set_)
 open import GpdCont.GroupAction.Category
+open import GpdCont.GroupAction.Faithful
 open import GpdCont.GroupAction.Equivariant using (isEquivariantMap[_][_,_])
 import      GpdCont.Categories.Products as CatProducts
 import      GpdCont.Categories.Coproducts as CatCoproducts
@@ -194,3 +196,23 @@ module Products (K : hSet ℓ) (x* : ⟨ K ⟩ → GroupAction.ob {ℓ}) where
 
 GroupActionProducts : CatProducts.Products (GroupAction ℓ) ℓ
 GroupActionProducts = Products.GroupActionProduct
+
+isFaithfulΠActionΣ : ∀ {ℓG ℓS} {S : hSet ℓS}
+  → {X : ⟨ S ⟩ → hSet ℓ}
+  → {G : ⟨ S ⟩ → Group ℓG}
+  → (σ : ∀ s → Action (G s) (X s))
+  → (∀ s → isFaithful (σ s))
+  → isFaithful (ΠActionΣ S X σ)
+isFaithfulΠActionΣ {S} {X} {G} σ is-faithful {g} {h} p = funExt λ s → is-faithful s {g = g s} {h = h s} (goal s) where
+  module _ (s : ⟨ S ⟩) (x : ⟨ X s ⟩) where
+    s≡s : s ≡ s
+    s≡s = cong fst $ cong equivFun p ≡$ (s , x)
+
+    lemma : PathP (λ i → ⟨ X (s≡s i) ⟩) (equivFun (action (σ s) (g s)) x) (equivFun (action (σ s) (h s)) x)
+    lemma = cong snd $ (cong equivFun p ≡$ (s , x))
+
+    rectified : (equivFun (action (σ s) (g s)) x) ≡ (equivFun (action (σ s) (h s)) x)
+    rectified = rectify {B = λ s → ⟨ X s ⟩} (str S) lemma
+
+  goal : ∀ s → action (σ s) (g s) ≡ action (σ s) (h s)
+  goal s = equivEq $ funExt $ rectified s

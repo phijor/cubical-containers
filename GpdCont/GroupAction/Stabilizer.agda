@@ -1,6 +1,7 @@
 module GpdCont.GroupAction.Stabilizer where
 open import GpdCont.Prelude hiding (_▷_)
 open import GpdCont.GroupAction.Base
+open import GpdCont.GroupAction.Faithful
 open import GpdCont.Group.Subgroup
 open import GpdCont.Group.Equivs using (conjEquiv ; conjHom)
 
@@ -83,9 +84,9 @@ module Stabilizer {ℓG ℓX}
     isContrKerStabilizerInclusion = isInjective→isContrKer stabilizerInclusion λ { (g , _) g≡1 → Stabilizer≡ g≡1 }
 
     StabilizerSubgroup : Subgroup G (ℓ-max ℓG ℓX)
-    StabilizerSubgroup .fst = StabilizerGroup
-    StabilizerSubgroup .snd .isSubgroup.inc = stabilizerInclusion
-    StabilizerSubgroup .snd .isSubgroup.is-contr-ker-inc = isContrKerStabilizerInclusion
+    StabilizerSubgroup .Subgroup.sub = StabilizerGroup
+    StabilizerSubgroup .Subgroup.is-sub .isSubgroup.inc = stabilizerInclusion
+    StabilizerSubgroup .Subgroup.is-sub .isSubgroup.is-contr-ker-inc = isContrKerStabilizerInclusion
 
 module Setwise {ℓG ℓX} (G : Group ℓG) (X : hSet ℓX) (σ : Action G X) where
   open import GpdCont.GroupAction.Powerset
@@ -122,11 +123,16 @@ module Setwise {ℓG ℓX} (G : Group ℓG) (X : hSet ℓX) (σ : Action G X) wh
       λ { {g} stab-g x → let (p , q) = (stab-g (G.inv g σ.▷ x)) in subst (λ - → ⟨ S (G.inv g σ.▷ x) ⇔ S - ⟩) {! σ.action-inv !} (q , p) }
 
     StabilizerGroup' : Group (ℓ-max ℓG ℓX)
-    StabilizerGroup' = StabilizerSubroup' .fst
+    StabilizerGroup' = Subgroup.sub StabilizerSubroup'
 
     SubsetAction' : Action StabilizerGroup' (ℙ→Σ S)
     SubsetAction' .Action.action (g , p) = Σ-cong-equiv (σ.action g) (stab-act g p)
     SubsetAction' .Action.pres· (g , p) (h , q) = equivEq $ funExt λ (x , _) → Σ≡Prop (str ∘ S) $ σ.action-comp g h ≡$ x
+
+    isFaithfulSubsetAction' : isFaithful σ → isFaithful SubsetAction'
+    isFaithfulSubsetAction' is-faithful-σ {g = g , p} {h = h , q} Σ-cong-equiv-path = Σ≡Prop isPropIsStabilizer' goal where
+      goal : g ≡ h
+      goal = is-faithful-σ $ equivEq $ funExt λ x → cong fst $ cong equivFun Σ-cong-equiv-path ≡$ (x , {!q x!})
 
   SetwiseStabilizerSubgroup : (S : ℙ ⟨ X ⟩) → Subgroup G (ℓ-max ℓG (ℓ-suc ℓX))
   SetwiseStabilizerSubgroup = StabilizerSubgroup

@@ -20,6 +20,9 @@ private
 equivPathEquiv : (e f : A ≃ B) → (equivFun e ≡ equivFun f) ≃ (e ≡ f)
 equivPathEquiv e f = Σ≡PropEquiv isPropIsEquiv
 
+equivExt : {e f : A ≃ B} → (∀ x → equivFun e x ≡ equivFun f x) → e ≡ f
+equivExt = equivEq ∘ funExt
+
 pathToEquivSym : ∀ {ℓ} {A B : Type ℓ}
   → (p : A ≡ B)
   → pathToEquiv (sym p) ≡ invEquiv (pathToEquiv p)

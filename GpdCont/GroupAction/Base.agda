@@ -1,6 +1,7 @@
 module GpdCont.GroupAction.Base where
 
 open import GpdCont.Prelude hiding (_▷_)
+open import GpdCont.Equiv
 open import GpdCont.Univalence
 open import GpdCont.Group.SymmetricGroup using (𝔖)
 
@@ -88,6 +89,7 @@ module ActionProperties {ℓX} {G : Group ℓ} {X : hSet ℓX} (σ : Action G X)
     open G using (_·_)
 
     module σ = Action σ
+    open σ using (_▷_ ; _▷⁻_)
 
   open IsGroupHom (Action→GroupHom σ .snd) using (pres1 ; presinv) public
 
@@ -97,8 +99,14 @@ module ActionProperties {ℓX} {G : Group ℓ} {X : hSet ℓX} (σ : Action G X)
   action-comp : ∀ g h → σ ⁺ (g · h) ≡ σ ⁺ h ∘ σ ⁺ g
   action-comp g h = cong equivFun $ σ.pres· g h
 
+  action-comp-ext : ∀ g h x → (g · h) ▷ x ≡ h ▷ (g ▷ x)
+  action-comp-ext g h = action-comp g h ≡$_
+
   action-inv : ∀ g → (σ ⁺ G.inv g) ≡ σ ⁻ g
   action-inv g = cong equivFun (presinv g)
+
+  action-inv-1-id : σ ⁻ G.1g ≡ id ⟨ X ⟩
+  action-inv-1-id = sym (action-inv G.1g) ∙∙ cong (σ ⁺_) G.inv1g ∙∙ action-1-id
 
   action-inv-inv : ∀ g → (σ ⁻ G.inv g) ≡ σ ⁺ g
   action-inv-inv g = sym (action-inv (G.inv g)) ∙ cong (σ ⁺_) (G.invInv g)
@@ -111,11 +119,20 @@ module ActionProperties {ℓX} {G : Group ℓ} {X : hSet ℓX} (σ : Action G X)
     σ ⁺ (G.inv g) ∘ σ ⁺ (G.inv h) ≡[ i ]⟨ action-inv g i ∘ action-inv h i ⟩
     σ ⁻ g ∘ σ ⁻ h ∎
 
+  action-inv-comp-ext : ∀ g h x → (g · h) ▷⁻ x ≡ g ▷⁻ (h ▷⁻ x)
+  action-inv-comp-ext g h = action-inv-comp g h ≡$_
+
   action-inv-comp₂ : ∀ g h k → σ ⁻ (g · h · k) ≡ (σ ⁻ g) ∘ (σ ⁻ h) ∘ (σ ⁻ k)
   action-inv-comp₂ g h k = action-inv-comp g (h · k) ∙ cong (σ ⁻ g ∘_) (action-inv-comp h k)
 
+  action-inv-adj-equiv : ∀ g {x y : ⟨ X ⟩} → ((σ ⁺ g) x ≡ y) ≃ ((σ ⁻ g) y ≡ x)
+  action-inv-adj-equiv g {x} {y} = invEquiv (equivAdjointEquiv (σ.action g) {a = x} {b = y}) ∙ₑ symEquiv
+
   action-inv-adj : ∀ g {x y : ⟨ X ⟩} → (σ ⁺ g) x ≡ y → (σ ⁻ g) y ≡ x
   action-inv-adj g {x} {y} p = sym $ invEq (equivAdjointEquiv (σ.action g)) p
+
+  action-cancel-left' : ∀ g → (σ ⁻ g) ⋆ (σ ⁺ g) ≡ id ⟨ X ⟩
+  action-cancel-left' g = funExt (λ x → secEq (σ.action g) x)
 
   action-cancel-right' : ∀ g → (σ ⁺ g) ⋆ (σ ⁻ g) ≡ id ⟨ X ⟩
   action-cancel-right' g = funExt (λ x → retEq (σ.action g) x)

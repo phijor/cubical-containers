@@ -1,7 +1,7 @@
 {-# OPTIONS --lossy-unification #-}
 open import GpdCont.Prelude hiding (_▷_)
 
-module GpdCont.ActionContainer.Composition (ℓ : Level) where
+module GpdCont.ActionContainer.CompositionFin (ℓ : Level) where
 
 open import GpdCont.Prelude.Square
 open import GpdCont.Prelude.Notation using (_>>=_ ; pure)
@@ -32,60 +32,77 @@ open import Cubical.Foundations.Univalence
 open import Cubical.Functions.Logic using (⊤ ; ⇔toPath)
 open import Cubical.Functions.Embedding
 open import Cubical.Functions.FunExtEquiv
+open import Cubical.Data.Nat
 open import Cubical.Data.Unit
 open import Cubical.Data.Sigma
+import      Cubical.Data.Empty as Empty
+open import Cubical.Data.Sum
+import      Cubical.Data.SumFin as Fin
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 
+private
+  variable
+    ℓ₀ : Level
+    A B C : Type ℓ₀
 
-module _ where
-  open import GpdCont.FinOrd
-  open import Cubical.Data.Bool
-  import      Cubical.Data.SumFin as Fin
-  open import Cubical.Data.FinSet.Binary.Large
+  Fin : ℕ → hSet _
+  Fin n .fst = Fin.Fin n
+  Fin n .snd = Fin.isSetFin {n}
 
-  -- Bℤ₂ : hGroup ℓ-zero
-  -- ⟨ Bℤ₂ ⟩ᵗ = Binary
-  -- Bℤ₂ .hGroup.hgroup-str .hGroupStr.pt₀ = ℕ₂
-  -- Bℤ₂ .hGroup.hgroup-str .hGroupStr.is-connected = {! !}
-  -- Bℤ₂ .hGroup.hgroup-str .hGroupStr.is-groupoid = isGroupoidBinary
+  sum : (n : ℕ) → (f : ⟨ Fin n ⟩ → ℕ) → ℕ
+  sum zero f = 0
+  sum (suc n) f = sum n (f ∘ Fin.fsuc) + f Fin.fzero
 
-  Bℤ₂ : hGroup (ℓ-suc ℓ-zero)
-  ⟨ Bℤ₂ ⟩ᵗ = Binary _
-  Bℤ₂ .hGroup.hgroup-str .hGroupStr.pt₀ = Base
-  Bℤ₂ .hGroup.hgroup-str .hGroupStr.is-connected = {! !}
-  Bℤ₂ .hGroup.hgroup-str .hGroupStr.is-groupoid = isGroupoidBinary
+  sum-permute-snd : ∀ {n} (f : ⟨ Fin n ⟩ → ℕ)
+    → (π : ⟨ Fin n ⟩ ≃ ⟨ Fin n ⟩)
+    → sum n (f ∘ equivFun π) ≡ sum n f
+  sum-permute-snd {(zero)} f π = refl
+  sum-permute-snd {suc n} f π = {! !}
 
-  swap : hAction ℓ-zero Bℤ₂
-  swap (B , is-bin) = B , {! !}
+  ⊎-left-equiv : (A ≃ B) → (A ⊎ C) ≃ (B ⊎ C)
+  ⊎-left-equiv e = isoToEquiv $ ⊎Iso (equivToIso e) idIso
 
-  swap-ord : ∀ g → isFinOrd ⟨ swap g ⟩
-  swap-ord (B , is-bin) .fst = 2
-  swap-ord (B , is-bin) .snd = PT.rec→Set (isOfHLevel≃ 2 {! !} {! !}) f 2-const is-bin
-    where
-      f : Bool ≃ B → B ≃ ⟨ Fin 2 ⟩
-      f Bool≃B = invEquiv (Fin.SumFin2≃Bool ∙ₑ Bool≃B)
+  sum-Fin-equiv : ∀ {n} {f : ⟨ Fin n ⟩ → ℕ}
+    → ⟨ Fin (sum n f) ⟩ ≃ (Σ[ k ∈ ⟨ Fin n ⟩ ] ⟨ Fin (f k) ⟩)
+  sum-Fin-equiv {n = zero} {f} = Empty.uninhabEquiv (id _) (uncurry λ ())
+  sum-Fin-equiv {n = suc n} {f} =
+    ⟨ Fin (_ + _) ⟩
+      ≃⟨ invEquiv (Fin.SumFin⊎≃ _ _) ⟩
+    ⟨ Fin (sum n (f ∘ Fin.fsuc)) ⟩ ⊎ ⟨ Fin (f Fin.fzero) ⟩
+      ≃⟨ ⊎-left-equiv (sum-Fin-equiv {n = n} {f = f ∘ Fin.fsuc}) ⟩
+    (Σ[ k ∈ ⟨ Fin n ⟩ ] ⟨ Fin (f (inr k)) ⟩) ⊎ ⟨ Fin (f Fin.fzero) ⟩
+      ≃⟨ ⊎-swap-≃ ⟩
+    ⟨ Fin (f Fin.fzero) ⟩ ⊎ (Σ[ k ∈ ⟨ Fin n ⟩ ] ⟨ Fin (f (inr k)) ⟩)
+      ≃⟨ ⊎-left-equiv $ invEquiv (Σ-contractFst isContrUnit) ⟩
+    (Σ[ t ∈ Unit ] ⟨ Fin (f (inl t)) ⟩) ⊎ (Σ[ k ∈ ⟨ Fin n ⟩ ] ⟨ Fin (f (inr k)) ⟩)
+      ≃⟨ invEquiv Σ⊎≃ ⟩
+    (Σ[ k ∈ ⟨ Fin (suc n) ⟩ ] ⟨ Fin (f k) ⟩)
+      ≃∎
 
-      2-const : ∀ e e' → f e ≡ f e'
-      2-const e e' = {! !}
-
-
-
-{-
 module ComposeFix
   (S T : Type ℓ)
   (is-set-S : isSet S)
   (is-set-T : isSet T)
   (G : S → hGroup ℓ)
   (H : T → hGroup ℓ)
-  (P : (s : S) → hAction ℓ (G s))
-  (Q : (t : T) → hAction ℓ (H t))
+  (♯ᴾ : (s : S) → ⟨ G s ⟩ᵗ → ℕ)
+  (♯ꟴ : (t : T) → ⟨ H t ⟩ᵗ → ℕ)
   where
 
   private
     module G {s} = hGroup (G s)
     module H {t} = hGroup (H t)
+
+    P : (s : S) (g : ⟨ G s ⟩ᵗ) → hSet _
+    P s g = Fin $ ♯ᴾ s g
+
+    Q : (t : T) (h : ⟨ H t ⟩ᵗ) → hSet _
+    Q t h = Fin $ ♯ꟴ t h
+
     _▷_ : ∀ {s} {g₀ g₁ : ⟨ G s ⟩ᵗ} → g₀ ≡ g₁ → ⟨ P s g₀ ⟩ → ⟨ P s g₁ ⟩
     γ ▷ p = subst (λ g → ⟨ P _ g ⟩) γ p
+
+  module _ (s : S) where
 
   Shᴰ : S → Type ℓ
   Shᴰ s = ∥ Σ[ g ∈ ⟨ G s ⟩ᵗ ] (⟨ P s g ⟩ → T) ∥₂
@@ -93,6 +110,7 @@ module ComposeFix
   Sh : Type ℓ
   Sh = Σ S Shᴰ
 
+{-
   Im : Sh → ℙ T
   Im = uncurry λ s → ST.rec isSetℙ λ where
     (g , f) t → (∃[ p ∈ ⟨ P s g ⟩ ] f p ≡ t) , isProp∃ _ _
@@ -625,4 +643,4 @@ module ComposeFix
                 ≃
               (Σ[ gr ∈ ⟨ Gr (s , ST.∣ g , f ∣₂) ⟩ᵗ ] (⟨ Ps _ gr ⟩ → X))
           goal = isoToEquiv goal-iso
-          -}
+-}

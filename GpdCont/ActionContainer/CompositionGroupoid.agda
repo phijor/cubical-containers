@@ -36,41 +36,6 @@ open import Cubical.Data.Unit
 open import Cubical.Data.Sigma
 open import Cubical.HITs.SetTruncation as ST using (∥_∥₂)
 
-
-module _ where
-  open import GpdCont.FinOrd
-  open import Cubical.Data.Bool
-  import      Cubical.Data.SumFin as Fin
-  open import Cubical.Data.FinSet.Binary.Large
-
-  -- Bℤ₂ : hGroup ℓ-zero
-  -- ⟨ Bℤ₂ ⟩ᵗ = Binary
-  -- Bℤ₂ .hGroup.hgroup-str .hGroupStr.pt₀ = ℕ₂
-  -- Bℤ₂ .hGroup.hgroup-str .hGroupStr.is-connected = {! !}
-  -- Bℤ₂ .hGroup.hgroup-str .hGroupStr.is-groupoid = isGroupoidBinary
-
-  Bℤ₂ : hGroup (ℓ-suc ℓ-zero)
-  ⟨ Bℤ₂ ⟩ᵗ = Binary _
-  Bℤ₂ .hGroup.hgroup-str .hGroupStr.pt₀ = Base
-  Bℤ₂ .hGroup.hgroup-str .hGroupStr.is-connected = {! !}
-  Bℤ₂ .hGroup.hgroup-str .hGroupStr.is-groupoid = isGroupoidBinary
-
-  swap : hAction ℓ-zero Bℤ₂
-  swap (B , is-bin) = B , {! !}
-
-  swap-ord : ∀ g → isFinOrd ⟨ swap g ⟩
-  swap-ord (B , is-bin) .fst = 2
-  swap-ord (B , is-bin) .snd = PT.rec→Set (isOfHLevel≃ 2 {! !} {! !}) f 2-const is-bin
-    where
-      f : Bool ≃ B → B ≃ ⟨ Fin 2 ⟩
-      f Bool≃B = invEquiv (Fin.SumFin2≃Bool ∙ₑ Bool≃B)
-
-      2-const : ∀ e e' → f e ≡ f e'
-      2-const e e' = {! !}
-
-
-
-{-
 module ComposeFix
   (S T : Type ℓ)
   (is-set-S : isSet S)
@@ -625,4 +590,3 @@ module ComposeFix
                 ≃
               (Σ[ gr ∈ ⟨ Gr (s , ST.∣ g , f ∣₂) ⟩ᵗ ] (⟨ Ps _ gr ⟩ → X))
           goal = isoToEquiv goal-iso
-          -}

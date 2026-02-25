@@ -243,8 +243,8 @@ module Path where
   encodeIso : (a : ⟨ U ⟩) (X : Subᵁ) → Iso (codeᵁ a ≡ X) ⟨ Code a X ⟩
   encodeIso a X .Iso.fun = encode a X
   encodeIso a X .Iso.inv = decode a X
-  encodeIso a X .Iso.rightInv = encode∘decode a X
-  encodeIso a X .Iso.leftInv = decode∘encode a X
+  encodeIso a X .Iso.sec = encode∘decode a X
+  encodeIso a X .Iso.ret = decode∘encode a X
 
   encodeEquiv : (a : ⟨ U ⟩) (X : Subᵁ) → (codeᵁ a ≡ X) ≃ ⟨ Code a X ⟩
   encodeEquiv a X = isoToEquiv (encodeIso a X)

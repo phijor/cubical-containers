@@ -87,10 +87,10 @@ module Fix (F : Cont) where
   μFixShapeIso : Iso (Shape (Fix μFix)) (Shape μFix)
   μFixShapeIso .Iso.fun = foldShape
   μFixShapeIso .Iso.inv = unfoldShape
-  μFixShapeIso .Iso.rightInv (sup-W (inl tt*) -) = cong (sup-W _) $ funExt λ ()
-  μFixShapeIso .Iso.rightInv (sup-W (inr s) f) = refl
-  μFixShapeIso .Iso.leftInv (inl tt*) = refl
-  μFixShapeIso .Iso.leftInv (inr (s , f)) = refl
+  μFixShapeIso .Iso.sec (sup-W (inl tt*) -) = cong (sup-W _) $ funExt λ ()
+  μFixShapeIso .Iso.sec (sup-W (inr s) f) = refl
+  μFixShapeIso .Iso.ret (inl tt*) = refl
+  μFixShapeIso .Iso.ret (inr (s , f)) = refl
 
 
   μFixPosIso : (s* : Shape (Fix μFix)) → Iso (μFixPos (foldShape s*)) (Pos (Fix μFix) s*)
@@ -98,14 +98,14 @@ module Fix (F : Cont) where
     stop-iso : Iso (μFixPos' (inl tt*)) Unit*
     stop-iso .Iso.fun = const tt*
     stop-iso .Iso.inv = const stop
-    stop-iso .Iso.rightInv _ = refl
-    stop-iso .Iso.leftInv stop = refl
+    stop-iso .Iso.sec _ = refl
+    stop-iso .Iso.ret stop = refl
   μFixPosIso (inr (s , f)) = next-iso where
     next-iso : Iso (μFixPos' (inr (s , f))) (Σ[ p ∈ F .Pos s ] μFixPos' (unfoldShape (f p)))
     next-iso .Iso.fun (next p q) = p , q
     next-iso .Iso.inv (p , q) = next p q
-    next-iso .Iso.rightInv _ = refl
-    next-iso .Iso.leftInv (next p q) = refl
+    next-iso .Iso.sec _ = refl
+    next-iso .Iso.ret (next p q) = refl
 
   -- TODO: Call this fix-sup or something; rename μ-init to fold
   μFix-fold : Hom (Fix μFix) μFix

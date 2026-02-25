@@ -43,8 +43,8 @@ module _ where
   flipIso : ∀ {C : A → B → Type ℓ} → Iso ((a : A) (b : B) → C a b) ((b : B) (a : A) → C a b)
   flipIso .Iso.fun = flip
   flipIso .Iso.inv = flip
-  flipIso .Iso.rightInv _ = refl
-  flipIso .Iso.leftInv _ = refl
+  flipIso .Iso.sec _ = refl
+  flipIso .Iso.ret _ = refl
 
   flipEquiv : ∀ {C : A → B → Type ℓ} → ((a : A) (b : B) → C a b) ≃ ((b : B) (a : A) → C a b)
   flipEquiv {C} = strictIsoToEquiv (flipIso {C = C})
@@ -316,8 +316,8 @@ module _ where
     doubleCompPathIso : Iso (x ≡ z) (y ≡ w)
     doubleCompPathIso .Iso.fun = sym p ∙∙_∙∙ q
     doubleCompPathIso .Iso.inv = p ∙∙_∙∙ sym q
-    doubleCompPathIso .Iso.rightInv = doubleCompPath-cancel p q
-    doubleCompPathIso .Iso.leftInv = doubleCompPath-cancel (sym p) (sym q)
+    doubleCompPathIso .Iso.sec = doubleCompPath-cancel p q
+    doubleCompPathIso .Iso.ret = doubleCompPath-cancel (sym p) (sym q)
 
     doubleCompPathEquiv : (x ≡ z) ≃ (y ≡ w)
     doubleCompPathEquiv .fst = sym p ∙∙_∙∙ q

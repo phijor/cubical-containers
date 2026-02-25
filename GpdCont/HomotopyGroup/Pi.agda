@@ -103,8 +103,8 @@ module Curry {ℓK ℓL} {K : Type ℓK} {L : K → Type ℓL} (G : (k : K) → 
       curry-iso : Iso ⟨ ΠGroup K (λ k → ΠGroup (L k) (G k)) ⟩ᵗ ⟨ ΠGroup (Σ K L) (uncurry G) ⟩ᵗ
       curry-iso .Iso.fun = uncurryᴳ
       curry-iso .Iso.inv = curryᴳ
-      curry-iso .Iso.rightInv (γ , γ-conn) = ΠPath (Σ K L) (uncurry G) λ _ → refl
-      curry-iso .Iso.leftInv (γ , γ-conn) = ΠPath K (λ k → ΠGroup (L k) (G k)) λ where
+      curry-iso .Iso.sec (γ , γ-conn) = ΠPath (Σ K L) (uncurry G) λ _ → refl
+      curry-iso .Iso.ret (γ , γ-conn) = ΠPath K (λ k → ΠGroup (L k) (G k)) λ where
         k → ΠPath (L k) (G k) λ l → refl
 
       curry-equiv : ⟨ ΠGroup K (λ b → ΠGroup (L b) (G b)) ⟩ᵗ ≃ ⟨ ΠGroup (Σ K L) (uncurry G) ⟩ᵗ
@@ -165,8 +165,8 @@ module _ {ℓ} (K : Type ℓ) (G : K → hGroup ℓ) (H : hGroup ℓ) where
   isProductΠGroup = isoToIsEquiv λ where
     .Iso.fun → Π-universal
     .Iso.inv → Π-universal⁻
-    .Iso.leftInv φ → hGroupHom≡ H (ΠGroup K G) (funExt λ h → Σ≡Prop (λ _ → PT.isPropPropTrunc) refl) {! !}
-    .Iso.rightInv → {! !}
+    .Iso.ret φ → hGroupHom≡ H (ΠGroup K G) (funExt λ h → Σ≡Prop (λ _ → PT.isPropPropTrunc) refl) {! !}
+    .Iso.sec → {! !}
 
 -- private
 --   test : (K : Type ℓ) (G : K → hGroup ℓ) → ⟨ ΠGroup K G .fst ⟩ ≡ Σ ((k : K) → fst (G k .fst)) (λ x → ∣ x ∣₂ ≡ ∣ (λ k → StrictGroupoidStr.pt (snd (G k .fst)) (G k .snd .fst)) ∣₂)

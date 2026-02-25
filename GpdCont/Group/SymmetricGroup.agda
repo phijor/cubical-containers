@@ -12,7 +12,7 @@ open import Cubical.HITs.PropositionalTruncation as PT using (∥_∥₁)
 import Cubical.Algebra.SymmetricGroup as SymmetricGroup
 
 𝔖 : ∀ {ℓ} (X : hSet ℓ) → Group ℓ
-𝔖 (X , is-set-X) = SymmetricGroup.Symmetric-Group X is-set-X
+𝔖 (X , is-set-X) = SymmetricGroup.SymGroup X is-set-X
 
 module _ {ℓX ℓY} (X : hSet ℓX) (Y : hSet ℓY) where
   private

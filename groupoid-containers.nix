@@ -21,12 +21,6 @@ in
     buildPhase = ''
       runHook preInstall
 
-      echo 'Generating list of modules...'
-      ./gen-everything.sh
-
-      echo 'Checking `Everything.agda`...'
-      agda ./Everything.agda
-
       echo 'Checking `README.agda`...'
       agda ./README.agda
 

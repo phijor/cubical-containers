@@ -47,8 +47,8 @@ module _ {ℓ} (Q : QCont ℓ) where
     the-iso : Iso _ _
     the-iso .Iso.fun (symm σ) = reflEq , σ
     the-iso .Iso.inv (reflEq , σ) = symm σ
-    the-iso .Iso.rightInv (reflEq , σ) = refl
-    the-iso .Iso.leftInv (symm σ) = refl
+    the-iso .Iso.sec (reflEq , σ) = refl
+    the-iso .Iso.ret (symm σ) = refl
 
   Shape[-,-]Iso : ∀ {s t} → Iso Shape[ s , t ] ((s ≡ t) × Symm s)
   Shape[-,-]Iso {s} {t} =
@@ -92,8 +92,8 @@ module _ {ℓ} (Q : QCont ℓ) where
     --   nat-iso : Iso (Unit* {ℓ}) ⟨ Eval Q ⟅ PosSet s ⟆ ⟩
     --   nat-iso .Iso.fun = λ _ → EvalFiller.ob s
     --   nat-iso .Iso.inv = λ _ → tt*
-    --   nat-iso .Iso.rightInv = QEval.⟦ Q ⟧ᵗ-elimProp (λ x → (str $ Eval Q ⟅ PosSet s ⟆) _ _) λ {t} label → {! !}
-    --   nat-iso .Iso.leftInv tt* = refl
+    --   nat-iso .Iso.sec = QEval.⟦ Q ⟧ᵗ-elimProp (λ x → (str $ Eval Q ⟅ PosSet s ⟆) _ _) λ {t} label → {! !}
+    --   nat-iso .Iso.ret tt* = refl
 
   LanExtension : Extension.Extension {D = SET ℓ} K₁
   LanExtension .Lan.Extension.ext = Eval Q

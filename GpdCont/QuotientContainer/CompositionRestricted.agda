@@ -382,8 +382,8 @@ module _
       f f' → ∃-rec (is-set-T _ _) λ where
         g f≡f'∘g → (f≡f'∘g ≡$ p₀) ∙ cong f' (_ ≡p₀)
     sh-Iso .Iso.inv t = s₀ , [ const t ]
-    sh-Iso .Iso.rightInv t = refl′ t
-    sh-Iso .Iso.leftInv = uncurry λ s → SQ.elimProp (λ _ → isSetSh _ _) goal module sh-Iso where
+    sh-Iso .Iso.sec t = refl′ t
+    sh-Iso .Iso.ret = uncurry λ s → SQ.elimProp (λ _ → isSetSh _ _) goal module sh-Iso where
       module _ {s} (f : ⟨ P s ⟩ → T) where
         opaque
           quot-path-J : ∀ {s} (p : s₀ ≡ s) → (f : ⟨ P s ⟩ → T) → PathP (λ i → (⟨ P (p i) ⟩ → T) / _∼_) [ const (f p₀) ] [ f ]

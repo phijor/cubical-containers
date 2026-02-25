@@ -265,8 +265,8 @@ module _ where
 
   isIso-η : ∀ G → isIso GroupCategory (η₀ G)
   isIso-η G .isIso.inv = Delooping.unloopGroupHom G
-  isIso-η G .isIso.sec = GroupHom≡ $ funExt $ Delooping.encodeDecodeIso G .Iso.leftInv
-  isIso-η G .isIso.ret = GroupHom≡ $ funExt $ Delooping.encodeDecodeIso G {y = Delooping.⋆} .Iso.rightInv
+  isIso-η G .isIso.sec = GroupHom≡ $ funExt $ Delooping.encodeDecodeIso G .Iso.ret
+  isIso-η G .isIso.ret = GroupHom≡ $ funExt $ Delooping.encodeDecodeIso G {y = Delooping.⋆} .Iso.sec
 
   η : 𝟙⟨ GroupCategory ⟩ ≅ᶜ Ω ∘F 𝔹
   η .NT.NatIso.trans .NT.NatTrans.N-ob = η₀

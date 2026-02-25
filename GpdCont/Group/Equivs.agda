@@ -16,8 +16,8 @@ module _ {ℓ} (G : Group ℓ) where
   mulRightIso : (g : ⟨ G ⟩) → Iso ⟨ G ⟩ ⟨ G ⟩
   mulRightIso g .Iso.fun = _· g
   mulRightIso g .Iso.inv = _· (inv g)
-  mulRightIso g .Iso.rightInv h = sym (·Assoc h (inv g) g) ∙ cong (h ·_) (·InvL g) ∙ ·IdR h
-  mulRightIso g .Iso.leftInv h = sym (·Assoc h g (inv g)) ∙ cong (h ·_) (·InvR g) ∙ ·IdR h
+  mulRightIso g .Iso.sec h = sym (·Assoc h (inv g) g) ∙ cong (h ·_) (·InvL g) ∙ ·IdR h
+  mulRightIso g .Iso.ret h = sym (·Assoc h g (inv g)) ∙ cong (h ·_) (·InvR g) ∙ ·IdR h
 
   mulRightEquiv : (g : ⟨ G ⟩) → ⟨ G ⟩ ≃ ⟨ G ⟩
   mulRightEquiv g = isoToEquiv $ mulRightIso g
@@ -28,8 +28,8 @@ module _ {ℓ} (G : Group ℓ) where
   mulLeftIso : (g : ⟨ G ⟩) → Iso ⟨ G ⟩ ⟨ G ⟩
   mulLeftIso g .Iso.fun = g ·_
   mulLeftIso g .Iso.inv = (inv g) ·_
-  mulLeftIso g .Iso.rightInv h = ·Assoc g (inv g) h ∙ cong (_· h) (·InvR g) ∙ ·IdL h
-  mulLeftIso g .Iso.leftInv h = ·Assoc (inv g) g h ∙ cong (_· h) (·InvL g) ∙ ·IdL h
+  mulLeftIso g .Iso.sec h = ·Assoc g (inv g) h ∙ cong (_· h) (·InvR g) ∙ ·IdL h
+  mulLeftIso g .Iso.ret h = ·Assoc (inv g) g h ∙ cong (_· h) (·InvL g) ∙ ·IdL h
 
   mulLeftEquiv : (g : ⟨ G ⟩) → ⟨ G ⟩ ≃ ⟨ G ⟩
   mulLeftEquiv g = isoToEquiv $ mulLeftIso g

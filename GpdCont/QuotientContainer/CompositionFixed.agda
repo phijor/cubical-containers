@@ -138,8 +138,8 @@ private
       convert : ∀ {n} → Iso ⟨ Fin n ⟩ (FinR.Fin n)
       convert .Iso.fun = to
       convert .Iso.inv = from
-      convert .Iso.rightInv = {! !}
-      convert .Iso.leftInv = {! !}
+      convert .Iso.sec = {! !}
+      convert .Iso.ret = {! !}
 
       convert-equiv : ∀ {n} → ⟨ Fin n ⟩ ≃ (FinR.Fin n)
       convert-equiv = isoToEquiv convert

@@ -436,7 +436,7 @@ module ComposeFix
           equiv = isoToEquiv λ where
             .Iso.fun ((t , p) , q) → {!q!}
             .Iso.inv → {! !}
-            .Iso.leftInv → {! !}
+            .Iso.ret → {! !}
 
   module Monoidal (X : Type ℓ) (choice : ∀ s g → ST.satChoice ⟨ P s g ⟩ ℓ) where
     module P {s} {g} = ST.Choice (choice s g)
@@ -617,8 +617,8 @@ module ComposeFix
               (Σ[ gr ∈ ⟨ Gr (s , ST.∣ g , f ∣₂) ⟩ᵗ ] (⟨ Ps _ gr ⟩ → X))
           goal-iso .Iso.fun = fwd
           goal-iso .Iso.inv = bwd
-          goal-iso .Iso.rightInv = {! !}
-          goal-iso .Iso.leftInv = {! !}
+          goal-iso .Iso.sec = {! !}
+          goal-iso .Iso.ret = {! !}
 
           goal :
               ((p : ⟨ P s g ⟩) → Σ[ h ∈ ⟨ H (f p) ⟩ᵗ ] (⟨ Q (f p) h ⟩ → X))

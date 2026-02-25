@@ -131,8 +131,8 @@ module _ {ℓ} {G : Group ℓ} {X : hSet ℓ} (σ : Action G X) where
   associatedBundleComponents-Orbits-Iso : Iso ∥ Σ[ x ∈ 𝔹G ] ⟨ associatedBundle σ x ⟩ ∥₂ Orbits
   associatedBundleComponents-Orbits-Iso .Iso.fun = ST.rec isSetOrbits $ uncurry associatedBundleComponents→Orbits
   associatedBundleComponents-Orbits-Iso .Iso.inv = Orbits→associatedBundleComponents
-  associatedBundleComponents-Orbits-Iso .Iso.rightInv = SQ.elimProp (λ orbit → isSetOrbits _ orbit) λ _ → refl
-  associatedBundleComponents-Orbits-Iso .Iso.leftInv = ST.elim (λ comp → ST.isSetPathImplicit) $ uncurry goal where
+  associatedBundleComponents-Orbits-Iso .Iso.sec = SQ.elimProp (λ orbit → isSetOrbits _ orbit) λ _ → refl
+  associatedBundleComponents-Orbits-Iso .Iso.ret = ST.elim (λ comp → ST.isSetPathImplicit) $ uncurry goal where
     goal : (x : 𝔹G) → (y : ⟨ associatedBundle σ x ⟩) → Orbits→associatedBundleComponents (associatedBundleComponents→Orbits x y) ≡ ST.∣ x , y ∣₂
     goal = 𝔹G.elimProp (λ x → HLevels.isPropΠ λ y → ST.isSetSetTrunc _ _) λ _ → refl
 

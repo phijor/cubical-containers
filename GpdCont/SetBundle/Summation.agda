@@ -64,8 +64,8 @@ private
       rel-iso : Iso (Famᴰ₂ SetBundle ℓ yᴰ fᴰ gᴰ) (fᴰ ≡ gᴰ)
       rel-iso .Iso.fun xs = funExt λ x₀ → Sigma.ΣPathP (xs x₀)
       rel-iso .Iso.inv fᴰ≡gᴰ x₀ = Sigma.PathPΣ (funExt⁻ fᴰ≡gᴰ x₀)
-      rel-iso .Iso.leftInv _ = refl
-      rel-iso .Iso.rightInv _ = refl
+      rel-iso .Iso.ret _ = refl
+      rel-iso .Iso.sec _ = refl
 
     rel≃ΣPathP : ∀ {x y} {f g : hom x y} → rel f g ≃ (Σ[ p ∈ f .fst ≡ g .fst ] relPathP (y .snd) p (f .snd) (g .snd))
     rel≃ΣPathP {y = y , yᴰ} {f = f , fᴰ} {g = g , gᴰ} = Sigma.Σ-cong-equiv
@@ -228,8 +228,8 @@ isLocallyFullyFaithfulΣ-at-connBase (J , X) (K , Y) conn-X (u , f) (v , g) = is
   relPathP-iso .Iso.fun (p , pᴰ) .snd i = λ j → pᴰ i j .snd
   relPathP-iso .Iso.inv ((p , pᴰ₁) , pᴰ₂) .fst = p
   relPathP-iso .Iso.inv ((p , pᴰ₁) , pᴰ₂) .snd i = λ j → pᴰ₁ i j , pᴰ₂ i j
-  relPathP-iso .Iso.rightInv _ = refl
-  relPathP-iso .Iso.leftInv _ = refl
+  relPathP-iso .Iso.sec _ = refl
+  relPathP-iso .Iso.ret _ = refl
 
   relPathP-equiv : _ ≃ _
   relPathP-equiv = strictIsoToEquiv relPathP-iso
@@ -259,8 +259,8 @@ isLocallyFullyFaithfulΣ-at-connBase (J , X) (K , Y) conn-X (u , f) (v , g) = is
       funext-step : Iso _ _
       funext-step .Iso.fun = λ { (p , q) → (λ j i → p i j) , λ j b i → q i j b }
       funext-step .Iso.inv = λ { (p , q) → (λ i j → p j i) , λ i j b → q j b i }
-      funext-step .Iso.rightInv = λ _ → refl
-      funext-step .Iso.leftInv = λ _ → refl
+      funext-step .Iso.sec = λ _ → refl
+      funext-step .Iso.ret = λ _ → refl
 
       connectivity-step : Iso _ _
       connectivity-step = codomainIsoDep (λ j → Sigma.Σ-cong-iso-fst $ equivToIso (connectivity-lemma j))

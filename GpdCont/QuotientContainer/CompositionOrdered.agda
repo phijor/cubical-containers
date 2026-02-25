@@ -74,10 +74,10 @@ private
   totalIso f .Iso.fun x .snd .fst = x
   totalIso f .Iso.fun x .snd .snd = refl
   totalIso f .Iso.inv (y , x , fx≡y) = x
-  totalIso f .Iso.rightInv (y , x , fx≡y) i .fst = fx≡y i
-  totalIso f .Iso.rightInv (y , x , fx≡y) i .snd .fst = x
-  totalIso f .Iso.rightInv (y , x , fx≡y) i .snd .snd j = fx≡y (i ∧ j)
-  totalIso f .Iso.leftInv _ = refl
+  totalIso f .Iso.sec (y , x , fx≡y) i .fst = fx≡y i
+  totalIso f .Iso.sec (y , x , fx≡y) i .snd .fst = x
+  totalIso f .Iso.sec (y , x , fx≡y) i .snd .snd j = fx≡y (i ∧ j)
+  totalIso f .Iso.ret _ = refl
 
 module Composition
   (S T : Type)

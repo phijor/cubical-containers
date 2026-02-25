@@ -171,10 +171,10 @@ module _ (K : hSet ℓ) (C Z : ActionContainer ℓ) where
   konst-curry-Iso : Iso (Morphism Z [konst K , C ]) (Morphism (konst K ⊗ Z) C)
   konst-curry-Iso .Iso.fun = konst-uncurry
   konst-curry-Iso .Iso.inv = konst-curry
-  konst-curry-Iso .Iso.rightInv f× = Morphism≡ _ _ refl (funExt₂ pos-path) refl where
+  konst-curry-Iso .Iso.sec f× = Morphism≡ _ _ refl (funExt₂ pos-path) refl where
     pos-path : ∀ ((k , z) : ⟨ K ⟩ × ⟨ Z.ShapeSet ⟩) (c-pos : C.Pos (shape-map f× (k , z))) → Sum.inr (pos-map (konst-curry f×) z (k , c-pos)) ≡ pos-map f× (k , z) c-pos
-    pos-path (k , z) c-pos = Sum.⊎-IdL-⊥*-Iso .Iso.leftInv (pos-map (mor-str f×) (k , z) c-pos)
-  konst-curry-Iso .Iso.leftInv f→ = Morphism≡ _ _ refl refl refl
+    pos-path (k , z) c-pos = Sum.⊎-IdL-⊥*-Iso .Iso.ret (pos-map (mor-str f×) (k , z) c-pos)
+  konst-curry-Iso .Iso.ret f→ = Morphism≡ _ _ refl refl refl
 
 konst-exponential : (K : hSet ℓ) (C : ActionContainer ℓ) → Exponential (Act {ℓ}) (konst K) C (binProducts $ konst K)
 konst-exponential K C = K⇒C where

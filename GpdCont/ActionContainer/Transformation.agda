@@ -254,11 +254,11 @@ Transformation→TransformationP (refl-shape u F F′ α) = αP where
 TransformationP-Transformation-Iso : ∀ {F F′ : Morphism} → Iso (TransformationP F F′) (Transformation F F′)
 TransformationP-Transformation-Iso .Iso.fun = TransformationP→Transformation
 TransformationP-Transformation-Iso .Iso.inv = Transformation→TransformationP
-TransformationP-Transformation-Iso {F = .(u ▷[ F ])} {F′ = .(u ▷[ F′ ])} .Iso.rightInv (refl-shape u F F′ α) =
+TransformationP-Transformation-Iso {F = .(u ▷[ F ])} {F′ = .(u ▷[ F′ ])} .Iso.sec (refl-shape u F F′ α) =
   elim-refl-ext (α .is-conjugate) (λ s → ua→ $ funExt⁻ $ α .is-pos-equiv s) ∙ cong (refl-shape u F F′) (TransformationᴰPath refl)
   where
     open TransformationPElim (u ▷[ F ]) using (elim-refl ; elim-refl-ext)
-TransformationP-Transformation-Iso .Iso.leftInv αᴾ = {! !}
+TransformationP-Transformation-Iso .Iso.ret αᴾ = {! !}
   -- TransformationPPath _ _ {! !} {! !}
   --
 

@@ -612,8 +612,8 @@ module UnitLeft
   shape-unit-right-iso .Iso.fun = U→T
   shape-unit-right-iso .Iso.inv t .fst = s₀
   shape-unit-right-iso .Iso.inv t .snd = ST.∣ is-triv-G s₀ .fst , const t ∣₂
-  shape-unit-right-iso .Iso.rightInv t = refl
-  shape-unit-right-iso .Iso.leftInv = uncurry λ s → ST.elim (λ _ → isOfHLevelPath 2 is-set-U _ _) {! !}
+  shape-unit-right-iso .Iso.sec t = refl
+  shape-unit-right-iso .Iso.ret = uncurry λ s → ST.elim (λ _ → isOfHLevelPath 2 is-set-U _ _) {! !}
     -- λ where
     -- (g , f) → ΣPathP λ where
     --   .fst → isContr→isProp is-contr-S _ _

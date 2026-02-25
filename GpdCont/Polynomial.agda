@@ -76,8 +76,8 @@ module _ {ℓ} {S X : Type ℓ} {P : S → Type ℓ} {p q : Polynomial S P X} wh
   Polynomial≡Iso .Iso.fun path .fst = cong shape path
   Polynomial≡Iso .Iso.fun path .snd = cong label path
   Polynomial≡Iso .Iso.inv = uncurry Polynomial≡
-  Polynomial≡Iso .Iso.rightInv _ = refl
-  Polynomial≡Iso .Iso.leftInv _ = refl
+  Polynomial≡Iso .Iso.sec _ = refl
+  Polynomial≡Iso .Iso.ret _ = refl
 
   Polynomial≡Equiv : (p ≡ q) ≃ (Σ[ shape-path ∈ p .shape ≡ q .shape ] PathP (λ i → P (shape-path i) → X) (p .label) (q .label))
   unquoteDef Polynomial≡Equiv = defStrictIsoToEquiv Polynomial≡Equiv Polynomial≡Iso

@@ -1,3 +1,4 @@
+{-# OPTIONS --lossy-unification #-}
 open import GpdCont.Prelude hiding (J)
 open import Cubical.Categories.Category.Base
 
@@ -15,6 +16,7 @@ open import Cubical.Foundations.Isomorphism hiding (isIso)
 open import Cubical.Foundations.Transport using (substEquiv)
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma
+open import Cubical.Data.Bool
 
 open import Cubical.Categories.Category.Path
 open import Cubical.Categories.Instances.Sets using (SET ; isUnivalentSET)
@@ -130,8 +132,8 @@ module Coproducts where
       univ-iso .Iso.fun f = λ k → inj k Fam.⋆ f
       univ-iso .Iso.inv g .fst (k , j) = g k .fst j
       univ-iso .Iso.inv g .snd (k , j) = g k .snd j
-      univ-iso .Iso.rightInv g = funExt λ k → FamHom≡ refl (λ j → C.⋆IdL (g k .snd j))
-      univ-iso .Iso.leftInv f = FamHom≡ refl λ kj → C.⋆IdL (f .snd kj)
+      univ-iso .Iso.sec g = funExt λ k → FamHom≡ refl (λ j → C.⋆IdL (g k .snd j))
+      univ-iso .Iso.ret f = FamHom≡ refl λ kj → C.⋆IdL (f .snd kj)
 
       is-univ : isEquiv (univ-iso .Iso.fun)
       is-univ = isoToIsEquiv univ-iso
@@ -143,6 +145,13 @@ module Coproducts where
 
   FamCoproducts : Coproducts
   FamCoproducts = FamCoproduct
+
+-- module BinProducts (p : BinProducts C ℓ) where
+--   private
+--     module C where
+--       open Category C public
+--       open Pr.Notation C ℓ p public
+
 
 module Products (p : Pr.Products C ℓ) where
 
@@ -184,7 +193,7 @@ module Products (p : Pr.Products C ℓ) where
         Iso⟨⟩
       ((k : ⟨ K ⟩) → Fam.Hom[ x , c k ]) ∎Iso
 
-    univ : (x : Fam.ob) → isEquiv (univ-iso x .Iso.fun)
+    univ : (x : Fam.ob) → isEquiv (λ f k → f Fam.⋆ proj k)
     univ = isoToIsEquiv ∘ univ-iso
 
     FamProduct : Product K c
@@ -194,3 +203,55 @@ module Products (p : Pr.Products C ℓ) where
 
   FamProducts : Products
   FamProducts = FamProduct
+
+module Exponentials (p : Pr.Products C ℓ) where
+  open import Cubical.Categories.Limits.BinProduct
+  open import Cubical.Categories.Exponentials using (Exponential ; Exponentials ; module ExpNotation)
+  open import Cubical.Data.Empty
+
+  private
+    open module FamProduct = Pr Fam ℓ
+    module C where
+      open Category C public
+      open Pr.Notation C ℓ p public
+
+    module FamΠ where
+      open FamProduct.Notation (Products.FamProducts p) public
+
+    𝟙 : C.ob
+    𝟙 = C.terminal
+
+    konst : (K : hSet ℓ) → C.ob → Fam.ob
+    konst K c .fst = K
+    konst K c .snd = const c
+
+  konst-exp : (K : hSet ℓ) → (x : Fam.ob) → Exponential Fam (konst K 𝟙) x (FamΠ.binProducts (konst K 𝟙))
+  konst-exp K x@(J , X) .UniversalElement.vertex = FamΠ.Π K (const x)
+  konst-exp K x@(J , X) .UniversalElement.element .fst φ = {! x !}
+  konst-exp K x@(J , X) .UniversalElement.element .snd = {! !}
+  konst-exp K x@(J , X) .UniversalElement.universal = {! !}
+
+  private
+    emb : C.ob → Fam.ob
+    emb Y .fst = UnitSet _
+    emb Y .snd = λ _ → Y
+
+    module _ (bp : BinProducts C) (exp : Exponentials C bp) where
+      {-
+      konst-emp : (X : C.ob) → (y : Fam.ob) → Exponential Fam (emb X) y (FamΠ.binProducts (emb X))
+      konst-emp X y@(J , Y) = goal where
+        open ExpNotation C C.binProducts exp using (_⇒_)
+
+        [y,X] : Fam.ob
+        [y,X] .fst = J
+        [y,X] .snd j = Y j ⇒ X
+
+        ev : Fam [ [y,X] FamΠ.× (emb X) , y ]
+        ev = {! !}
+
+        goal : Exponential Fam (emb X) y (FamΠ.binProducts (emb X))
+        goal .UniversalElement.vertex = [y,X]
+        goal .UniversalElement.element .fst = {! !}
+        goal .UniversalElement.element .snd = {! !}
+        goal .UniversalElement.universal = {! !}
+      -}

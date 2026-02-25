@@ -142,8 +142,8 @@ unbundleContainer C = let module C = ActionContainer C in
 ActionContainerIsoΣ : ∀ {ℓ} → Iso (ActionContainer ℓ) (Σ[ S ∈ hSet ℓ ] Σ[ P ∈ (⟨ S ⟩ → hSet ℓ) ] Σ[ G ∈ (⟨ S ⟩ → Group ℓ) ] ((s : ⟨ S ⟩) → Action (G s) (P s)))
 ActionContainerIsoΣ .Iso.fun = unbundleContainer
 ActionContainerIsoΣ .Iso.inv = uncurry3 mkActionContainer
-ActionContainerIsoΣ .Iso.rightInv _ = refl
-ActionContainerIsoΣ .Iso.leftInv C = ActionContainer≡ refl refl symm-group-path refl where
+ActionContainerIsoΣ .Iso.sec _ = refl
+ActionContainerIsoΣ .Iso.ret C = ActionContainer≡ refl refl symm-group-path refl where
   module Symm s = GroupStr (str (SymmGroup C s))
   symm-group-path : SymmGroup _ ≡ SymmGroup C
   symm-group-path i s .fst = Symm C s

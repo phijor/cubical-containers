@@ -34,8 +34,8 @@ module _
   relBiimpl→QuotIso : Iso (A / R) (B / S)
   relBiimpl→QuotIso .fun = map (isoA .fun) presS
   relBiimpl→QuotIso .inv = map (isoA .inv) presR
-  relBiimpl→QuotIso .rightInv = SQ.elimProp (λ _ → _/_.squash/ _ _) λ a → cong [_] (isoA .rightInv a)
-  relBiimpl→QuotIso .leftInv = SQ.elimProp (λ _ → _/_.squash/ _ _) λ b → cong [_] (isoA .leftInv b)
+  relBiimpl→QuotIso .sec = SQ.elimProp (λ _ → _/_.squash/ _ _) λ a → cong [_] (isoA .sec a)
+  relBiimpl→QuotIso .ret = SQ.elimProp (λ _ → _/_.squash/ _ _) λ b → cong [_] (isoA .ret b)
 
   relBiimpl→QuotEquiv : (A / R) ≃ (B / S)
   relBiimpl→QuotEquiv = isoToEquiv relBiimpl→QuotIso
@@ -65,7 +65,7 @@ pullbackQuotIso : (i : Iso A B) → Iso (A / R) (B / pullbackRel (i .inv) R)
 pullbackQuotIso {R} i = relBiimpl→QuotIso i ret-rel (id $ R (g _) (g _)) where
   open module i = Iso i renaming (fun to f ; inv to g) using ()
   ret-rel : ∀ {a a'} → R a a' → R (g (f a)) (g (f a'))
-  ret-rel {a} {a'} = subst2 R (sym (i.leftInv a)) (sym (i.leftInv a'))
+  ret-rel {a} {a'} = subst2 R (sym (i.ret a)) (sym (i.ret a'))
 
 pullbackQuotEquiv : (e : A ≃ B) → (A / R) ≃ (B / pullbackRel (invEq e) R)
 pullbackQuotEquiv e = isoToEquiv (pullbackQuotIso (equivToIso e))
@@ -73,8 +73,8 @@ pullbackQuotEquiv e = isoToEquiv (pullbackQuotIso (equivToIso e))
 SetTruncSetQuotientPathIso : Iso ∥ A ∥₂ (A / _≡_)
 SetTruncSetQuotientPathIso .Iso.fun = ST.rec SQ.squash/ SQ.[_]
 SetTruncSetQuotientPathIso .Iso.inv = SQ.rec ST.isSetSetTrunc ∣_∣₂ λ a b → cong ∣_∣₂
-SetTruncSetQuotientPathIso .Iso.rightInv = SQ.elimProp (λ x → SQ.squash/ _ x) λ _ → refl
-SetTruncSetQuotientPathIso .Iso.leftInv = ST.elim (λ _ → isProp→isSet (ST.isSetSetTrunc _ _)) λ _ → refl
+SetTruncSetQuotientPathIso .Iso.sec = SQ.elimProp (λ x → SQ.squash/ _ x) λ _ → refl
+SetTruncSetQuotientPathIso .Iso.ret = ST.elim (λ _ → isProp→isSet (ST.isSetSetTrunc _ _)) λ _ → refl
 
 SetTrunc→SetQuotientPath : ∥ A ∥₂ → (A / _≡_)
 SetTrunc→SetQuotientPath = ST.rec SQ.squash/ SQ.[_]
@@ -181,8 +181,8 @@ module _ {ℓB ℓS}
       (a₀ , b₀) (a₁ , b₁) (r , (b , eq) , s) → ΣPathP λ where
         .fst → eq/ a₀ a₁ r
         .snd → toPathP (eq/ (transport (λ i → B (eq/ a₀ a₁ r i)) b₀) b₁ $ subst (λ - → S [ a₁ ] - b₁) (sym (fromPathP eq)) s)
-    go .rightInv = SQ.elimProp (λ _ → SQ.squash/ _ _) λ _ → refl
-    go .leftInv = uncurry (SQ.elimProp (λ _ → isPropΠ λ _ → isSetΣ SQ.squash/ (λ _ → SQ.squash/) _ _) λ a → SQ.elimProp (λ _ → isSetΣ SQ.squash/ (λ _ → SQ.squash/) _ _) λ _ → refl)
+    go .sec = SQ.elimProp (λ _ → SQ.squash/ _ _) λ _ → refl
+    go .ret = uncurry (SQ.elimProp (λ _ → isPropΠ λ _ → isSetΣ SQ.squash/ (λ _ → SQ.squash/) _ _) λ a → SQ.elimProp (λ _ → isSetΣ SQ.squash/ (λ _ → SQ.squash/) _ _) λ _ → refl)
 
   setQuotientΣ≃ :
     (Σ[ x ∈ A / R ] (B x / S x))
@@ -208,8 +208,8 @@ module _ {ℓA ℓB ℓS}
     (a₀ , b₀) (a₁ , b₁) r → ΣPathP λ where
       .fst → r .fst
       .snd → toPathP $ eq/ _ _ $ subst (λ - → S a₁ - b₁) (sym (fromPathP (r .snd .fst .snd))) (r .snd .snd)
-  setQuotientΣSndIso .rightInv = SQ.elimProp (λ _ → SQ.squash/ _ _) λ _ → refl
-  setQuotientΣSndIso .leftInv = uncurry λ a → SQ.elimProp (λ _ → is-set-ΣAB/S _ _) λ _ → refl
+  setQuotientΣSndIso .sec = SQ.elimProp (λ _ → SQ.squash/ _ _) λ _ → refl
+  setQuotientΣSndIso .ret = uncurry λ a → SQ.elimProp (λ _ → is-set-ΣAB/S _ _) λ _ → refl
 
   setQuotientΣSnd≃ :
     (Σ[ a ∈ A ] (B a / S a))
@@ -229,8 +229,8 @@ module _ {ℓA ℓR ℓS}
     (SQ.elim (λ _ → SQ.squash/) [_] λ a b r → eq/ a b (is-sub-rel r))
     (SQ.elimProp2 (λ _ _ → isPropΠ λ _ → SQ.squash/ _ _) λ a b s → eq/ a b s)
   setQuotientMergeIso .inv = SQ.rec SQ.squash/ (λ a → [ [ a ] ]) λ a b s → eq/ [ a ] [ b ] s
-  setQuotientMergeIso .rightInv = SQ.elimProp (λ _ → SQ.squash/ _ _) λ a → refl′ [ a ]
-  setQuotientMergeIso .leftInv = SQ.elimProp (λ _ → SQ.squash/ _ _) (SQ.elimProp (λ _ → SQ.squash/ _ _) λ a → refl′ [ [ a ] ])
+  setQuotientMergeIso .sec = SQ.elimProp (λ _ → SQ.squash/ _ _) λ a → refl′ [ a ]
+  setQuotientMergeIso .ret = SQ.elimProp (λ _ → SQ.squash/ _ _) (SQ.elimProp (λ _ → SQ.squash/ _ _) λ a → refl′ [ [ a ] ])
 
   setQuotientMerge≃ : ((A / R) / S) ≃ (A / λ a b → S [ a ] [ b ])
   setQuotientMerge≃ = isoToEquiv setQuotientMergeIso

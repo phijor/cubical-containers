@@ -125,8 +125,8 @@ opaque
     convert : ∀ {n} → Iso ⟨ Fin n ⟩ (FinR.Fin n)
     convert .Iso.fun = to
     convert .Iso.inv = from
-    convert .Iso.rightInv = rinv
-    convert .Iso.leftInv = linv
+    convert .Iso.sec = rinv
+    convert .Iso.ret = linv
 
     convert-equiv : ∀ {n} → ⟨ Fin n ⟩ ≃ (FinR.Fin n)
     convert-equiv = isoToEquiv convert
@@ -140,8 +140,8 @@ setQuotientDepChoiceIso : ∀ {ℓ ℓR} (A : FinOrd)
   → Iso ((∀ a → B a) / λ f g → ∀ a → R a (f a) (g a)) (∀ a → B a / R a)
 setQuotientDepChoiceIso A B R .Iso.fun = SQ.rec {! !} (λ f a → [ f a ]) λ f g r → funExt λ a → SQ.eq/ _ _ (r a)
 setQuotientDepChoiceIso A B R .Iso.inv = {!SQ.rec !}
-setQuotientDepChoiceIso A B R .Iso.rightInv = {! !}
-setQuotientDepChoiceIso A B R .Iso.leftInv = {! !}
+setQuotientDepChoiceIso A B R .Iso.sec = {! !}
+setQuotientDepChoiceIso A B R .Iso.ret = {! !}
 
 setQuotientChoiceIso' : ∀ {ℓ ℓR}
   → (B : Type ℓ)
@@ -152,8 +152,8 @@ setQuotientChoiceIso' B R = Nat.elim go₀ go-suc where
   go₀ : Iso ((⊥ → B) / _) (⊥ → B / R)
   go₀ .Iso.fun _ ()
   go₀ .Iso.inv _ = [ (λ ()) ]
-  go₀ .Iso.rightInv _ = funExt λ ()
-  go₀ .Iso.leftInv = elimProp (λ f → SQ.squash/ _ _) λ f → cong [_] $ funExt λ ()
+  go₀ .Iso.sec _ = funExt λ ()
+  go₀ .Iso.ret = elimProp (λ f → SQ.squash/ _ _) λ f → cong [_] $ funExt λ ()
 
   go-suc : (n : ℕ) → Iso _ _ → Iso _ _
   go-suc n choose-iso .Iso.fun f k = map (_$ k) (λ r → r k) f
@@ -161,8 +161,8 @@ setQuotientChoiceIso' B R = Nat.elim go₀ go-suc where
   -- go-suc n choose-iso .Iso.fun f (Fin.fsuc k) = map (_$ Fin.fsuc k) (λ r → r _) f
   go-suc n choose-iso .Iso.inv f = [ Fin.elim (λ _ → B) {! (f Fin.fzero)!} {! !} ] where
     f' = choose-iso .Iso.inv (f ∘ Fin.fsuc)
-  go-suc n choose-iso .Iso.rightInv = {! !}
-  go-suc n choose-iso .Iso.leftInv = {! !}
+  go-suc n choose-iso .Iso.sec = {! !}
+  go-suc n choose-iso .Iso.ret = {! !}
     -- ((⟨ Fin (suc n) ⟩ → B) / _)
     --   Iso⟨ pullbackQuotIso $ {! !} ⟩
     -- ((B × (⟨ Fin n ⟩ → B)) / _)
@@ -176,5 +176,5 @@ setQuotientChoiceIso : ∀ {ℓ ℓR} (A : FinOrd)
   → Iso ((⟨ A ⟩ → B) / λ f g → ∀ a → R (f a) (g a)) (⟨ A ⟩ → B / R)
 setQuotientChoiceIso A B R .Iso.fun = SQ.rec (isSet→ SQ.squash/) (λ f a → [ f a ]) λ f g r → funExt λ a → SQ.eq/ _ _ (r a)
 setQuotientChoiceIso A B R .Iso.inv f/ = {! !}
-setQuotientChoiceIso A B R .Iso.rightInv = {! !}
-setQuotientChoiceIso A B R .Iso.leftInv = {! !}
+setQuotientChoiceIso A B R .Iso.sec = {! !}
+setQuotientChoiceIso A B R .Iso.ret = {! !}

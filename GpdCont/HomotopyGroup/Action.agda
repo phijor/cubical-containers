@@ -57,8 +57,8 @@ Pr* G g₀ .snd = PT.map (λ p → funExt λ g → hSet≡ (cong (_≡ g) p)) (h
 -- yonedaPr G g h = isoToIsEquiv λ where
 --   .Iso.fun → _
 --   .Iso.inv x → {! cong (fst) x !}
---   .Iso.leftInv → {! !}
---   .Iso.rightInv → {! !}
+--   .Iso.ret → {! !}
+--   .Iso.sec → {! !}
 
 -- ???
 isFaithfulPr : (G : hGroup ℓ) → isFaithful G (Pr G)

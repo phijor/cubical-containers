@@ -65,10 +65,10 @@ module _ {α β : Morphism G H} where
   Morphism≡Iso .Iso.fun = uncurry Morphism≡
   Morphism≡Iso .Iso.inv p .fst i = p i .shape-map
   Morphism≡Iso .Iso.inv p .snd s i = p i .pos-map s
-  Morphism≡Iso .Iso.rightInv p i j .shape-map = p j .shape-map
-  Morphism≡Iso .Iso.rightInv p i j .pos-map = p j .pos-map
-  Morphism≡Iso .Iso.leftInv p i .fst j = p .fst j
-  Morphism≡Iso .Iso.leftInv p i .snd s = p .snd s
+  Morphism≡Iso .Iso.sec p i j .shape-map = p j .shape-map
+  Morphism≡Iso .Iso.sec p i j .pos-map = p j .pos-map
+  Morphism≡Iso .Iso.ret p i .fst j = p .fst j
+  Morphism≡Iso .Iso.ret p i .snd s = p .snd s
 
   Morphism≡Equiv : (α ≡Mor β) ≃ (α ≡ β)
   Morphism≡Equiv = isoToEquiv Morphism≡Iso

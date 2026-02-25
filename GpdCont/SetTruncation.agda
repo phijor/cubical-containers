@@ -50,8 +50,8 @@ IsoSetTruncateFstΣ {A} {B} is-set-A = go where
   go : Iso _ _
   go .Iso.fun = ST.rec isSetΣA∥B∥ λ { (a , b) → a , ST.∣ b ∣₂ }
   go .Iso.inv = uncurry λ a → ST.rec ST.isSetSetTrunc λ { b → ST.∣ a , b ∣₂ }
-  go .Iso.rightInv = uncurry λ a → ST.elim (λ ∣b∣ → isProp→isSet (isSetΣA∥B∥ _ (a , ∣b∣))) λ _ → refl
-  go .Iso.leftInv = ST.elim (λ ∣a,b∣ → isProp→isSet (ST.isSetSetTrunc _ ∣a,b∣)) λ _ → refl
+  go .Iso.sec = uncurry λ a → ST.elim (λ ∣b∣ → isProp→isSet (isSetΣA∥B∥ _ (a , ∣b∣))) λ _ → refl
+  go .Iso.ret = ST.elim (λ ∣a,b∣ → isProp→isSet (ST.isSetSetTrunc _ ∣a,b∣)) λ _ → refl
 
 setTruncateFstΣ≃ : isSet A → ∥ Σ A B ∥₂ ≃ (Σ A (∥_∥₂ ∘ B))
 setTruncateFstΣ≃ = isoToEquiv ∘ IsoSetTruncateFstΣ
@@ -65,8 +65,8 @@ IsoSetTruncateUnwrapFstΣ : {B : ∥ A ∥₂ → Type ℓB}
     ∥ Σ[ a ∈ A ] B ∣ a ∣₂ ∥₂
 IsoSetTruncateUnwrapFstΣ {A} {B} .Iso.fun = _>>= (uncurry $ ST.elim (λ x → isSet→ ST.isSetSetTrunc) λ a b → ST.∣ a , b ∣₂)
 IsoSetTruncateUnwrapFstΣ .Iso.inv = _>>= λ (a , b) → ∣ ∣ a ∣₂ , b ∣₂
-IsoSetTruncateUnwrapFstΣ .Iso.rightInv = ST.elim (λ x → ST.isSetPathImplicit) λ _ → refl
-IsoSetTruncateUnwrapFstΣ .Iso.leftInv = ST.elim (λ x → ST.isSetPathImplicit) $ uncurry $ ST.elim (λ x → isSetΠ λ b → ST.isSetPathImplicit) (λ _ _ → refl)
+IsoSetTruncateUnwrapFstΣ .Iso.sec = ST.elim (λ x → ST.isSetPathImplicit) λ _ → refl
+IsoSetTruncateUnwrapFstΣ .Iso.ret = ST.elim (λ x → ST.isSetPathImplicit) $ uncurry $ ST.elim (λ x → isSetΠ λ b → ST.isSetPathImplicit) (λ _ _ → refl)
 
 setTruncateUnwrapFstΣ≃ : {B : ∥ A ∥₂ → Type ℓB} → ∥ Σ[ x ∈ ∥ A ∥₂ ] B x ∥₂ ≃ ∥ Σ[ a ∈ A ] B ∣ a ∣₂ ∥₂
 setTruncateUnwrapFstΣ≃ = isoToEquiv IsoSetTruncateUnwrapFstΣ
@@ -79,10 +79,10 @@ setTruncate⊎≃ {A} {B} = isoToEquiv trunc-iso where
   trunc-iso : Iso _ _
   trunc-iso .Iso.fun = ST.rec is-set-sum (Sum.map ∣_∣₂ ∣_∣₂)
   trunc-iso .Iso.inv = Sum.rec (ST.map inl) (ST.map inr)
-  trunc-iso .Iso.rightInv = Sum.elim
+  trunc-iso .Iso.sec = Sum.elim
     (ST.elim (λ _ → isOfHLevelPath 2 is-set-sum _ _) λ _ → refl)
     (ST.elim (λ _ → isOfHLevelPath 2 is-set-sum _ _) λ _ → refl)
-  trunc-iso .Iso.leftInv = ST.elim (λ _ → ST.isSetPathImplicit) $
+  trunc-iso .Iso.ret = ST.elim (λ _ → ST.isSetPathImplicit) $
     Sum.elim (λ _ → refl) (λ _ → refl)
 
 setTruncate×≃ : ∀ {B : Type ℓB} → ∥ A × B ∥₂ ≃ ∥ A ∥₂ × ∥ B ∥₂
@@ -90,8 +90,8 @@ setTruncate×≃ {A} {B} = isoToEquiv trunc-iso where
   trunc-iso : Iso _ _
   trunc-iso .Iso.fun = ST.rec (isSet× ST.isSetSetTrunc ST.isSetSetTrunc) λ (a , b) → ∣ a ∣₂ , ∣ b ∣₂
   trunc-iso .Iso.inv = uncurry $ ST.rec2 ST.isSetSetTrunc λ a b → ST.∣ a , b ∣₂
-  trunc-iso .Iso.rightInv = uncurry (ST.elim2 (λ _ _ → isOfHLevelPath 2 (isSet× ST.isSetSetTrunc ST.isSetSetTrunc) _ _) λ a b → refl)
-  trunc-iso .Iso.leftInv = ST.elim (λ _ → ST.isSetPathImplicit) λ _ → refl
+  trunc-iso .Iso.sec = uncurry (ST.elim2 (λ _ _ → isOfHLevelPath 2 (isSet× ST.isSetSetTrunc ST.isSetSetTrunc) _ _) λ a b → refl)
+  trunc-iso .Iso.ret = ST.elim (λ _ → ST.isSetPathImplicit) λ _ → refl
 
 setTruncEquiv : ∀ {B : Type ℓB} → A ≃ B → ∥ A ∥₂ ≃ ∥ B ∥₂
 setTruncEquiv = isoToEquiv ∘ ST.setTruncIso ∘ equivToIso
@@ -234,8 +234,8 @@ finChoiceEquiv : (n : ℕ) (B : Fin n → Type ℓB) → ∥ ((k : Fin n) → B 
 finChoiceEquiv zero 0→B = isoToEquiv λ where
   .Iso.fun → choiceMap
   .Iso.inv f → ∣ (λ ()) ∣₂
-  .Iso.leftInv → ST.elim (λ _ → ST.isSetPathImplicit) λ ⊥→B → cong ST.∣_∣₂ λ { i () }
-  .Iso.rightInv _ i ()
+  .Iso.ret → ST.elim (λ _ → ST.isSetPathImplicit) λ ⊥→B → cong ST.∣_∣₂ λ { i () }
+  .Iso.sec _ i ()
 finChoiceEquiv (suc n) 1+n→B =
   ∥ ((k : Unit ⊎ Fin n) → 1+n→B k) ∥₂ ≃⟨ setTruncEquiv Π⊎≃ ⟩
   ∥ ((t : Unit) → 1+n→B (inl t)) × ((k : Fin n) → 1+n→B (inr k)) ∥₂ ≃⟨ setTruncate×≃ ⟩
@@ -247,8 +247,8 @@ satFinChoice zero B = equivIsEquiv (finChoiceEquiv zero B)
 satFinChoice (suc n) B = isoToIsEquiv λ where
   .Iso.fun → _
   .Iso.inv f → {! !}
-  .Iso.leftInv → {! !}
-  .Iso.rightInv _ → {! !}
+  .Iso.ret → {! !}
+  .Iso.sec _ → {! !}
 
 satFinSetChoice : isFinSet A → satChoice A ℓB
 satFinSetChoice {A} = uncurry λ n → PT.rec isPropSatChoice {!EquivJ {A = A} {B = Fin n} (λ A (e : A ≃ Fin n) → satChoice A _) !}

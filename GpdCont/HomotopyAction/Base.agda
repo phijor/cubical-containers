@@ -150,10 +150,10 @@ private module _ {F G : EndoGpd.ob} where
   WildNatTransIsoΣ .Iso.fun α .snd = α .WildNatTrans.N-hom
   WildNatTransIsoΣ .Iso.inv (α-ob , α-hom) .WildNatTrans.N-ob = α-ob
   WildNatTransIsoΣ .Iso.inv (α-ob , α-hom) .WildNatTrans.N-hom = α-hom
-  WildNatTransIsoΣ .Iso.rightInv (α-ob , α-hom) i .fst = α-ob
-  WildNatTransIsoΣ .Iso.rightInv (α-ob , α-hom) i .snd = α-hom
-  WildNatTransIsoΣ .Iso.leftInv α i .WildNatTrans.N-ob = α .WildNatTrans.N-ob
-  WildNatTransIsoΣ .Iso.leftInv α i .WildNatTrans.N-hom = α .WildNatTrans.N-hom
+  WildNatTransIsoΣ .Iso.sec (α-ob , α-hom) i .fst = α-ob
+  WildNatTransIsoΣ .Iso.sec (α-ob , α-hom) i .snd = α-hom
+  WildNatTransIsoΣ .Iso.ret α i .WildNatTrans.N-ob = α .WildNatTrans.N-ob
+  WildNatTransIsoΣ .Iso.ret α i .WildNatTrans.N-hom = α .WildNatTrans.N-hom
 
   instance
     WildNatTransToΣ : RecordToΣ (WildNatTrans _ _ F G)
@@ -255,8 +255,8 @@ private module _ {F G : EndoSet.ob} where
   NatTransIsoΣ .Iso.fun (natTrans α α-nat) .snd = α-nat
   NatTransIsoΣ .Iso.inv (α , α-nat) .NatTrans.N-ob = α
   NatTransIsoΣ .Iso.inv (α , α-nat) .NatTrans.N-hom = α-nat
-  NatTransIsoΣ .Iso.rightInv _ = refl
-  NatTransIsoΣ .Iso.leftInv _ = refl
+  NatTransIsoΣ .Iso.sec _ = refl
+  NatTransIsoΣ .Iso.ret _ = refl
 
   instance
     NatTransToΣ : RecordToΣ (NatTrans F G)

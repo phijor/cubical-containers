@@ -466,8 +466,8 @@ module _ {ℓ}
       i-iso : Iso _ _
       i-iso .Iso.fun = i→
       i-iso .Iso.inv = i←
-      i-iso .Iso.rightInv (p , q) = ΣPathP ({! !} , {! !})
-      i-iso .Iso.leftInv (p , q) using (_ , g , stab) ← k (f p) with i→adj p (g , stab)
+      i-iso .Iso.sec (p , q) = ΣPathP ({! !} , {! !})
+      i-iso .Iso.ret (p , q) using (_ , g , stab) ← k (f p) with i→adj p (g , stab)
       ... | Eq.refl = {! !}
     -}
 
@@ -500,8 +500,8 @@ module _ {ℓ}
       i-iso : Iso _ _
       i-iso .Iso.fun = i→
       i-iso .Iso.inv = i←
-      i-iso .Iso.rightInv (p , q) = ΣPathP ({! !} , {! !})
-      i-iso .Iso.leftInv = {! !}
+      i-iso .Iso.sec (p , q) = ΣPathP ({! !} , {! !})
+      i-iso .Iso.ret = {! !}
 
   include-mediate : (s : S) → (f f' : ⟨ P s ⟩ → T)
     → (g₀ : ⟨ G s ⟩)

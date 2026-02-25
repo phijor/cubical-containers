@@ -101,8 +101,8 @@ homEquiv x@(S , xᴰ) y@(T , yᴰ)  =
         )
     shuffle-iso u .Iso.fun f = (fst ∘ snd ∘ f) , (fst ∘ fst ∘ f) , (snd ∘ fst ∘ f) , (snd ∘ snd ∘ f)
     shuffle-iso u .Iso.inv (f , φ , φ-hom , f-eqva) s = (φ s , φ-hom s) , f s , f-eqva s
-    shuffle-iso u .Iso.rightInv _ = refl
-    shuffle-iso u .Iso.leftInv _ = refl
+    shuffle-iso u .Iso.sec _ = refl
+    shuffle-iso u .Iso.ret _ = refl
 
     shuffle : ∀ u → _ ≃ _
     shuffle u = strictIsoToEquiv (shuffle-iso u)

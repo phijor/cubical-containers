@@ -305,8 +305,8 @@ module _ (G : hGroup ℓ) (X : hAction ℓX G) (P₀ : ℙ ⟨ X (hGroup.pt₀ G
         lemma : (p : G.pt₀ ≡ g) → PathP (λ i → ⟨ ℙ* G X (p (~ i)) ⟩) (λ _ → ⊤) P₀
         lemma = J (λ g p → PathP (λ i → ⟨ ℙ* G X (p (~ i)) ⟩) (λ _ → ⊤) P₀) $ ⊤≡P₀
 
-    ty-iso .Iso.rightInv _ = refl
-    ty-iso .Iso.leftInv ((g , P) , ∣gP≡g₀⊤∣) = AutPath (∫ G (ℙ* G X)) _ $ ΣPathP (refl , {! !})
+    ty-iso .Iso.sec _ = refl
+    ty-iso .Iso.ret ((g , P) , ∣gP≡g₀⊤∣) = AutPath (∫ G (ℙ* G X)) _ $ ΣPathP (refl , {! !})
       where
         -- lemma : ∀ x → (p : Path ⟨ ∫ G (ℙ* G X) ⟩ (g , P) (G.pt₀ , P₀)) → ⊤ ≡ P x
         -- lemma x p = {! !}
@@ -340,8 +340,8 @@ StabℙAllEquiv G X = equiv where
   ty-iso : Iso ⟨ Stabℙ G X (const ⊤) ⟩ᵗ ⟨ G ⟩ᵗ
   ty-iso .Iso.fun ((g , _) , _) = g
   ty-iso .Iso.inv = mk-stab
-  ty-iso .Iso.rightInv _ = refl
-  ty-iso .Iso.leftInv ((g , P) , ∣gP≡g₀⊤∣) = AutPath (∫ G (ℙ* G X)) (G.pt₀ , const ⊤) $ ΣPathP λ where
+  ty-iso .Iso.sec _ = refl
+  ty-iso .Iso.ret ((g , P) , ∣gP≡g₀⊤∣) = AutPath (∫ G (ℙ* G X)) (G.pt₀ , const ⊤) $ ΣPathP λ where
     .fst → refl′ g
     .snd → funExt λ x → PT.rec (isSetHProp ⊤ (P x)) (lemma x) ∣gP≡g₀⊤∣
       where

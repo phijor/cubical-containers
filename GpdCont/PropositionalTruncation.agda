@@ -21,8 +21,8 @@ propTruncIso is = ∥is∥ where
   ∥is∥ : Iso _ _
   ∥is∥ .fun = PT.map (is .fun)
   ∥is∥ .inv = PT.map (is .inv)
-  ∥is∥ .rightInv _ = PT.isPropPropTrunc _ _
-  ∥is∥ .leftInv _ = PT.isPropPropTrunc _ _
+  ∥is∥ .sec _ = PT.isPropPropTrunc _ _
+  ∥is∥ .ret _ = PT.isPropPropTrunc _ _
 
 propTruncFstΣ≃ : ∀ {B : A → Type ℓ}
   → isProp A
@@ -33,8 +33,8 @@ propTruncFstΣ≃ {A} {B} is-prop-A = isoToEquiv trunc-iso where
   trunc-iso : Iso ∥ Σ A B ∥₁ (Σ A (∥_∥₁ ∘ B))
   trunc-iso .Iso.fun = PT.rec is-prop-Σ (λ { (a , b) → (a , PT.∣ b ∣₁) })
   trunc-iso .Iso.inv = uncurry λ a → PT.map (a ,_)
-  trunc-iso .Iso.rightInv = uncurry λ a → PT.elim (λ _ → isOfHLevelPath 1 is-prop-Σ _ _) λ _ → refl
-  trunc-iso .Iso.leftInv = PT.elim (λ _ → isOfHLevelPath 1 PT.isPropPropTrunc _ _) λ _ → refl
+  trunc-iso .Iso.sec = uncurry λ a → PT.elim (λ _ → isOfHLevelPath 1 is-prop-Σ _ _) λ _ → refl
+  trunc-iso .Iso.ret = PT.elim (λ _ → isOfHLevelPath 1 PT.isPropPropTrunc _ _) λ _ → refl
 
 propTruncΣ≃ : ∀ {B : ∥ A ∥₁ → Type ℓ}
   → (∥ Σ[ a ∈ A ] B PT.∣ a ∣₁ ∥₁) ≃ (Σ[ x ∈ ∥ A ∥₁ ] ∥ B x ∥₁)
@@ -45,8 +45,8 @@ propTruncΣ≃ {A} {B} = isoToEquiv trunc-iso module propTruncΣ≃ where
   trunc-iso : Iso _ _
   trunc-iso .Iso.fun = PT.rec is-prop-Σ $ uncurry λ a b → PT.∣ a ∣₁ , PT.∣ b ∣₁
   trunc-iso .Iso.inv = uncurry $ PT.elim (λ _ → isPropΠ λ _ → PT.isPropPropTrunc) λ a → PT.map (a ,_)
-  trunc-iso .Iso.rightInv = uncurry $ PT.elim (λ _ → isPropΠ λ _ → isOfHLevelPath 1 is-prop-Σ _ _) λ a → PT.elim (λ _ → isOfHLevelPath 1 is-prop-Σ _ _) λ _ → refl
-  trunc-iso .Iso.leftInv = PT.elim (λ _ → isOfHLevelPath 1 PT.isPropPropTrunc _ _) λ _ → refl
+  trunc-iso .Iso.sec = uncurry $ PT.elim (λ _ → isPropΠ λ _ → isOfHLevelPath 1 is-prop-Σ _ _) λ a → PT.elim (λ _ → isOfHLevelPath 1 is-prop-Σ _ _) λ _ → refl
+  trunc-iso .Iso.ret = PT.elim (λ _ → isOfHLevelPath 1 PT.isPropPropTrunc _ _) λ _ → refl
 
 untrunc : isProp A → ∥ A ∥₁ → A
 untrunc is-prop-A = PT.rec is-prop-A (id _)

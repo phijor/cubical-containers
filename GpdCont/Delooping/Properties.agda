@@ -90,13 +90,13 @@ private
   conjugateIso : (g : ⟨ G ⟩) → Iso ⟨ G ⟩ ⟨ G ⟩
   conjugateIso g .Iso.fun = conjugate g
   conjugateIso g .Iso.inv = conjugate (inv g)
-  conjugateIso g .Iso.rightInv h =
+  conjugateIso g .Iso.sec h =
     inv g · (inv (inv g) · h · inv g) · g ≡[ i ]⟨ inv g · (G.invInv g i · h · inv g) · g ⟩
     inv g · (g · (h · inv g)) · g ≡⟨ G.reassoc (inv g) g h ⟩
     (inv g · g) · h · (inv g · g) ≡⟨ cong (λ - → - · h · -) (G.·InvL g) ⟩
     G.1g · h · G.1g ≡⟨ G.·IdLR h ⟩
     h ∎
-  conjugateIso g .Iso.leftInv h =
+  conjugateIso g .Iso.ret h =
     inv (inv g) · (inv g · h · g) · inv g ≡⟨ cong (_· (inv g · h · g) · inv g) (G.invInv g) ⟩
     g · (inv g · h · g) · inv g ≡⟨ G.reassoc g (inv g) h ⟩
     (g · inv g) · h · (g · inv g) ≡⟨ cong (λ - → - · h · -) (G.·InvR g) ⟩
@@ -127,8 +127,8 @@ private
   mulRightIso : (g : ⟨ G ⟩) → Iso ⟨ G ⟩ ⟨ G ⟩
   mulRightIso g .Iso.fun = _· g
   mulRightIso g .Iso.inv = _· (inv g)
-  mulRightIso g .Iso.rightInv h = sym (G.·Assoc h (inv g) g) ∙ cong (h ·_) (G.·InvL g) ∙ G.·IdR h
-  mulRightIso g .Iso.leftInv h = sym (G.·Assoc h g (inv g)) ∙ cong (h ·_) (G.·InvR g) ∙ G.·IdR h
+  mulRightIso g .Iso.sec h = sym (G.·Assoc h (inv g) g) ∙ cong (h ·_) (G.·InvL g) ∙ G.·IdR h
+  mulRightIso g .Iso.ret h = sym (G.·Assoc h g (inv g)) ∙ cong (h ·_) (G.·InvR g) ∙ G.·IdR h
 
   mulRightEquiv : (g : ⟨ G ⟩) → ⟨ G ⟩ ≃ ⟨ G ⟩
   mulRightEquiv g = isoToEquiv $ mulRightIso g
@@ -186,8 +186,8 @@ encode-decode = Delooping.elimProp (λ _ → isPropΠ λ c → isSetCode _ _ _) 
 encodeDecodeIso : ∀ {y} → Iso (𝔹.⋆ ≡ y) ⟨ Code y ⟩
 encodeDecodeIso .Iso.fun = encode
 encodeDecodeIso .Iso.inv = decode
-encodeDecodeIso .Iso.rightInv = encode-decode _
-encodeDecodeIso .Iso.leftInv = decode-encode
+encodeDecodeIso .Iso.sec = encode-decode _
+encodeDecodeIso .Iso.ret = decode-encode
 
 encodeDecode : ∀ {y} → (𝔹.⋆ ≡ y) ≃ ⟨ Code y ⟩
 encodeDecode = isoToEquiv encodeDecodeIso
@@ -241,8 +241,8 @@ elimSetIso : ∀ {ℓB} {B : 𝔹 → Type ℓB}
   → Iso (Σ[ b₀ ∈ B 𝔹.⋆ ] (∀ g → PathP (λ i → B (𝔹.loop g i)) b₀ b₀)) (∀ x → B x)
 elimSetIso is-set-B .Iso.fun = uncurry $ Delooping.elimSet is-set-B
 elimSetIso is-set-B .Iso.inv b = b 𝔹.⋆ , cong b ∘ 𝔹.loop
-elimSetIso is-set-B .Iso.rightInv b = funExt (Delooping.elimProp (λ _ → isOfHLevelPathP' 1 (is-set-B _) _ _) refl)
-elimSetIso is-set-B .Iso.leftInv (b₀ , p) = refl
+elimSetIso is-set-B .Iso.sec b = funExt (Delooping.elimProp (λ _ → isOfHLevelPathP' 1 (is-set-B _) _ _) refl)
+elimSetIso is-set-B .Iso.ret (b₀ , p) = refl
 
 elimSetEquiv : ∀ {ℓB} {B : 𝔹 → Type ℓB}
   → (∀ x → isSet (B x))
@@ -254,8 +254,8 @@ elimPropIso : ∀ {ℓB} {B : 𝔹 → Type ℓB}
   → Iso (B 𝔹.⋆) (∀ x → B x)
 elimPropIso is-prop-B .Iso.fun = Delooping.elimProp is-prop-B
 elimPropIso is-prop-B .Iso.inv f = f 𝔹.⋆
-elimPropIso is-prop-B .Iso.rightInv f = funExt λ x → is-prop-B _ _ (f x)
-elimPropIso is-prop-B .Iso.leftInv _ = refl
+elimPropIso is-prop-B .Iso.sec f = funExt λ x → is-prop-B _ _ (f x)
+elimPropIso is-prop-B .Iso.ret _ = refl
 
 elimPropEquiv : ∀ {ℓB} {B : 𝔹 → Type ℓB}
   → (∀ x → isProp (B x))
@@ -277,8 +277,8 @@ recEquiv {X = (X , is-gpd-X)} = rec-equiv , is-equiv where
   recIso : Iso _ _
   recIso .Iso.fun = rec-equiv
   recIso .Iso.inv = rec-inv
-  recIso .Iso.rightInv f = funExt (Delooping.elim (λ _ → isSet→isGroupoid (is-gpd-X _ _)) refl (λ g i j → f (𝔹.loop g i)) λ g h i j k → f (𝔹.loop-comp g h i j))
-  recIso .Iso.leftInv (x₀ , φ , φ-comp) = refl
+  recIso .Iso.sec f = funExt (Delooping.elim (λ _ → isSet→isGroupoid (is-gpd-X _ _)) refl (λ g i j → f (𝔹.loop g i)) λ g h i j k → f (𝔹.loop-comp g h i j))
+  recIso .Iso.ret (x₀ , φ , φ-comp) = refl
 
   is-equiv : isEquiv rec-equiv
   is-equiv = isoToIsEquiv recIso

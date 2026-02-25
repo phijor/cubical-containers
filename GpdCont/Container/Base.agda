@@ -408,7 +408,7 @@ module SetCont where
     map-⟦-⟧-SetTruncIso : Iso (TruncHom F G) (TruncNat F G)
     map-⟦-⟧-SetTruncIso .Iso.fun = trunc-map-⟦_⟧ F G
     map-⟦-⟧-SetTruncIso .Iso.inv = trunc-unmap-⟦_⟧ F G
-    map-⟦-⟧-SetTruncIso .Iso.rightInv α*@(α , is-nat-α) = Σ≡Prop is-prop-is-nat sect where
+    map-⟦-⟧-SetTruncIso .Iso.sec α*@(α , is-nat-α) = Σ≡Prop is-prop-is-nat sect where
       is-prop-is-nat : ∀ α → isProp (isTruncNat F G α)
       is-prop-is-nat α = isPropΠ3 λ X Y g → isOfHLevelPath' 1 (isSet→ (isTrunc-⟦ G ⟧ Y)) _ _
 
@@ -418,7 +418,7 @@ module SetCont where
           goal : Path ⟨ ⟦ G ⟧ᴾ X ⟩ (map-⟦ (mkHomExt λ s → α (Posᴾ F s) (s , id ⟨ Posᴾ F s ⟩)) ⟧ ⟨ X ⟩ (s , v)) (α X (s , v))
           goal = is-nat-α (Posᴾ F s) X v ≡$ (s , id _)
 
-    map-⟦-⟧-SetTruncIso .Iso.leftInv f = refl
+    map-⟦-⟧-SetTruncIso .Iso.ret f = refl
 
 module GroupoidCont where
   open TruncCont 3
@@ -538,7 +538,7 @@ module GroupoidCont where
     map-⟦-⟧-GroupoidTruncIso : Iso (TruncHom F G) (TruncNat F G)
     map-⟦-⟧-GroupoidTruncIso .Iso.fun = map-⟦_⟧'
     map-⟦-⟧-GroupoidTruncIso .Iso.inv = unmap-⟦_⟧'
-    map-⟦-⟧-GroupoidTruncIso .Iso.rightInv α*@(α , is-nat-α) = ΣPathP (sect , sect-is-nat) where
+    map-⟦-⟧-GroupoidTruncIso .Iso.sec α*@(α , is-nat-α) = ΣPathP (sect , sect-is-nat) where
       sect : map-⟦ unmap-⟦ α* ⟧' ⟧' .fst ≡ α
       sect = funExt₂ λ { X (s , v) → goal X s v }
         where module _ (X : hGroupoid ℓ) (s : ⟨ Shapeᴾ F ⟩) (v : ⟨ Posᴾ F s ⟩ → ⟨ X ⟩) where
@@ -565,7 +565,7 @@ module GroupoidCont where
 
       sect-is-nat : PathP (λ i → isTruncNat F G (sect i)) (map-⟦ unmap-⟦ α* ⟧' ⟧' .snd) is-nat-α
       sect-is-nat = funExt₃ λ X Y g → funExtSquare $ uncurry $ sect-is-nat-ext X Y g
-    map-⟦-⟧-GroupoidTruncIso .Iso.leftInv f = refl
+    map-⟦-⟧-GroupoidTruncIso .Iso.ret f = refl
     ---}
 
 private

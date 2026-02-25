@@ -1,8 +1,98 @@
 {
   "nodes": {
+    "cornelis": {
+      "inputs": {
+        "flake-compat": "flake-compat",
+        "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1769080344,
+        "narHash": "sha256-Z/2hBW/bRb8wtJqBUT8tqgoXg4XqGNvp8L6xw+zHDaU=",
+        "owner": "agda",
+        "repo": "cornelis",
+        "rev": "8401538b8d5056571827679658331136c38f11be",
+        "type": "github"
+      },
+      "original": {
+        "owner": "agda",
+        "repo": "cornelis",
+        "type": "github"
+      }
+    },
+    "cubical": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1771479657,
+        "narHash": "sha256-h2Z4LjSAckLgZEetXbwG5eB/eQAK3951FQo03k+io9E=",
+        "owner": "agda",
+        "repo": "cubical",
+        "rev": "172b47ab2ddf4fc972734df749ea5abeb47d1346",
+        "type": "github"
+      },
+      "original": {
+        "owner": "agda",
+        "repo": "cubical",
+        "rev": "172b47ab2ddf4fc972734df749ea5abeb47d1346",
+        "type": "github"
+      }
+    },
+    "cubical-categorical-logic": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1771551871,
+        "narHash": "sha256-xaGy8r1XzEQTmmTnQF7XEQxrgHO6dkHnqKtlkOrUZVo=",
+        "owner": "um-catlab",
+        "repo": "cubical-categorical-logic",
+        "rev": "fe0326bf333ca322869dbbc852c4b21293132146",
+        "type": "github"
+      },
+      "original": {
+        "owner": "um-catlab",
+        "repo": "cubical-categorical-logic",
+        "rev": "fe0326bf333ca322869dbbc852c4b21293132146",
+        "type": "github"
+      }
+    },
+    "flake-compat": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1696426674,
+        "narHash": "sha256-kvjfFW7WAETZlt09AgDn1MrtKzP7t90Vf7vypd3OL1U=",
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "rev": "0f9255e01c2351cc7d116c072cb317785dd33b33",
+        "type": "github"
+      },
+      "original": {
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1710146030,
+        "narHash": "sha256-SZ5L6eA7HJ/nmkzGG7/ISclqe6oZdOZTNoesiInkXPQ=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "b1d9ab70662946ef0850d488da1c9019f3a9752a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_2": {
+      "inputs": {
+        "systems": "systems_2"
       },
       "locked": {
         "lastModified": 1731533236,
@@ -20,11 +110,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1747728033,
-        "narHash": "sha256-NnXFQu7g4LnvPIPfJmBuZF7LFy/fey2g2+LCzjQhTUk=",
+        "lastModified": 1771923393,
+        "narHash": "sha256-Fy0+UXELv9hOE8WjYhJt8fMDLYTU2Dqn3cX4BwoGBos=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "2f9173bde1d3fbf1ad26ff6d52f952f9e9da52ea",
+        "rev": "ea7f1f06811ce7fcc81d6c6fd4213150c23edcf2",
         "type": "github"
       },
       "original": {
@@ -36,11 +126,29 @@
     },
     "root": {
       "inputs": {
-        "flake-utils": "flake-utils",
+        "cornelis": "cornelis",
+        "cubical": "cubical",
+        "cubical-categorical-logic": "cubical-categorical-logic",
+        "flake-utils": "flake-utils_2",
         "nixpkgs": "nixpkgs"
       }
     },
     "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_2": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",

@@ -51,8 +51,8 @@ module Total (X : Type ℓ) (Y : X → Type ℓ) where
   fiberProj-Family-Iso : ∀ x → Iso (fiber proj x) (Y x)
   fiberProj-Family-Iso x .Iso.fun = fiber-proj→Family x
   fiberProj-Family-Iso x .Iso.inv = Family→fiber-proj x
-  fiberProj-Family-Iso x .Iso.rightInv y = substRefl {B = Y} y
-  fiberProj-Family-Iso x .Iso.leftInv t@((x′ , y′) , p) = sym left-inv where
+  fiberProj-Family-Iso x .Iso.sec y = substRefl {B = Y} y
+  fiberProj-Family-Iso x .Iso.ret t@((x′ , y′) , p) = sym left-inv where
     left-inv : t ≡ Family→fiber-proj x (fiber-proj→Family x t)
     left-inv i .fst .fst = p i
     left-inv i .fst .snd = subst-filler Y p y′ i

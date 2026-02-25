@@ -462,7 +462,7 @@ module _
         ι→ᴾ-Iso = λ where
           .Iso.fun → ι→ᴾ
           .Iso.inv → ι←ᴾ
-          .Iso.rightInv p →
+          .Iso.sec p →
             let (_ , g , g-stab) = k (f p)
                 (_ , g' , _) = k (f (g σ.▷⁻ p))
                 foo : f (g σ.▷⁻ p) ≡ f p
@@ -474,7 +474,7 @@ module _
             g' σ.▷ (g σ.▷⁻ p) ≡⟨ cong (σ._▷ (g σ.▷⁻ p)) sanity ⟩
             g σ.▷ (g σ.▷⁻ p) ≡⟨ secEq (σ.action g) p ⟩
             p ∎
-          .Iso.leftInv p →
+          .Iso.ret p →
             let (_ , g , g-stab) = k (f p)
                 (_ , g' , _) = k (f (g σ.▷ p))
 
@@ -802,8 +802,8 @@ module _
       i-iso : Iso _ _
       i-iso .Iso.fun = i→
       i-iso .Iso.inv = i←
-      i-iso .Iso.rightInv (p , q) = ΣPathP ({! !} , {! !})
-      i-iso .Iso.leftInv (p , q) using (_ , g , stab) ← k (f p) with i→adj p (g , stab)
+      i-iso .Iso.sec (p , q) = ΣPathP ({! !} , {! !})
+      i-iso .Iso.ret (p , q) using (_ , g , stab) ← k (f p) with i→adj p (g , stab)
       ... | Eq.refl = {! !}
     -}
 
@@ -836,8 +836,8 @@ module _
       i-iso : Iso _ _
       i-iso .Iso.fun = i→
       i-iso .Iso.inv = i←
-      i-iso .Iso.rightInv (p , q) = ΣPathP ({! !} , {! !})
-      i-iso .Iso.leftInv = {! !}
+      i-iso .Iso.sec (p , q) = ΣPathP ({! !} , {! !})
+      i-iso .Iso.ret = {! !}
 
   include-mediate : (s : S) → (f f' : ⟨ P s ⟩ → T)
     → (g₀ : ⟨ G s ⟩)

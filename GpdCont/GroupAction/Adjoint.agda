@@ -81,8 +81,8 @@ hom-iso {σ = σ@((G , X), σ′)} {τ = τ@((H , Y), τ′)} {ρ = ρ@((K , Z),
   go : Iso _ _
   go .Iso.fun = curry'
   go .Iso.inv = {! !}
-  go .Iso.rightInv = {! !}
-  go .Iso.leftInv = {! !}
+  go .Iso.sec = {! !}
+  go .Iso.ret = {! !}
 
 eval' : GroupAction [ (τ ⇒ σ) ⊗ σ , τ ]
 eval' {τ = τ*@((H , Y) , τ)} {σ = σ*@((G , X) , σ)} = eval-at where

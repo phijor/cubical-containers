@@ -61,10 +61,10 @@ unshift {k = suc k} = unshift-mod-suc k
 shiftIso : ∀ k → Iso (Fin k) (Fin k)
 shiftIso k .Iso.fun = shift
 shiftIso k .Iso.inv = unshift
-shiftIso zero .Iso.rightInv ()
-shiftIso (suc k) .Iso.rightInv = elimProp (suc k) (λ _ → isSetModulo _ _) λ n → sym (step n)
-shiftIso zero .Iso.leftInv ()
-shiftIso (suc k) .Iso.leftInv = elimProp (suc k) (λ _ → isSetModulo _ _) λ n → cong embed (Nat.+-suc k n) ∙ sym (ztep {suc k} n)
+shiftIso zero .Iso.sec ()
+shiftIso (suc k) .Iso.sec = elimProp (suc k) (λ _ → isSetModulo _ _) λ n → sym (step n)
+shiftIso zero .Iso.ret ()
+shiftIso (suc k) .Iso.ret = elimProp (suc k) (λ _ → isSetModulo _ _) λ n → cong embed (Nat.+-suc k n) ∙ sym (ztep {suc k} n)
 
 shiftEquiv : ∀ k → Fin k ≃ Fin k
 shiftEquiv k = isoToEquiv $ shiftIso k

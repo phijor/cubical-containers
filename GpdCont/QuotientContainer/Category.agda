@@ -61,8 +61,8 @@ module _ (ℓ : Level) where
       path i .QCont.symm-id = {! !}
       path i .QCont.symm-sym = {! !}
       path i .QCont.symm-comp = {! !}
-    the-iso .Iso.rightInv = {! !}
-    the-iso .Iso.leftInv = {! !}
+    the-iso .Iso.sec = {! !}
+    the-iso .Iso.ret = {! !}
   -}
 
 private

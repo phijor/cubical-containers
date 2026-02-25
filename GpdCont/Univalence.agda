@@ -174,8 +174,8 @@ module UA→ {ℓ ℓ'}
       ((x : Σ[ x₀ ∈ A₀ ] (singlP (λ i → ua e i) x₀)) → PathP B (f₀ (x .fst)) (f₁ (x .snd .fst)))
     shuffle-iso .Iso.fun f (x₀ , x₁ , p) = f {x₀} {x₁} p
     shuffle-iso .Iso.inv f {x₀} {x₁} p = f (x₀ , x₁ , p)
-    shuffle-iso .Iso.rightInv _ = refl
-    shuffle-iso .Iso.leftInv _ = refl
+    shuffle-iso .Iso.sec _ = refl
+    shuffle-iso .Iso.ret _ = refl
 
     shuffle : _ ≃ _
     shuffle = strictIsoToEquiv shuffle-iso

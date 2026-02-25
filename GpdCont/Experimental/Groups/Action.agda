@@ -78,9 +78,9 @@ module _ {ℓ} (BG : Group ℓ) (X : Action BG) where
 
     orb-eq : (x y : X ⋆) → isEquivariant x y → orb x ≡ orb y
     orb-eq x y (p , q) = cong ST.∣_∣₂ (ΣPathP (p , q))
-  OrbitEquivariantQuotientIso .Iso.rightInv = SQ.elimProp (λ _ → SQ.squash/ _ _)
+  OrbitEquivariantQuotientIso .Iso.sec = SQ.elimProp (λ _ → SQ.squash/ _ _)
     λ (x : X ⋆) → {! here be transport hell !}
-  OrbitEquivariantQuotientIso .Iso.leftInv = ST.elim {! !} {! !}
+  OrbitEquivariantQuotientIso .Iso.ret = ST.elim {! !} {! !}
   -}
 
   _≈_ : (x y : X ⋆) → Type _

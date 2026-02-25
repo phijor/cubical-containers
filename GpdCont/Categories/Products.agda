@@ -1,4 +1,4 @@
-open import GpdCont.Prelude hiding (_×_)
+open import GpdCont.Prelude renaming (_×_ to _×ᵗ_)
 
 open import Cubical.Categories.Category.Base
 
@@ -9,9 +9,13 @@ import      GpdCont.Categories.Diagonal as Diagonal
 
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Data.Bool
+open import Cubical.Data.Sigma hiding (_×_)
 open import Cubical.Categories.Functor.Base
 open import Cubical.Categories.Adjoint.UniversalElements
 open import Cubical.Categories.Presheaf.Representable using (UniversalElement) public
+open import Cubical.Categories.Limits.BinProduct
 
 private
   module C where
@@ -20,10 +24,10 @@ private
 
 
 Product : (K : hSet ℓ) → (c : ⟨ K ⟩ → C.ob) → Type _
-Product K = RightAdjointAt' _ _ (C.Δ K)
+Product K = RightAdjointAt (C.Δ K)
 
 Products : Type _
-Products = ∀ K → RightAdjoint' _ _ (C.Δ K)
+Products = ∀ K → RightAdjoint (C.Δ K)
 
 module NotationAt (K : hSet ℓ) (c : ⟨ K ⟩ → C.ob) (ip : Product K c) where
   open UniversalElement ip
@@ -45,12 +49,53 @@ module NotationAt (K : hSet ℓ) (c : ⟨ K ⟩ → C.ob) (ip : Product K c) whe
     univ-iso = equivToIso univ-equiv
 
 module Notation (ip : Products) where
-  open import Cubical.Data.Bool
-
   module _ K (c : ⟨ K ⟩ → C.ob) where open NotationAt K c (ip K c) public
+
+  private
+    BoolSet : hSet ℓ
+    BoolSet = (Bool* , isOfHLevelLift 2 isSetBool)
+
+    case : C.ob → C.ob → ⟨ BoolSet ⟩ → C.ob
+    case x y (lift false) = y
+    case x y (lift true) = x
+
+    bool-elim-equiv : ∀ {ℓ'} {B : ⟨ BoolSet ⟩ → Type ℓ'} → (∀ k → B k) ≃ (B true*) ×ᵗ (B false*)
+    bool-elim-equiv = isoToEquiv λ where
+      .Iso.fun φ → φ _ , φ _
+      .Iso.inv (x , y) → λ { (lift true) → x ; (lift false) → y }
+      .Iso.ret φ → funExt λ { (lift true) → refl ; (lift false) → refl }
+      .Iso.sec (x , y) → refl
 
   terminal : C.ob
   terminal = Π (EmptySet ℓ) λ ()
 
   _×_ : C.ob → C.ob → C.ob
-  _×_ x y = Π (Bool* , isOfHLevelLift 2 isSetBool) (λ { b → if b .lower then x else y })
+  _×_ x y = Π BoolSet (case x y)
+
+  π₁ : ∀ x y → C.Hom[ x × y , x ]
+  π₁ x y = π _ _ (lift true)
+
+  π₂ : ∀ x y → C.Hom[ x × y , y ]
+  π₂ x y = π _ _ (lift false)
+
+  binProducts : BinProducts C
+  binProducts = bp where
+    bp : ∀ x y → BinProduct C x y
+    bp x y .BinProduct.binProdOb = x × y
+    bp x y .BinProduct.binProdPr₁ = π₁ x y
+    bp x y .BinProduct.binProdPr₂ = π₂ x y
+    bp x y .BinProduct.univProp {z} f₁ f₂ = isOfHLevelRespectEquiv 0 hom-equiv (equivIsEquiv (univ-equiv _ _ _) .equiv-proof f') where
+      f' : (k : ⟨ BoolSet ⟩) → C.Hom[ z , case x y k ]
+      f' (lift false) = f₂
+      f' (lift true) = f₁
+
+      open import Cubical.Functions.FunExtEquiv
+
+      hom-equiv : fiber (equivFun (univ-equiv BoolSet (case x y) z)) f' ≃ (Σ[ f* ∈ C.Hom[ z , x × y ] ] (f* C.⋆ π₁ _ _ ≡ f₁) ×ᵗ (f* C.⋆ π₂ _ _ ≡ f₂))
+      hom-equiv = Σ-cong-equiv-snd λ (f* : C.Hom[ z , x × y ]) →
+        equivFun (univ-equiv (Bool* , isOfHLevelLift 2 isSetBool) (case x y) z) f* ≡ f'
+          ≃⟨ invEquiv funExtEquiv ⟩
+        (∀ k → _ ≡ f' k)
+          ≃⟨ bool-elim-equiv ⟩
+        (f* C.⋆ π₁ x y ≡ f₁) ×ᵗ (f* C.⋆ π₂ x y ≡ f₂)
+          ≃∎

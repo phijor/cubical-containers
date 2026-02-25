@@ -109,14 +109,14 @@ is2GroupoidStrictGroupoid = isOfHLevelRespectEquiv 4 shuffle is2GroupoidStrictGr
   shuffle = isoToEquiv λ where
     .Iso.fun → to
     .Iso.inv → from
-    .Iso.leftInv ((G , is-groupoid-G) , pt , pt-section) i .fst .fst → G
-    .Iso.leftInv ((G , is-groupoid-G) , pt , pt-section) i .fst .snd → is-groupoid-G
-    .Iso.leftInv ((G , is-groupoid-G) , pt , pt-section) i .snd .fst → pt
-    .Iso.leftInv ((G , is-groupoid-G) , pt , pt-section) i .snd .snd → pt-section
-    .Iso.rightInv (G , G-str) i .fst → G
-    .Iso.rightInv (G , G-str) i .snd .StrictGroupoidStr.is-groupoid → G-str .StrictGroupoidStr.is-groupoid
-    .Iso.rightInv (G , G-str) i .snd .StrictGroupoidStr.pt → G-str .StrictGroupoidStr.pt
-    .Iso.rightInv (G , G-str) i .snd .StrictGroupoidStr.pt-section → G-str .StrictGroupoidStr.pt-section
+    .Iso.ret ((G , is-groupoid-G) , pt , pt-section) i .fst .fst → G
+    .Iso.ret ((G , is-groupoid-G) , pt , pt-section) i .fst .snd → is-groupoid-G
+    .Iso.ret ((G , is-groupoid-G) , pt , pt-section) i .snd .fst → pt
+    .Iso.ret ((G , is-groupoid-G) , pt , pt-section) i .snd .snd → pt-section
+    .Iso.sec (G , G-str) i .fst → G
+    .Iso.sec (G , G-str) i .snd .StrictGroupoidStr.is-groupoid → G-str .StrictGroupoidStr.is-groupoid
+    .Iso.sec (G , G-str) i .snd .StrictGroupoidStr.pt → G-str .StrictGroupoidStr.pt
+    .Iso.sec (G , G-str) i .snd .StrictGroupoidStr.pt-section → G-str .StrictGroupoidStr.pt-section
 
   is2GroupoidStrictGroupoid' : is2Groupoid StrictGroupoid'
   is2GroupoidStrictGroupoid' = is2GroupoidΣ (isOfHLevelTypeOfHLevel 3)

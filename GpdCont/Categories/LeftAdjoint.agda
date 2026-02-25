@@ -14,7 +14,7 @@ open Category
 
 module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) where
   LeftAdjointAt' : (d : D .ob) → Type _
-  LeftAdjointAt' = RightAdjointAt' (C ^op) (D ^op) (F ^opF)
+  LeftAdjointAt' = RightAdjointAt {C = C ^op} {D = D ^op} (F ^opF)
 
   LeftAdjoint' : Type _
-  LeftAdjoint' = RightAdjoint' (C ^op) (D ^op) (F ^opF)
+  LeftAdjoint' = RightAdjoint {C = C ^op} {D = D ^op} (F ^opF)

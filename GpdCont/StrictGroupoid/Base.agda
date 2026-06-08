@@ -47,6 +47,9 @@ record StrictGroupoidStr (A : Type ℓ) : Type ℓ where
   mere-retract : ∀ a → ∥ pt ∣ a ∣₂ ≡ a ∥₁
   mere-retract a = ST.PathIdTrunc₀Iso .Iso.fun (pt-section ∣ a ∣₂)
 
+  -- mere-retract-equiv : ∀ a → ?
+  -- mere-retract-equiv a = isoToEquiv (ST.PathIdTrunc₀Iso
+
   as-groupoid : hGroupoid ℓ
   as-groupoid .fst = A
   as-groupoid .snd = is-groupoid
@@ -161,6 +164,16 @@ module _ (G : StrictGroupoid ℓ) where
     ∣p∣ = do
       q ← G.mere-retract g
       return $ subst P (the (G.pt-at g ≡ g) q) p'
+
+  elimPropEquiv : ∀ {ℓP} {P : ⟨ G ⟩ → Type ℓP}
+    → (∀ g → isProp (P g))
+    → ((x : ∥ ⟨ G ⟩ ∥₂) → P (G.pt x)) ≃ (∀ g → P g)
+  elimPropEquiv {P} is-prop-P = isoToEquiv the-iso where
+    the-iso : Iso _ _
+    the-iso .Iso.fun = elimProp is-prop-P
+    the-iso .Iso.inv = _∘ G.pt
+    the-iso .Iso.sec f = funExt λ g → is-prop-P g _ (f g)
+    the-iso .Iso.ret f = funExt λ x → is-prop-P (G.pt x) _ (f x)
 
   open import Cubical.Foundations.Interpolate
 

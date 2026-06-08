@@ -50,7 +50,7 @@ module _ {ℓG ℓH} (G : StrictGroupoid ℓG) (H : StrictGroupoid ℓH) where
     isPropCode (p₁ , q₁) (p₂ , q₂) = Σ≡Prop is-prop-is-strict-fun-path goal where
       is-prop-is-strict-fun-path : (p : φ #_ ≡ ψ #_) → isProp $ PathP (λ i → StrictFunStr G H (p i)) (strict-fun-str φ) (strict-fun-str ψ)
       is-prop-is-strict-fun-path p = isOfHLevelPathP' 1 (isSetStrictFunStr G H (ψ #_)) _ _
-      
+
       -- Let (p₁ p₂ : φ #_ ≡ ψ #_).  To show that there is always an identification p₁ ≡ p₂, it suffices
       -- to give an identification over the points of G, i.e.
       --
@@ -67,6 +67,17 @@ module _ {ℓG ℓH} (G : StrictGroupoid ℓG) (H : StrictGroupoid ℓH) where
 
         h* : (⟨ G ⟩ → ⟨ H ⟩) → (∥ ⟨ G ⟩ ∥₂ → ⟨ H ⟩)
         h* ρ = H.pt ∘ ST.map ρ
+
+        goal-equiv : ((cong g* p₁) ≡ (cong g* p₂)) ≃ (p₁ ≡ p₂)
+        goal-equiv =
+          ((cong g* p₁) ≡ (cong g* p₂))
+            ≃⟨ invEquiv funExtSquareEquiv ⟩
+          ((x : ∥ ⟨ G ⟩ ∥₂) → SquareP (λ _ _ → ⟨ H ⟩) (cong g* p₁ ≡$ x) (cong g* p₂ ≡$ x) refl refl)
+            ≃⟨ elimPropEquiv G (λ g → isGroupoid→isPropSquare H.is-groupoid) ⟩
+          ((g : ⟨ G ⟩) → SquareP (λ _ _ → ⟨ H ⟩) (p₁ ≡$ g) (p₂ ≡$ g) refl refl)
+            ≃⟨ funExtSquareEquiv ⟩
+          (p₁ ≡ p₂)
+            ≃∎
 
         -- `pointwise` is build from the composition of three squares.
         -- The first two are q₁ and q₂, i.e. the evidence that p₁ and p₂ are

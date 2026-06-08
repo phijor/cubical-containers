@@ -481,6 +481,28 @@ StrictGroupoidStrΣ {A} {B} strict-A strict-B = strict-Σ where
       coh a₀ b₀ a₁ b₁ p q i j .fst = ST.squash₂ {! !} {! !} (cong ∣_∣₂ p) (cong ∣_∣₂ q) i j
       coh a₀ b₀ a₁ b₁ p q i j .snd = {! !}
 
+  pt' : ∥ Σ A B ∥₂ → Σ A B
+  pt' = ST.rec→Gpd.fun is-groupoid-Σ pt₀ pt₀-coh where
+    pt₀-fst : A → A
+    pt₀-fst a = A.pt-at a
+
+    pt₀-fst-coh : ∀ a₀ a₁ → (p q : a₀ ≡ a₁) → cong pt₀-fst p ≡ cong pt₀-fst q
+    pt₀-fst-coh a₀ a₁ p q i j = A.pt (ST.squash₂ ∣ a₀ ∣₂ ∣ a₁ ∣₂ (cong ∣_∣₂ p) (cong ∣_∣₂ q) i j)
+
+    e : ∀ a → ∥ B a ∥₂ ≃ ∥ B (A.pt ∣ a ∣₂) ∥₂
+    e a = {! !}
+
+    pt₀-snd : ∀ a → B a → B (pt₀-fst a)
+    pt₀-snd a b = B.pt (pt₀-fst a) $ transport (ua {! !}) ∣ b ∣₂
+
+    pt₀ : Σ A B → Σ A B
+    pt₀ (a , b) .fst = A.pt-at a
+    pt₀ (a , b) .snd = {!b!}
+
+    pt₀-coh : ∀ x y → (p q : x ≡ y) → cong pt₀ p ≡ cong pt₀ q
+    pt₀-coh (a₀ , b₀) (a₁ , b₁) p q i j .fst = pt₀-fst-coh a₀ a₁ (cong fst p) (cong fst q) i j
+    pt₀-coh (a₀ , b₀) (a₁ , b₁) p q i j .snd = {! !}
+
   pt : ∥ Σ A B ∥₂ → Σ A B
   pt = ST.rec→Gpd.fun is-groupoid-Σ pt₀ pt₀-coh where
     pt₀-fst : A → A
@@ -537,3 +559,42 @@ module _ (is-set-A : isSet A) (strict-B : StrictGroupoidStr B) where
     strict-fun .StrictGroupoidStr.is-groupoid = isGroupoidΠ λ _ → B.is-groupoid
     strict-fun .StrictGroupoidStr.pt = pt
     strict-fun .StrictGroupoidStr.pt-section = pt-section
+
+foo : ∀ {ℓA ℓB} {A : Type ℓA} {B : A → Type ℓB}
+  → (strict-A : StrictGroupoidStr A)
+  → (∀ a → StrictGroupoidStr (B a))
+  → (pts : ∀ x → B (strict-A .StrictGroupoidStr.pt x))
+  -- → PT.satChoice A ℓB
+  → StrictGroupoidStr (Σ A B)
+foo {A} {B} strict-A strict-B pts = strict-Σ where
+  module A = StrictGroupoidStr strict-A
+  module B a = StrictGroupoidStr (strict-B a)
+
+  is-groupoid-Σ : isGroupoid (Σ A B)
+  is-groupoid-Σ = isGroupoidΣ A.is-groupoid B.is-groupoid
+
+  pt = ST.rec→Gpd.fun is-groupoid-Σ pt₀ pt₀-coh where
+    pt₀-fst : A → A
+    pt₀-fst a = A.pt-at a
+
+    blah : Σ A B → Σ ∥ A ∥₂ (B ∘ A.pt)
+    blah (a , b) .fst = ∣ a ∣₂
+    blah (a , b) .snd = pts ∣ a ∣₂
+
+    blub : Σ ∥ A ∥₂ (B ∘ A.pt) → Σ A B
+    blub = {! !}
+
+    pt₀ : Σ A B → Σ A B
+    pt₀ (a , b) .fst = pt₀-fst a
+    pt₀ (a , b) .snd = B.pt (pt₀-fst a) ? -- ∣ pts a ∣₂
+
+    pt₀-coh : ∀ x y → (p q : x ≡ y) → cong pt₀ p ≡ cong pt₀ q
+    pt₀-coh (a₀ , b₀) (a₁ , b₁) p q i j .fst = A.pt (ST.squash₂ ∣ a₀ ∣₂ ∣ a₁ ∣₂ (cong (∣_∣₂ ∘ fst) p) (cong (∣_∣₂ ∘ fst) q) i j)
+    pt₀-coh (a₀ , b₀) (a₁ , b₁) p q i j .snd = ?
+    -- B.pt (A.pt $ ST.squash₂ ∣ a₀ ∣₂ ∣ a₁ ∣₂ (cong (∣_∣₂ ∘ fst) p) (cong (∣_∣₂ ∘ fst) q) i j)
+    --   $ ST.squash₂ {! !} {! !} {! !} {! !} i j
+
+  strict-Σ : StrictGroupoidStr _
+  strict-Σ .StrictGroupoidStr.is-groupoid = is-groupoid-Σ
+  strict-Σ .StrictGroupoidStr.pt = pt
+  strict-Σ .StrictGroupoidStr.pt-section = {! !}

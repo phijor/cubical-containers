@@ -355,8 +355,8 @@ module η (J : Type ℓ) (is-set-J : isSet J)
 
   η₀-idx = invEq components-equiv
 
-  foo : (j : J) → hGroup.Hom[ G* j , D₀ᴰ (Σˢ.₀ x) (η₀-idx j) ]
-  foo j = {! ⟨ D₀ᴰ (Σˢ.₀ x) (η₀-idx j) .fst ⟩!}
+  bar : (j : J) → hGroup.Hom[ G* j , D₀ᴰ (Σˢ.₀ x) (η₀-idx j) ]
+  bar j = {! ⟨ D₀ᴰ (Σˢ.₀ x) (η₀-idx j) .fst ⟩!}
   -- foo j .fst g .fst = j , g -- G.pt-at j g
   -- foo j .fst g .snd = goal where
   --   goal : ∣ (j , g) ∣₂ ≡ ST.map (j ,_) (is-connected-G j .fst)

@@ -469,3 +469,5 @@ module 4-ActionContainers-2-Category where
 
     51-Theorem : isLocallyFullyFaithful (AsFamily.Fam𝔹 ⋆F SetBundleΣ)
     51-Theorem = isLocallyFullyFaithfulActToSymmCont
+
+{- Addendum (April 2026): Skeletal containers -}

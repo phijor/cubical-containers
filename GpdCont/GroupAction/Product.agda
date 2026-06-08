@@ -1,3 +1,4 @@
+{-# OPTIONS --lossy-unification #-}
 open import GpdCont.Prelude
 
 module GpdCont.GroupAction.Product (ℓ : Level) where
@@ -8,12 +9,14 @@ open import GpdCont.GroupAction.Category ℓ
 open import GpdCont.Group.DirProd as GroupDirProd using (module DirProd ; DirProd)
 
 open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Isomorphism
 open import Cubical.Data.Sigma
 open import Cubical.Algebra.Group.Base
 open import Cubical.Algebra.Group.MorphismProperties using (GroupHom≡)
 open import Cubical.Categories.Category.Base
 open import Cubical.Categories.Functor.Base
-open import Cubical.Categories.Limits.BinProduct
+open import Cubical.Categories.Limits.BinProduct.More
+open import Cubical.Categories.Presheaf.Representable using (UniversalElement)
 
 open import Cubical.Data.Sum as Sum using (⊎-equiv)
 
@@ -65,12 +68,15 @@ prodEquivariant {ω} {σ} {τ} f₁*@((φ₁ , f₁) , e₁) f₂*@((φ₂ , f�
     (Sum.inr y) → e₂ g ≡$ y
 
 GroupActionBinProducts : BinProducts GroupAction
-GroupActionBinProducts σ τ = prod where
-  prod : BinProduct _ _ _
-  prod .BinProduct.binProdOb = productAction σ τ
-  prod .BinProduct.binProdPr₁ = fstEquivariant {σ = σ} {τ = τ}
-  prod .BinProduct.binProdPr₂ = sndEquivariant {σ = σ} {τ = τ}
-  prod .BinProduct.univProp {z = ω} u v = univ where
-    univ : ∃![ u×v ∈ GroupAction [ ω , productAction σ τ ] ] (u×v ⋆⟨ GroupAction ⟩ fstEquivariant ≡ u) × {! !}
-    univ .fst = prodEquivariant u v , GroupActionHom≡ (≡-× (GroupHom≡ refl) {! !}) , {! !}
-    univ .snd = {! !}
+GroupActionBinProducts (σ , τ) = prod where
+  intro : ∀ ω → GroupAction [ ω , σ ] × GroupAction [ ω , τ ] → GroupAction [ ω , productAction σ τ ]
+  intro ω (g₁ , g₂) = prodEquivariant {ω = ω} {σ = σ} {τ = τ} g₁ g₂
+
+  prod : BinProduct GroupAction (σ , τ)
+  prod .UniversalElement.vertex = productAction σ τ
+  prod .UniversalElement.element = fstEquivariant {σ = σ} {τ = τ} , sndEquivariant {σ = σ} {τ = τ}
+  prod .UniversalElement.universal ω = isoToIsEquiv λ where
+    .Iso.fun → _
+    .Iso.inv → intro ω
+    .Iso.sec (g₁ , g₂) → ≡-× (GroupActionHom≡ $ ≡-× (GroupHom≡ refl) refl) (GroupActionHom≡ $ ≡-× (GroupHom≡ refl) refl)
+    .Iso.ret f → GroupActionHom≡ $ ≡-× (GroupHom≡ refl) $ funExt (Sum.elim (λ _ → refl) (λ _ → refl))

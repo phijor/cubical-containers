@@ -15,7 +15,7 @@ open import Cubical.Data.Sigma hiding (_×_)
 open import Cubical.Categories.Functor.Base
 open import Cubical.Categories.Adjoint.UniversalElements
 open import Cubical.Categories.Presheaf.Representable using (UniversalElement) public
-open import Cubical.Categories.Limits.BinProduct
+open import Cubical.Categories.Limits.BinProduct.More
 
 private
   module C where
@@ -72,30 +72,34 @@ module Notation (ip : Products) where
   _×_ : C.ob → C.ob → C.ob
   _×_ x y = Π BoolSet (case x y)
 
-  π₁ : ∀ x y → C.Hom[ x × y , x ]
-  π₁ x y = π _ _ (lift true)
+  π₁ : ∀ {x y} → C.Hom[ x × y , x ]
+  π₁ = π _ _ (lift true)
 
-  π₂ : ∀ x y → C.Hom[ x × y , y ]
-  π₂ x y = π _ _ (lift false)
+  π₂ : ∀ {x y} → C.Hom[ x × y , y ]
+  π₂ = π _ _ (lift false)
 
   binProducts : BinProducts C
   binProducts = bp where
-    bp : ∀ x y → BinProduct C x y
-    bp x y .BinProduct.binProdOb = x × y
-    bp x y .BinProduct.binProdPr₁ = π₁ x y
-    bp x y .BinProduct.binProdPr₂ = π₂ x y
-    bp x y .BinProduct.univProp {z} f₁ f₂ = isOfHLevelRespectEquiv 0 hom-equiv (equivIsEquiv (univ-equiv _ _ _) .equiv-proof f') where
-      f' : (k : ⟨ BoolSet ⟩) → C.Hom[ z , case x y k ]
-      f' (lift false) = f₂
-      f' (lift true) = f₁
-
+    bp : ∀ x,y → BinProduct C x,y
+    bp (x , y) .UniversalElement.vertex = x × y
+    bp (x , y) .UniversalElement.element .fst = π₁
+    bp (x , y) .UniversalElement.element .snd = π₂
+    bp (x , y) .UniversalElement.universal z .equiv-proof (f₁ , f₂) =
+      isOfHLevelRespectEquiv 0 hom-equiv (equivIsEquiv (univ-equiv BoolSet _ _) .equiv-proof fᵇ)
+      where
       open import Cubical.Functions.FunExtEquiv
 
-      hom-equiv : fiber (equivFun (univ-equiv BoolSet (case x y) z)) f' ≃ (Σ[ f* ∈ C.Hom[ z , x × y ] ] (f* C.⋆ π₁ _ _ ≡ f₁) ×ᵗ (f* C.⋆ π₂ _ _ ≡ f₂))
+      fᵇ : (k : ⟨ BoolSet ⟩) → C.Hom[ z , case x y k ]
+      fᵇ (lift false) = f₂
+      fᵇ (lift true) = f₁
+
+      hom-equiv : fiber (equivFun (univ-equiv BoolSet (case x y) z)) fᵇ ≃ (Σ[ f* ∈ C.Hom[ z , x × y ] ] (f* C.⋆ π₁ , f* C.⋆ π₂) ≡ (f₁ , f₂))
       hom-equiv = Σ-cong-equiv-snd λ (f* : C.Hom[ z , x × y ]) →
-        equivFun (univ-equiv (Bool* , isOfHLevelLift 2 isSetBool) (case x y) z) f* ≡ f'
+        equivFun (univ-equiv (Bool* , isOfHLevelLift 2 isSetBool) (case x y) z) f* ≡ fᵇ
           ≃⟨ invEquiv funExtEquiv ⟩
-        (∀ k → _ ≡ f' k)
+        (∀ k → _ ≡ fᵇ k)
           ≃⟨ bool-elim-equiv ⟩
-        (f* C.⋆ π₁ x y ≡ f₁) ×ᵗ (f* C.⋆ π₂ x y ≡ f₂)
+        (f* C.⋆ π₁ ≡ f₁) ×ᵗ (f* C.⋆ π₂ ≡ f₂)
+          ≃⟨ ΣPathP≃PathPΣ ⟩
+        (f* C.⋆ π₁ , f* C.⋆ π₂) ≡ (f₁ , f₂)
           ≃∎

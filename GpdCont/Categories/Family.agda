@@ -11,18 +11,21 @@ import      GpdCont.Categories.Diagonal as Diagonal
 import GpdCont.Categories.Fiber as Fiber
 
 open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Equiv.Properties using (domIsoDep)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism hiding (isIso)
 open import Cubical.Foundations.Transport using (substEquiv)
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma
 open import Cubical.Data.Bool
+open import Cubical.Data.Sum
 
 open import Cubical.Categories.Category.Path
 open import Cubical.Categories.Instances.Sets using (SET ; isUnivalentSET)
 open import Cubical.Categories.Constructions.TotalCategory.Base using (∫C)
 open import Cubical.Categories.Displayed.Base as Disp using (Categoryᴰ)
 open import Cubical.Categories.Presheaf.Representable
+open import Cubical.Categories.Limits.BinProduct.More
 
 
 module _ where
@@ -146,11 +149,67 @@ module Coproducts where
   FamCoproducts : Coproducts
   FamCoproducts = FamCoproduct
 
--- module BinProducts (p : BinProducts C ℓ) where
---   private
---     module C where
---       open Category C public
---       open Pr.Notation C ℓ p public
+module BinProducts (p : BinProducts C) where
+  private
+    module C where
+      open Category C public
+      open BinProductsNotation p public
+
+  module _ (x y : Fam.ob) where
+    x×y : Fam.ob
+    x×y .fst = Index x ×Set Index y
+    x×y .snd (j , k) = El x j C.× El y k
+
+    π : Fam [ x×y , x ] × Fam [ x×y , y ]
+    π .fst = fst , λ _ → C.π₁
+    π .snd = snd , λ _ → C.π₂
+
+    univ : (z : Fam.ob) → Fam [ z , x×y ] → Fam [ z , x ] × Fam [ z , y ]
+    univ z f .fst = f Fam.⋆ π .fst
+    univ z f .snd = f Fam.⋆ π .snd
+
+    univ-iso : ∀ z → Iso (Fam [ z , x×y ]) (Fam [ z , x ] × Fam [ z , y ])
+    univ-iso z =
+      -- Σ[ φ ∈ (⟨ Index z ⟩ → ⟨ Index x ⟩ × ⟨ Index y ⟩) ] (∀ k → C [ El z k , El x (φ k .fst) C.× El y (φ k .snd) ])
+      --   Iso⟨ invIso Σ-Π-Iso ⟩
+      -- ((k : ⟨ Index z ⟩) → Σ[ (i , j) ∈ ⟨ Index x ⟩ × ⟨ Index y ⟩ ] C [ El z k , El x i C.× El y j ])
+      --   Iso⟨ codomainIsoDep (λ k → Σ-cong-iso-snd λ (i , j) → C.×ue.universalIso (El x i) (El y j) (El z k)) ⟩
+      -- ((k : ⟨ Index z ⟩) → Σ[ (i , j) ∈ ⟨ Index x ⟩ × ⟨ Index y ⟩ ] C.Hom[ El z k , El x i ] × C.Hom[ El z k , El y j ])
+      --   Iso⟨ {! C.×ue.universalIso !} ⟩
+      -- (Σ[ φ ∈ (⟨ Index z ⟩ → ⟨ Index x ⟩) ] (∀ k → C.Hom[ El z k , El x (φ k) ])) × (Σ[ ψ ∈ (⟨ Index z ⟩ → ⟨ Index y ⟩) ] (∀ k → C.Hom[ El z k , El y (ψ k) ]))
+      --   ∎Iso
+      Σ[ φ ∈ (⟨ Index z ⟩ → ⟨ Index x ⟩ × ⟨ Index y ⟩) ] (∀ k → C [ El z k , El x (φ k .fst) C.× El y (φ k .snd) ])
+        Iso⟨ Σ-cong-iso-snd (λ φ → codomainIsoDep λ k → C.×ue.universalIso (El x _) (El y _) (El z _)) ⟩
+      Σ[ φ ∈ (⟨ Index z ⟩ → ⟨ Index x ⟩ × ⟨ Index y ⟩) ] (∀ k → C [ El z k , El x _ ] × C [ El z k , El y _ ])
+        Iso⟨ shuffle ⟩
+      (Σ[ φ ∈ (⟨ Index z ⟩ → ⟨ Index x ⟩) ] (∀ k → C.Hom[ El z k , El x (φ k) ])) × (Σ[ ψ ∈ (⟨ Index z ⟩ → ⟨ Index y ⟩) ] (∀ k → C.Hom[ El z k , El y (ψ k) ]))
+        ∎Iso
+        where
+          shuffle : Iso (Σ _ _) ((Σ _ _) × (Σ _ _))
+          shuffle .Iso.fun (φ , f) .fst .fst = fst ∘ φ
+          shuffle .Iso.fun (φ , f) .fst .snd = fst ∘ f
+          shuffle .Iso.fun (φ , f) .snd .fst = snd ∘ φ
+          shuffle .Iso.fun (φ , f) .snd .snd = snd ∘ f
+          shuffle .Iso.inv ((φ , f) , ψ , g) .fst k = φ k , ψ k
+          shuffle .Iso.inv ((φ , f) , ψ , g) .snd k = f k , g k
+          shuffle .Iso.sec _ = refl
+          shuffle .Iso.ret _ = refl
+
+
+    intro : (z : Fam.ob) → Fam [ z , x ] × Fam [ z , y ] → Fam [ z , x×y ]
+    intro z (g₁ , g₂) .fst k = HomIndex g₁ k , HomIndex g₂ k
+    intro z (g₁ , g₂) .snd k = HomEl g₁ k C.,p HomEl g₂ k
+
+    is-equiv-univ : ∀ z → isEquiv (univ z)
+    is-equiv-univ z = isoToIsEquiv (univ-iso z)
+
+    bp : BinProduct Fam (x , y)
+    bp .UniversalElement.vertex = x×y
+    bp .UniversalElement.element = π
+    bp .UniversalElement.universal = is-equiv-univ
+
+  famBinProducts : BinProducts Fam
+  famBinProducts = uncurry bp
 
 
 module Products (p : Pr.Products C ℓ) where
@@ -204,54 +263,91 @@ module Products (p : Pr.Products C ℓ) where
   FamProducts : Products
   FamProducts = FamProduct
 
-module Exponentials (p : Pr.Products C ℓ) where
-  open import Cubical.Categories.Limits.BinProduct
-  open import Cubical.Categories.Exponentials using (Exponential ; Exponentials ; module ExpNotation)
+module Exponentials where
+  open import Cubical.Categories.Exponentials
   open import Cubical.Data.Empty
 
   private
-    open module FamProduct = Pr Fam ℓ
-    module C where
-      open Category C public
-      open Pr.Notation C ℓ p public
+    module _ (bp : BinProducts C) (exp : AllExponentiable C bp) where
+      module C where
+        open Category C public
+        open BinProductsNotation bp public
+        open ExponentialsNotation bp exp public
 
-    module FamΠ where
-      open FamProduct.Notation (Products.FamProducts p) public
+      emb : C.ob → Fam.ob
+      emb Y .fst = UnitSet _
+      emb Y .snd = λ _ → Y
 
-    𝟙 : C.ob
-    𝟙 = C.terminal
+      module Fam× where
+        open BinProductsNotation (BinProducts.famBinProducts bp) public
 
-    konst : (K : hSet ℓ) → C.ob → Fam.ob
-    konst K c .fst = K
-    konst K c .snd = const c
+        bpw : ∀ x → BinProductsWith Fam x
+        bpw x = BinProducts→BinProductsWith _ x (BinProducts.famBinProducts bp)
 
-  konst-exp : (K : hSet ℓ) → (x : Fam.ob) → Exponential Fam (konst K 𝟙) x (FamΠ.binProducts (konst K 𝟙))
-  konst-exp K x@(J , X) .UniversalElement.vertex = FamΠ.Π K (const x)
-  konst-exp K x@(J , X) .UniversalElement.element .fst φ = {! x !}
-  konst-exp K x@(J , X) .UniversalElement.element .snd = {! !}
-  konst-exp K x@(J , X) .UniversalElement.universal = {! !}
+      konst-exp : (X : C.ob) → (y : Fam.ob) → Exponential Fam (emb X) y (Fam×.bpw (emb X))
+      konst-exp X y@(J , Y) = goal where
+        [X,y] : Fam.ob
+        [X,y] .fst = J
+        [X,y] .snd j = X C.⇒ Y j
 
-  private
-    emb : C.ob → Fam.ob
-    emb Y .fst = UnitSet _
-    emb Y .snd = λ _ → Y
+        ev : Fam [ [X,y] Fam×.× (emb X) , y ]
+        ev .fst = fst
+        ev .snd (j , _) = C.⇒ue.element X (Y j)
 
-    module _ (bp : BinProducts C) (exp : Exponentials C bp) where
-      {-
-      konst-emp : (X : C.ob) → (y : Fam.ob) → Exponential Fam (emb X) y (FamΠ.binProducts (emb X))
-      konst-emp X y@(J , Y) = goal where
-        open ExpNotation C C.binProducts exp using (_⇒_)
+        univ-iso : (z : Fam.ob) → Iso (Fam [ z , [X,y] ]) (Fam [ z Fam×.× emb X , y ])
+        univ-iso z =
+          Σ[ φ ∈ (⟨ Index z ⟩ → ⟨ J ⟩) ] (∀ k → C [ El z k , X C.⇒ Y (φ k) ])
+            Iso⟨ Σ-cong-iso-snd (λ φ → codomainIsoDep λ k → C.⇒ue.universalIso X (Y (φ k)) (El z k)) ⟩
+          Σ[ φ ∈ (⟨ Index z ⟩ → ⟨ J ⟩) ] (∀ k → C.Hom[ El z k C.× X , Y (φ k) ])
+            Iso⟨ Σ-cong-iso (domIso (invIso rUnit*×Iso)) (λ φ → domIsoDep rUnit*×Iso) ⟩
+          Σ[ φ ∈ (⟨ Index z ⟩ × _ → ⟨ J ⟩) ] (∀ k → C.Hom[ (El z (k .fst)) C.× X , Y (φ k) ])
+            ∎Iso
 
-        [y,X] : Fam.ob
-        [y,X] .fst = J
-        [y,X] .snd j = Y j ⇒ X
+        goal : Exponential Fam (emb X) y _
+        goal .UniversalElement.vertex = [X,y]
+        goal .UniversalElement.element = ev
+        goal .UniversalElement.universal z = isoToIsEquiv (univ-iso z)
 
-        ev : Fam [ [y,X] FamΠ.× (emb X) , y ]
-        ev = {! !}
+      exp' : (ip : Pr.Products C ℓ) → (x y : Fam.ob) → Exponential Fam x y (Fam×.bpw x)
+      exp' ip x y = goal where
 
-        goal : Exponential Fam (emb X) y (FamΠ.binProducts (emb X))
-        goal .UniversalElement.vertex = [y,X]
-        goal .UniversalElement.element .fst = {! !}
-        goal .UniversalElement.element .snd = {! !}
-        goal .UniversalElement.universal = {! !}
-      -}
+        module CΠ = Pr.Notation C _ ip
+
+        module FamΠ where
+          open Pr.Notation Fam ℓ (Products.FamProducts ip) public
+
+        module [xᵢ,y] (ix : ⟨ Index x ⟩) where
+          open ExponentialNotation (Fam×.bpw (emb (El x ix))) (konst-exp (El x ix) y) public
+
+        [x,y] : Fam.ob
+        [x,y] = FamΠ.Π (Index x) [xᵢ,y].vert
+
+        ev : Fam [ [x,y] Fam×.× x , y ]
+        ev .fst (φ , ix) = φ ix
+        ev .snd (φ , ix) = (CΠ.π (Index x) _ ix C.×p C.id {x = El x ix}) C.⋆ HomEl ([xᵢ,y].app ix) (φ ix , tt*)
+
+        univ-iso : ∀ z → Iso (Fam [ z , [x,y] ]) (Fam [ z Fam×.× x , y ])
+        univ-iso z =
+          Fam [ z , FamΠ.Π _ _ ]
+            Iso⟨ FamΠ.univ-iso (Index x) _ z ⟩
+          (∀ ix → Fam [ z , [xᵢ,y].vert ix ])
+            Iso⟨ codomainIsoDep (λ ix → [xᵢ,y].⇒ue.universalIso ix z) ⟩
+          (∀ ix → Fam [ z Fam×.× emb (El x ix) , y ])
+            Iso⟨ Σ-Π-Iso ⟩
+          Σ[ φ ∈ (⟨ Index x ⟩ → ⟨ Index z ⟩ × Unit* → ⟨ Index y ⟩) ] _
+            Iso⟨ iso
+              (λ (φ , f) → (λ (k , i) → φ i (k , _)) , (λ (k , i) → f i (k , tt*)))
+              (λ (φ , f) → (λ i (k , _) → φ (k , i)) , (λ i (x , _) → f (x , i)))
+              (λ _ → refl)
+              (λ _ → refl)
+            ⟩
+          Σ[ φ ∈ (⟨ Index z ⟩ × ⟨ Index x ⟩ → ⟨ Index y ⟩) ] _
+            ∎Iso
+
+        goal : Exponential Fam x y (Fam×.bpw x)
+        goal .UniversalElement.vertex = [x,y]
+        goal .UniversalElement.element = ev
+        goal .UniversalElement.universal z = subst isEquiv coh $ isoToIsEquiv (univ-iso z) where
+          coh : Iso.fun (univ-iso z) ≡ (λ f → ({! !} Fam×.,p {! !}) Fam.⋆ ev)
+          coh = funExt λ f → FamHom≡ refl λ where
+            (k , i) → {! !}

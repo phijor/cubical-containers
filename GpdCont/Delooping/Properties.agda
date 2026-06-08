@@ -6,7 +6,6 @@ open import Cubical.Algebra.Group.Properties using (module GroupTheory)
 open import Cubical.Algebra.Group.Morphisms using (GroupHom ; IsGroupHom ; GroupEquiv)
 open import Cubical.Algebra.Group.MorphismProperties using (isPropIsGroupHom ; makeIsGroupHom ; invGroupEquiv ; GroupEquiv→GroupHom)
 open import Cubical.Algebra.Group.GroupPath using (uaGroup)
-open import Cubical.Algebra.SymmetricGroup using (Symmetric-Group)
 
 module GpdCont.Delooping.Properties {ℓ} (G : Group ℓ) where
 

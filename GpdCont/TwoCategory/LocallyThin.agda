@@ -3,7 +3,7 @@ module GpdCont.TwoCategory.LocallyThin where
 open import GpdCont.Prelude
 open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.LaxFunctor
-open import GpdCont.TwoCategory.TwoDiscrete
+open import GpdCont.TwoCategory.LocallyDiscrete
 
 open import Cubical.Foundations.HLevels using (isSet→isGroupoid)
 open import Cubical.Categories.Category.Base
@@ -140,4 +140,4 @@ module FromCategory {ℓo ℓh} (C : Category ℓo ℓh) where
     C-wild = record { C }
 
   LocallyThin : TwoCategory ℓo ℓh ℓh
-  LocallyThin = TwoDiscrete C-wild λ x y → isSet→isGroupoid C.isSetHom
+  LocallyThin = LocallyDiscrete C-wild λ x y → isSet→isGroupoid C.isSetHom

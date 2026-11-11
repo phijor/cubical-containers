@@ -3,7 +3,7 @@ module GpdCont.TwoCategory.GroupoidEndo where
 open import GpdCont.Prelude
 open import GpdCont.TwoCategory.Base
 open import GpdCont.TwoCategory.Isomorphism
-open import GpdCont.TwoCategory.TwoDiscrete using (TwoDiscrete)
+open import GpdCont.TwoCategory.LocallyDiscrete using (LocallyDiscrete)
 open import GpdCont.WildCat.TypeOfHLevel using (hGroupoidEndo ; isGroupoidEndoNatTrans)
 open import GpdCont.WildCat.NatTrans using (WildNatTransPath ; isGroupoidHom→WildNatTransSquare)
 
@@ -29,4 +29,4 @@ private
   
 module _ (ℓ : Level) where
   Endo : TwoCategory (ℓ-suc ℓ) (ℓ-suc ℓ) (ℓ-suc ℓ)
-  Endo = TwoDiscrete (hGroupoidEndo ℓ) (isGroupoidEndoNatTrans ℓ)
+  Endo = LocallyDiscrete (hGroupoidEndo ℓ) (isGroupoidEndoNatTrans ℓ)

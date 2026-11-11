@@ -1,4 +1,4 @@
-module GpdCont.TwoCategory.TwoDiscrete where
+module GpdCont.TwoCategory.LocallyDiscrete where
 
 open import GpdCont.Prelude
 open import GpdCont.TwoCategory.Base
@@ -47,43 +47,43 @@ module _ {ℓo ℓh} (C : WildCat ℓo ℓh) (isGroupoidHom : (x y : WildCat.ob 
     ∙ₕ-rUnit : ∀ (p : f ≡ g) → PathP (λ j → C.⋆IdR f j ≡ C.⋆IdR g j) (p ∙ₕ refl) p
     ∙ₕ-rUnit p j i = C.⋆IdR (p i) j
 
-  twoDiscreteStr : TwoCategoryStr C.ob C.Hom[_,_] _≡_
-  twoDiscreteStr .TwoCategoryStr.id-hom x = C.id {x}
-  twoDiscreteStr .TwoCategoryStr.comp-hom = C._⋆_
-  twoDiscreteStr .TwoCategoryStr.id-rel f = refl′ f
-  twoDiscreteStr .TwoCategoryStr.trans = _∙_
-  twoDiscreteStr .TwoCategoryStr.comp-rel = _∙ₕ_
+  locallyDiscreteStr : TwoCategoryStr C.ob C.Hom[_,_] _≡_
+  locallyDiscreteStr .TwoCategoryStr.id-hom x = C.id {x}
+  locallyDiscreteStr .TwoCategoryStr.comp-hom = C._⋆_
+  locallyDiscreteStr .TwoCategoryStr.id-rel f = refl′ f
+  locallyDiscreteStr .TwoCategoryStr.trans = _∙_
+  locallyDiscreteStr .TwoCategoryStr.comp-rel = _∙ₕ_
 
-  isTwoCategoryTwoDiscreteStr : IsTwoCategory _ _ _ twoDiscreteStr
-  isTwoCategoryTwoDiscreteStr .IsTwoCategory.is-set-rel {x} {y} = isGroupoidHom x y
-  isTwoCategoryTwoDiscreteStr .IsTwoCategory.trans-assoc f≡g g≡h h≡k = sym $ GL.assoc f≡g g≡h h≡k
-  isTwoCategoryTwoDiscreteStr .IsTwoCategory.trans-unit-left f≡g = sym $ GL.lUnit f≡g
-  isTwoCategoryTwoDiscreteStr .IsTwoCategory.trans-unit-right f≡g = sym $ GL.rUnit f≡g
-  isTwoCategoryTwoDiscreteStr .IsTwoCategory.comp-rel-id f g = λ i j → f C.⋆ g
-  isTwoCategoryTwoDiscreteStr .IsTwoCategory.comp-rel-trans  = ∙ₕ-interchange
-  isTwoCategoryTwoDiscreteStr .IsTwoCategory.comp-hom-assoc = C.⋆Assoc
-  isTwoCategoryTwoDiscreteStr .IsTwoCategory.comp-hom-unit-left = C.⋆IdL
-  isTwoCategoryTwoDiscreteStr .IsTwoCategory.comp-hom-unit-right = C.⋆IdR
-  isTwoCategoryTwoDiscreteStr .IsTwoCategory.comp-rel-assoc = ∙ₕ-assoc
-  isTwoCategoryTwoDiscreteStr .IsTwoCategory.comp-rel-unit-left = ∙ₕ-lUnit
-  isTwoCategoryTwoDiscreteStr .IsTwoCategory.comp-rel-unit-right = ∙ₕ-rUnit
+  isTwoCategoryLocallyDiscreteStr : IsTwoCategory _ _ _ locallyDiscreteStr
+  isTwoCategoryLocallyDiscreteStr .IsTwoCategory.is-set-rel {x} {y} = isGroupoidHom x y
+  isTwoCategoryLocallyDiscreteStr .IsTwoCategory.trans-assoc f≡g g≡h h≡k = sym $ GL.assoc f≡g g≡h h≡k
+  isTwoCategoryLocallyDiscreteStr .IsTwoCategory.trans-unit-left f≡g = sym $ GL.lUnit f≡g
+  isTwoCategoryLocallyDiscreteStr .IsTwoCategory.trans-unit-right f≡g = sym $ GL.rUnit f≡g
+  isTwoCategoryLocallyDiscreteStr .IsTwoCategory.comp-rel-id f g = λ i j → f C.⋆ g
+  isTwoCategoryLocallyDiscreteStr .IsTwoCategory.comp-rel-trans  = ∙ₕ-interchange
+  isTwoCategoryLocallyDiscreteStr .IsTwoCategory.comp-hom-assoc = C.⋆Assoc
+  isTwoCategoryLocallyDiscreteStr .IsTwoCategory.comp-hom-unit-left = C.⋆IdL
+  isTwoCategoryLocallyDiscreteStr .IsTwoCategory.comp-hom-unit-right = C.⋆IdR
+  isTwoCategoryLocallyDiscreteStr .IsTwoCategory.comp-rel-assoc = ∙ₕ-assoc
+  isTwoCategoryLocallyDiscreteStr .IsTwoCategory.comp-rel-unit-left = ∙ₕ-lUnit
+  isTwoCategoryLocallyDiscreteStr .IsTwoCategory.comp-rel-unit-right = ∙ₕ-rUnit
 
-  TwoDiscrete : TwoCategory ℓo ℓh ℓh
-  TwoDiscrete .TwoCategory.ob = C.ob
-  TwoDiscrete .TwoCategory.hom = C.Hom[_,_]
-  TwoDiscrete .TwoCategory.rel = _≡_
-  TwoDiscrete .TwoCategory.two-category-structure = twoDiscreteStr
-  TwoDiscrete .TwoCategory.is-two-category = isTwoCategoryTwoDiscreteStr
+  LocallyDiscrete : TwoCategory ℓo ℓh ℓh
+  LocallyDiscrete .TwoCategory.ob = C.ob
+  LocallyDiscrete .TwoCategory.hom = C.Hom[_,_]
+  LocallyDiscrete .TwoCategory.rel = _≡_
+  LocallyDiscrete .TwoCategory.two-category-structure = locallyDiscreteStr
+  LocallyDiscrete .TwoCategory.is-two-category = isTwoCategoryLocallyDiscreteStr
 
-  isLocallyUnivalentTwoDiscrete : isLocallyUnivalent TwoDiscrete
-  isLocallyUnivalentTwoDiscrete x y = is-univ where
+  isLocallyUnivalentLocallyDiscrete : isLocallyUnivalent LocallyDiscrete
+  isLocallyUnivalentLocallyDiscrete x y = is-univ where
     open import Cubical.Foundations.Isomorphism
     open import Cubical.Foundations.Equiv
     open import Cubical.Data.Sigma
     open import Cubical.Categories.Category.Base
 
     x≡y : Category _ _
-    x≡y = LocalCategory TwoDiscrete x y
+    x≡y = LocalCategory LocallyDiscrete x y
 
     pathToIso′ : ∀ {f₁ f₂} (p : f₁ ≡ f₂) → CatIso x≡y f₁ f₂
     pathToIso′ p = p , isiso (sym p) (GL.lCancel p) (GL.rCancel p)

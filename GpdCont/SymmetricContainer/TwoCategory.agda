@@ -6,7 +6,7 @@ open import GpdCont.SymmetricContainer.Morphism using (idMorphism ; isGroupoidMo
 open import GpdCont.SymmetricContainer.WildCat using (Eval ; EvalFunctor ; module EvalFunctor ; SymmContWildCat)
 open import GpdCont.SymmetricContainer.Eval using (⟦-⟧-Path ; ⟦-⟧ᵗ-Path ; ⟦_⟧)
 open import GpdCont.TwoCategory.Base
-open import GpdCont.TwoCategory.TwoDiscrete using (TwoDiscrete)
+open import GpdCont.TwoCategory.LocallyDiscrete using (LocallyDiscrete)
 open import GpdCont.TwoCategory.LaxFunctor
 open import GpdCont.TwoCategory.StrictFunctor
 open import GpdCont.TwoCategory.HomotopyGroupoid using () renaming (hGpdCat to hGpd)
@@ -25,7 +25,7 @@ open import Cubical.WildCat.Functor using (WildFunctor ; WildNatTrans)
 {-# INJECTIVE_FOR_INFERENCE ⟨_⟩ #-}
 
 SymmContCat : (ℓ : Level) → TwoCategory (ℓ-suc ℓ) ℓ ℓ
-SymmContCat ℓ = TwoDiscrete (SymmContWildCat ℓ) λ _ _ → isGroupoidMorphism
+SymmContCat ℓ = LocallyDiscrete (SymmContWildCat ℓ) λ _ _ → isGroupoidMorphism
 
 module ⟦-⟧ {ℓ} where
   private

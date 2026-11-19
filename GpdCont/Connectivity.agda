@@ -4,6 +4,7 @@ open import GpdCont.Prelude
 open import GpdCont.SetTruncation as ST
 
 open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Equiv.Properties using (hasSection)
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Path as Path
@@ -209,3 +210,48 @@ isConnected→mereLoopSpaceEquiv conn-A a b = do
     open import Cubical.HITs.PropositionalTruncation.Monad
     conjEquiv : (p : a ≡ b) → (a ≡ a) ≃ (b ≡ b)
     conjEquiv p = doubleCompPathEquiv p p
+
+isConnectedFunOnTrunc→isEquiv : ∀ k {f : A → B}
+  → isConnectedFun k f
+  → isOfHLevel k A
+  → isOfHLevel k B
+  → isEquiv f
+isConnectedFunOnTrunc→isEquiv k {f} is-conn-f is-trunc-A is-trunc-B .equiv-proof b =
+  isOfHLevel×isConnected→isContr k (fiber f b) is-trunc-fiber is-conn-fiber
+  where
+    is-trunc-fiber : isOfHLevel k (fiber f b)
+    is-trunc-fiber = isOfHLevelΣ k is-trunc-A λ a → isOfHLevelPath k is-trunc-B (f a) b
+
+    is-conn-fiber : isConnected k (fiber f b)
+    is-conn-fiber = is-conn-f b
+
+isConnectedFunTrunc : ∀ k → isConnectedFun k (Tr.∣_∣ₕ {A = A} {n = k})
+isConnectedFunTrunc zero = λ y → isConnectedZero (fiber {A = Unit*} Tr.∣_∣ₕ y)
+isConnectedFunTrunc k@(suc _) = elim.isConnectedPrecompose Tr.∣_∣ k goal
+  where
+    goal : ∀ P → hasSection (λ (s : (x : ∥ _ ∥ k) → ⟨ P x ⟩) → s ∘ Tr.∣_∣)
+    goal P .fst = Tr.elim (str ∘ P)
+    goal P .snd p = refl′ p
+
+isConnectedRespectTruncEquiv : ∀ k → ∥ A ∥ k ≃ ∥ B ∥ k → isConnected k A → isConnected k B
+isConnectedRespectTruncEquiv k e = isOfHLevelRespectEquiv 0 e
+
+isConnectedRespectEquiv : ∀ k → A ≃ B → isConnected k A → isConnected k B
+isConnectedRespectEquiv k e = isConnectedRetract k (invEq e) (equivFun e) (secEq e)
+
+module _ {A B : Type ℓ} (k : HLevel) (f : A → B) (is-conn-f : isConnectedFun k f)
+  where
+  private
+    trunc-equiv : ∥ A ∥ k ≃ ∥ B ∥ k
+    trunc-equiv = connectedTruncEquiv k f is-conn-f
+
+  isConnectedFun→isConnectedCodomain : isConnected k A → isConnected k B
+  isConnectedFun→isConnectedCodomain = isConnectedRespectTruncEquiv k trunc-equiv
+
+  isConnectedFun→isConnectedDomain : isConnected k B → isConnected k A
+  isConnectedFun→isConnectedDomain = isConnectedRespectTruncEquiv k (invEquiv trunc-equiv)
+
+isConnected→isConnectedTruncPlus : ∀ d k → isConnected k A → isConnected k (∥ A ∥ (d + k))
+isConnected→isConnectedTruncPlus d k = isConnectedRespectTruncEquiv k trunc-trunc-equiv where
+  trunc-trunc-equiv : (∥ A ∥ k) ≃ (∥ ∥ A ∥ (d + k) ∥ k)
+  trunc-trunc-equiv = Tr.truncOfTruncEq k d

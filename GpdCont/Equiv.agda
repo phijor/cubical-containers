@@ -72,3 +72,7 @@ equivΠDomain e = isoToEquiv (domIsoDep (equivToIso e))
 
 isSet→section-equivToIso : isSet A → isSet B → section (equivToIso {A = A} {B = B}) isoToEquiv
 isSet→section-equivToIso set-A set-B = retIsEq {f = isoToEquiv} (isSet→isEquiv-isoToPath set-A set-B)
+
+-- postCompFiberEquiv : ∀ {ℓB ℓC} {A : Type ℓ} {B : A → Type ℓB} {C : A → Type ℓC}
+--   → (f : ∀ a → B a → C a)
+--   → 
